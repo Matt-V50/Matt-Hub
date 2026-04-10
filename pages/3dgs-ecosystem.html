@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3DGS Ecosystem Stack</title>
+  <meta name="description" content="3D Gaussian Splatting industry ecosystem map: five-layer stack from hardware foundations to end applications, covering key players in AV, robotics, real estate, VFX, GIS, and industrial digital twins. Market intelligence 2025-2026.">
+  <meta name="icon"    content="🧊">
+  <meta name="tag"     content="参考">
+  <meta name="pinned"  content="true">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/shared.css">
+  <!-- Page-specific styles — all classes prefixed with gs- to avoid conflicts -->
+  <style>
+    /* Override container max-width for this wide layout */
+    .container { max-width: 1100px; }
+
+    .gs-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .gs-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      color: var(--text-hi);
+      margin-bottom: 6px;
+      font-family: 'Sora', sans-serif;
+    }
+    .gs-title span { color: var(--accent); }
+    .gs-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 300;
+      max-width: 520px;
+      margin-bottom: 10px;
+      font-family: 'Sora', sans-serif;
+    }
+    .gs-note {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 36px;
+    }
+    .gs-dot-multi {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ffca6e;
+      flex-shrink: 0;
+    }
+
+    /* Layer cards */
+    .gs-layer {
+      margin-bottom: 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .gs-layer:hover { border-color: var(--border-hi); }
+
+    .gs-lh {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Layer color themes via CSS custom props */
+    .gs-l1 { --lc: #a78bfa; --lb: rgba(139,92,246,.07); --ld: rgba(139,92,246,.25); }
+    .gs-l2 { --lc: #60a5fa; --lb: rgba(59,130,246,.07); --ld: rgba(59,130,246,.25); }
+    .gs-l3 { --lc: #34d399; --lb: rgba(52,211,153,.07); --ld: rgba(52,211,153,.25); }
+    .gs-l4 { --lc: #fbbf24; --lb: rgba(251,191,36,.07);  --ld: rgba(251,191,36,.25); }
+    .gs-l5 { --lc: #f87171; --lb: rgba(248,113,113,.07); --ld: rgba(248,113,113,.25); }
+    [data-theme="dark"] .gs-l1 { --lc: #c4b5fd; --lb: rgba(139,92,246,.10); }
+    [data-theme="dark"] .gs-l2 { --lc: #93c5fd; --lb: rgba(59,130,246,.10); }
+    [data-theme="dark"] .gs-l3 { --lc: #6ee7b7; --lb: rgba(52,211,153,.10); }
+    [data-theme="dark"] .gs-l4 { --lc: #fcd34d; --lb: rgba(251,191,36,.10); }
+    [data-theme="dark"] .gs-l5 { --lc: #fca5a5; --lb: rgba(248,113,113,.10); }
+
+    .gs-lh { background: var(--lb); }
+    .gs-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--lc);
+      background: var(--surface);
+      border: 1px solid var(--ld);
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+    .gs-ltitle {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--lc);
+      flex: 1;
+      font-family: 'Sora', sans-serif;
+    }
+    .gs-lsub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: .04em;
+    }
+
+    /* Player chips */
+    .gs-lb { padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .gs-player {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px 5px 7px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      transition: border-color .15s, background .15s, transform .15s;
+      position: relative;
+    }
+    .gs-player:hover { border-color: var(--ld); background: var(--lb); transform: translateY(-1px); }
+    .gs-player.multi { border-color: rgba(251,191,36,.3); }
+    .gs-player.multi::after {
+      content: '';
+      position: absolute;
+      top: -3px; right: -3px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #fbbf24;
+      border: 1.5px solid var(--surface);
+    }
+    .gs-plogo {
+      width: 16px; height: 16px;
+      border-radius: 3px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .gs-pinfo { display: flex; flex-direction: column; gap: 1px; }
+    .gs-pname { font-size: 12px; font-weight: 500; color: var(--text-hi); white-space: nowrap; line-height: 1.2; }
+    .gs-prole { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); white-space: nowrap; line-height: 1.2; }
+
+    /* Connector arrow */
+    .gs-conn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      color: var(--text-dim);
+      font-size: 11px;
+      position: relative;
+    }
+    .gs-conn::before, .gs-conn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 30%;
+      height: 1px;
+      background: var(--border);
+    }
+    .gs-conn::before { left: 0; }
+    .gs-conn::after  { right: 0; }
+
+    /* Legend */
+    .gs-legend {
+      margin-top: 28px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+    }
+    .gs-ll {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .gs-li { display: flex; flex-wrap: wrap; gap: 10px; }
+    .gs-lie { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+    .gs-ld { width: 8px; height: 8px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">◈ <span>MattHub</span></a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="gs-eyebrow">Market Intelligence · 2025–2026</div>
+<h1 class="gs-title">3DGS <span>Ecosystem</span> Stack</h1>
+<p class="gs-sub">Five-layer view of the 3D Gaussian Splatting industry — from hardware foundations to end applications.</p>
+<p class="gs-note"><span class="gs-dot-multi"></span>Yellow dot = company appears across multiple layers</p>
+
+<div class="gs-layer gs-l1">
+  <div class="gs-lh"><span class="gs-badge">L1</span><span class="gs-ltitle">End applications</span><span class="gs-lsub">who pays</span></div>
+  <div class="gs-lb" id="l1"></div>
+</div>
+<div class="gs-conn">↓</div>
+<div class="gs-layer gs-l2">
+  <div class="gs-lh"><span class="gs-badge">L2</span><span class="gs-ltitle">Domain platforms</span><span class="gs-lsub">vertical software stacks</span></div>
+  <div class="gs-lb" id="l2"></div>
+</div>
+<div class="gs-conn">↓</div>
+<div class="gs-layer gs-l3">
+  <div class="gs-lh"><span class="gs-badge">L3</span><span class="gs-ltitle">3DGS middleware &amp; AI models</span><span class="gs-lsub">where 3DGS lives</span></div>
+  <div class="gs-lb" id="l3"></div>
+</div>
+<div class="gs-conn">↓</div>
+<div class="gs-layer gs-l4">
+  <div class="gs-lh"><span class="gs-badge">L4</span><span class="gs-ltitle">Capture &amp; reconstruction</span><span class="gs-lsub">data acquisition layer</span></div>
+  <div class="gs-lb" id="l4"></div>
+</div>
+<div class="gs-conn">↓</div>
+<div class="gs-layer gs-l5">
+  <div class="gs-lh"><span class="gs-badge">L5</span><span class="gs-ltitle">Hardware &amp; compute foundation</span><span class="gs-lsub">physical layer</span></div>
+  <div class="gs-lb" id="l5"></div>
+</div>
+
+<div class="gs-legend">
+  <span class="gs-ll">Layers —</span>
+  <div class="gs-li">
+    <div class="gs-lie"><span class="gs-ld" style="background:#a78bfa"></span>L1 Applications</div>
+    <div class="gs-lie"><span class="gs-ld" style="background:#60a5fa"></span>L2 Platforms</div>
+    <div class="gs-lie"><span class="gs-ld" style="background:#34d399"></span>L3 Middleware</div>
+    <div class="gs-lie"><span class="gs-ld" style="background:#fbbf24"></span>L4 Capture</div>
+    <div class="gs-lie"><span class="gs-ld" style="background:#f87171"></span>L5 Hardware</div>
+  </div>
+  <div class="gs-lie"><span class="gs-ld" style="background:#fbbf24;box-shadow:0 0 0 2px rgba(251,191,36,.25)"></span>Multi-layer presence</div>
+</div>
+
+<footer>3DGS Ecosystem Map · CT-GS Lab · 2025–2026</footer>
+</div>
+
+<script>
+const LOGOS = {
+  "nvidia":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNzZiOTAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMwMDAiPk5WPC90ZXh0Pgo8L3N2Zz4=",
+  "apple":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNTU1NTU1Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiNmZmYiPjwvdGV4dD4KPC9zdmc+",
+  "meta":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDg2NmZmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPk08L3RleHQ+Cjwvc3ZnPg==",
+  "dji":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMWExYTFhIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkQ8L3RleHQ+Cjwvc3ZnPg==",
+  "waymo":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDBhMGRjIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlc8L3RleHQ+Cjwvc3ZnPg==",
+  "tesla":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjY2MwMDAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlQ8L3RleHQ+Cjwvc3ZnPg==",
+  "zillow":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA2YWZmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlo8L3RleHQ+Cjwvc3ZnPg==",
+  "ke":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY0YzAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPui0nTwvdGV4dD4KPC9zdmc+",
+  "siemens":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA5OTk5Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlM8L3RleHQ+Cjwvc3ZnPg==",
+  "esri":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA3YWMyIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkU8L3RleHQ+Cjwvc3ZnPg==",
+  "bentley":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMWIzNjVkIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkI8L3RleHQ+Cjwvc3ZnPg==",
+  "matterport":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY0YTAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPk1QPC90ZXh0Pgo8L3N2Zz4=",
+  "unreal":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMWQxZDFkIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlVFPC90ZXh0Pgo8L3N2Zz4=",
+  "faro":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZTIwMDFhIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkY8L3RleHQ+Cjwvc3ZnPg==",
+  "topcon":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDAzMDg3Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlRDPC90ZXh0Pgo8L3N2Zz4=",
+  "sony":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDAwMDAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlM8L3RleHQ+Cjwvc3ZnPg==",
+  "framestore":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY2NjAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkZTPC90ZXh0Pgo8L3N2Zz4=",
+  "flyability":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY5ODAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMwMDAiPkZMPC90ZXh0Pgo8L3N2Zz4=",
+  "skydio":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMGEzY2ZmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlNLPC90ZXh0Pgo8L3N2Zz4=",
+  "clearedge":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDAzZDgwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkNFPC90ZXh0Pgo8L3N2Zz4=",
+  "navvis":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZTMwNjEzIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPk5WPC90ZXh0Pgo8L3N2Zz4=",
+  "polycam":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNmM0N2ZmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlA8L3RleHQ+Cjwvc3ZnPg==",
+  "4dviews":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA3MmJiIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPjREPC90ZXh0Pgo8L3N2Zz4=",
+  "worldlabs":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY0NDAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPldMPC90ZXh0Pgo8L3N2Zz4=",
+  "babylon":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZTA2ODRiIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkJKPC90ZXh0Pgo8L3N2Zz4=",
+  "cesium":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNDhiMmU4Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMwMDAiPkM8L3RleHQ+Cjwvc3ZnPg==",
+  "applied":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMWEyNzQyIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkFJPC90ZXh0Pgo8L3N2Zz4=",
+  "unitree":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMmMyYzJjIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlVUPC90ZXh0Pgo8L3N2Zz4=",
+  "basf":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA0YTk2Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkJBPC90ZXh0Pgo8L3N2Zz4=",
+  "exxon":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjYzAxYjI4Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkVNPC90ZXh0Pgo8L3N2Zz4=",
+  "otoy":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY2NjAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPk9SPC90ZXh0Pgo8L3N2Zz4=",
+  "foundry":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjM2Q0ZDYwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPk5LPC90ZXh0Pgo8L3N2Zz4=",
+  "hailo":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDBjM2EwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMwMDAiPkg8L3RleHQ+Cjwvc3ZnPg==",
+  "livox":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDBhZWVmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkxYPC90ZXh0Pgo8L3N2Zz4=",
+  "st":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDMyMzRiIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlNUPC90ZXh0Pgo8L3N2Zz4=",
+  "volinga":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNjYwMGNjIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlZMPC90ZXh0Pgo8L3N2Zz4=",
+  "postshot":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmYzMzY2Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPlBTPC90ZXh0Pgo8L3N2Zz4=",
+  "lixel":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA1MGZmIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkxJPC90ZXh0Pgo8L3N2Zz4=",
+  "supersplat":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMjJjYzg4Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMwMDAiPlNTPC90ZXh0Pgo8L3N2Zz4=",
+  "colmap":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjNDQ0NDQ0Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkNNPC90ZXh0Pgo8L3N2Zz4=",
+  "carla":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMDA1YmFjIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkNBPC90ZXh0Pgo8L3N2Zz4=",
+  "giraffe360":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjZmY2YjM1Ii8+CiAgPHRleHQgeD0iMTYiIHk9IjIxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiPkczPC90ZXh0Pgo8L3N2Zz4=",
+};
+
+const DATA = {
+  l1:[
+    {logo:"zillow",   name:"Zillow",          role:"Real estate · US",  multi:false},
+    {logo:"ke",       name:"贝壳 / 如视",      role:"Real estate · CN",  multi:false},
+    {logo:"waymo",    name:"Waymo",            role:"AV · US",           multi:true},
+    {logo:"tesla",    name:"Tesla",            role:"AV · US",           multi:true},
+    {logo:"unitree",  name:"宇树 Unitree",     role:"Robotics HW · CN",  multi:false},
+    {logo:"applied",  name:"银河通用",          role:"Robotics HW · CN",  multi:false},
+    {logo:"exxon",    name:"ExxonMobil",       role:"Plant ops · US",    multi:false},
+    {logo:"basf",     name:"BASF",             role:"Plant ops · DE",    multi:false},
+    {logo:"skydio",   name:"Skydio",           role:"Inspection · US",   multi:false},
+    {logo:"flyability",name:"Flyability",      role:"Inspection · CH",   multi:false},
+    {logo:"dji",      name:"DJI",              role:"Inspection · CN",   multi:true},
+    {logo:"framestore",name:"Framestore",      role:"VFX / Film · UK",   multi:false},
+    {logo:"meta",     name:"Meta Quest",       role:"XR consumer · US",  multi:true},
+    {logo:"apple",    name:"Apple Vision Pro", role:"XR consumer · US",  multi:true},
+  ],
+  l2:[
+    {logo:"nvidia",   name:"NVIDIA Omniverse", role:"Sim platform · US", multi:true},
+    {logo:"nvidia",   name:"Isaac Sim",         role:"Robot sim · US",   multi:true},
+    {logo:"applied",  name:"Applied Intuition", role:"AV sim · US",      multi:false},
+    {logo:"carla",    name:"CARLA",             role:"AV sim open-src",  multi:false},
+    {logo:"bentley",  name:"Bentley",           role:"Infra DT · US",    multi:false},
+    {logo:"siemens",  name:"Siemens / AVEVA",   role:"Plant design · DE",multi:true},
+    {logo:"esri",     name:"Esri ArcGIS",       role:"GIS platform · US",multi:false},
+    {logo:"cesium",   name:"Cesium",            role:"3D tiles / web · US",multi:false},
+    {logo:"unreal",   name:"Unreal Engine",     role:"Game / XR · US",   multi:false},
+    {logo:"matterport",name:"Matterport",       role:"RE tour · US",     multi:true},
+  ],
+  l3:[
+    {logo:"nvidia",   name:"NVIDIA NuRec",     role:"Neural recon · US", multi:true},
+    {logo:"nvidia",   name:"NVIDIA GR00T",     role:"Robot VLA · US",    multi:true},
+    {logo:"nvidia",   name:"NVIDIA Cosmos",    role:"World model · US",  multi:true},
+    {logo:"worldlabs",name:"World Labs/Spark", role:"Web renderer · US", multi:false},
+    {logo:"babylon",  name:"Babylon.js",       role:"Web 3D engine · US",multi:false},
+    {logo:"supersplat",name:"SuperSplat",      role:"3DGS editor · US",  multi:false},
+    {logo:"clearedge",name:"ClearEdge3D",      role:"Scan-to-BIM · US",  multi:false},
+    {logo:"navvis",   name:"NavVis",           role:"Indoor map SW · DE",multi:false},
+    {logo:"polycam",  name:"Polycam",          role:"Mobile 3DGS · US",  multi:false},
+    {logo:"volinga",  name:"Volinga",          role:"3DGS film · FI",    multi:false},
+    {logo:"4dviews",  name:"4DViews",          role:"Volumetric · FR",   multi:false},
+    {logo:"otoy",     name:"OctaneRender",     role:"Render · US",       multi:false},
+    {logo:"foundry",  name:"Nuke 17",          role:"VFX comp · UK",     multi:false},
+  ],
+  l4:[
+    {logo:"dji",      name:"DJI Terra",        role:"UAV photogrammetry · CN",multi:true},
+    {logo:"lixel",    name:"XGrids / Lixel",   role:"LiDAR+3DGS · CN",   multi:false},
+    {logo:"giraffe360",name:"Giraffe360",      role:"RE scan · LV",      multi:false},
+    {logo:"topcon",   name:"Topcon",           role:"Survey scanner · JP",multi:false},
+    {logo:"faro",     name:"FARO",             role:"Laser scanner · US", multi:false},
+    {logo:"lixel",    name:"Infinite Realities",role:"Vol. stage · UK",  multi:false},
+    {logo:"colmap",   name:"COLMAP",           role:"SfM open-source",   multi:false},
+    {logo:"postshot", name:"Postshot",         role:"3DGS training · US", multi:false},
+    {logo:"matterport",name:"Matterport Pro3", role:"3D capture · US",   multi:true},
+  ],
+  l5:[
+    {logo:"nvidia",   name:"NVIDIA GPU",       role:"Training & render · US",multi:true},
+    {logo:"apple",    name:"Apple LiDAR",      role:"Consumer depth · US",   multi:true},
+    {logo:"livox",    name:"Livox",            role:"Industrial LiDAR · CN", multi:false},
+    {logo:"dji",      name:"DJI drones",       role:"UAV platform · CN",     multi:true},
+    {logo:"hailo",    name:"Hailo AI HAT+",    role:"Edge compute · IL",     multi:false},
+    {logo:"st",       name:"STM32",            role:"Sensor sync · CH",      multi:false},
+    {logo:"sony",     name:"Sony ILX-LR1",     role:"High-res camera · JP",  multi:false},
+    {logo:"siemens",  name:"Siemens",          role:"Industrial infra · DE", multi:true},
+  ],
+};
+
+function buildPlayer(p) {
+  const d = document.createElement('div');
+  d.className = 'gs-player' + (p.multi ? ' multi' : '');
+  const img = document.createElement('img');
+  img.className = 'gs-plogo';
+  img.src = LOGOS[p.logo] || LOGOS['colmap'];
+  img.alt = p.name;
+  const info = document.createElement('div');
+  info.className = 'gs-pinfo';
+  info.innerHTML = `<span class="gs-pname">${p.name}</span><span class="gs-prole">${p.role}</span>`;
+  d.appendChild(img);
+  d.appendChild(info);
+  return d;
+}
+
+['l1','l2','l3','l4','l5'].forEach(id => {
+  const container = document.getElementById(id);
+  DATA[id].forEach(p => container.appendChild(buildPlayer(p)));
+});
+</script>
+</body>
+</html>
