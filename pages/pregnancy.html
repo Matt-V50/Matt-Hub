@@ -57,7 +57,7 @@
     .pn-chip-name { font-size: 11px; font-weight: 500; color: var(--text-hi); white-space: nowrap; line-height: 1.2; }
     .pn-chip-note { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); line-height: 1.2; }
     .pn-chip.priority { border-color: var(--pd); }
-    .pn-chip.priority::before { content: '★'; font-size: 8px; color: var(--pc); position: absolute; top: -3px; right: -3px; }
+    .pn-chip.priority::before { content: '★'; font-size: 10px; color: var(--pc); position: absolute; top: -5px; right: -5px; height: 13px; width: 13px; line-height: 13px; text-align: center;}
     .pn-calbar { margin-top: 8px; padding: 6px 10px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
     .pn-calbar-fill { flex: 1; height: 4px; border-radius: 2px; background: var(--border); position: relative; overflow: hidden; }
     .pn-calbar-fill span { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: var(--pc); }
@@ -140,7 +140,6 @@
       width: 13px; height: 13px;
       font-size: 10px; line-height: 13px; text-align: center;
       border-radius: 50%;
-      border: 1.5px solid var(--surface);
       opacity: 0.85;
       pointer-events: none;
     }
