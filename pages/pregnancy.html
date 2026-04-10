@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>孕期营养配比指南</title>
+  <meta name="description" content="Pregnancy nutrition guide: three-phase timeline with food categories, key micronutrients, and personalized weekly tracker.">
+  <meta name="icon" content="🤰">
+  <meta name="tag" content="参考">
+  <meta name="pinned" content="false">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/shared.css">
+  <style>
+    .container { max-width: 900px; }
+    .pn-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px; }
+    .pn-title { font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--text-hi); margin-bottom: 6px; font-family: 'Sora', sans-serif; }
+    .pn-title span { color: var(--accent); }
+    .pn-sub { font-size: 13px; color: var(--text-dim); font-weight: 300; max-width: 560px; margin-bottom: 24px; line-height: 1.7; }
+    .pn-datebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--tag-bg); }
+    .pn-date-group { display: flex; align-items: center; gap: 8px; }
+    .pn-date-group label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: .04em; white-space: nowrap; }
+    .pn-date-group input[type="date"] { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-hi); outline: none; cursor: pointer; }
+    .pn-date-group input[type="date"]:focus { border-color: var(--accent); }
+    .pn-date-sep { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--border-hi); }
+    .pn-week-display { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 500; margin-left: auto; }
+    .pn-week-display.hidden { display: none; }
+    .pn-timeline { position: relative; }
+    .pn-now-line { position: absolute; left: 0; right: 0; z-index: 10; border-top: 2px dashed #ef4444; pointer-events: none; display: none; }
+    .pn-now-label { position: absolute; right: 0; top: -20px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #ef4444; font-weight: 500; background: var(--surface); padding: 0 6px; letter-spacing: .04em; }
+    .pn-edd-line { position: absolute; left: 0; right: 0; z-index: 9; border-top: 2px solid #60a5fa; pointer-events: none; display: none; }
+    .pn-edd-label { position: absolute; left: 0; top: -20px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #60a5fa; font-weight: 500; background: var(--surface); padding: 0 6px; letter-spacing: .04em; }
+    .pn-phase { border-radius: 10px; border: 1px solid var(--border); background: var(--surface); overflow: hidden; margin-bottom: 6px; transition: border-color .2s; position: relative; }
+    .pn-phase:hover { border-color: var(--border-hi); }
+    .pn-ph { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+    .pn-p1 { --pc: #a78bfa; --pb: rgba(139,92,246,.07); --pd: rgba(139,92,246,.25); }
+    .pn-p2 { --pc: #34d399; --pb: rgba(52,211,153,.07); --pd: rgba(52,211,153,.25); }
+    .pn-p3 { --pc: #f87171; --pb: rgba(248,113,113,.07); --pd: rgba(248,113,113,.25); }
+    [data-theme="dark"] .pn-p1 { --pc: #c4b5fd; --pb: rgba(139,92,246,.10); }
+    [data-theme="dark"] .pn-p2 { --pc: #6ee7b7; --pb: rgba(52,211,153,.10); }
+    [data-theme="dark"] .pn-p3 { --pc: #fca5a5; --pb: rgba(248,113,113,.10); }
+    .pn-ph { background: var(--pb); }
+    .pn-badge { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; color: var(--pc); background: var(--surface); border: 1px solid var(--pd); padding: 2px 7px; border-radius: 4px; letter-spacing: .05em; white-space: nowrap; }
+    .pn-ptitle { font-size: 13px; font-weight: 500; color: var(--pc); flex: 1; }
+    .pn-psub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .04em; }
+    .pn-pweeks { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .04em; white-space: nowrap; }
+    .pn-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; }
+    .pn-col { padding: 12px 14px; border-right: 1px solid var(--border); }
+    .pn-col:last-child { border-right: none; }
+    .pn-col-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+    .pn-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .pn-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px 5px 6px; border-radius: 7px; border: 1px solid var(--border); background: var(--tag-bg); transition: border-color .15s, background .15s, transform .15s; cursor: default; position: relative; }
+    .pn-chip:hover { border-color: var(--pd); background: var(--pb); transform: translateY(-1px); }
+    .pn-chip-icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; line-height: 1; }
+    .pn-chip-info { display: flex; flex-direction: column; gap: 1px; }
+    .pn-chip-name { font-size: 11px; font-weight: 500; color: var(--text-hi); white-space: nowrap; line-height: 1.2; }
+    .pn-chip-note { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); line-height: 1.2; }
+    .pn-chip.priority { border-color: var(--pd); }
+    .pn-chip.priority::before { content: '★'; font-size: 8px; color: var(--pc); position: absolute; top: -3px; right: -3px; }
+    .pn-calbar { margin-top: 8px; padding: 6px 10px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+    .pn-calbar-fill { flex: 1; height: 4px; border-radius: 2px; background: var(--border); position: relative; overflow: hidden; }
+    .pn-calbar-fill span { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: var(--pc); }
+    .pn-conn { display: flex; align-items: center; justify-content: center; height: 16px; color: var(--text-dim); font-size: 11px; position: relative; }
+    .pn-conn::before, .pn-conn::after { content: ''; position: absolute; top: 50%; width: 30%; height: 1px; background: var(--border); }
+    .pn-conn::before { left: 0; } .pn-conn::after { right: 0; }
+    .pn-section-divider { margin: 40px 0 24px; display: flex; align-items: center; gap: 14px; }
+    .pn-section-divider::before, .pn-section-divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border-hi), transparent); }
+    .pn-section-divider-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+    .pn-ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 640px) { .pn-ref-grid { grid-template-columns: 1fr; } }
+    .pn-ref-card { padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--tag-bg); }
+    .pn-ref-card.avoid { border-color: rgba(239,68,68,.18); background: rgba(239,68,68,.03); }
+    [data-theme="dark"] .pn-ref-card.avoid { background: rgba(239,68,68,.05); }
+    .pn-ref-card.suppl { border-color: rgba(99,102,241,.18); background: rgba(99,102,241,.03); }
+    [data-theme="dark"] .pn-ref-card.suppl { background: rgba(99,102,241,.05); }
+    .pn-ref-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+    .pn-ref-card.avoid .pn-ref-title { color: #ef4444; }
+    .pn-ref-card.suppl .pn-ref-title { color: var(--accent); }
+    .pn-ref-card.avoid .pn-chips .pn-chip:hover { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.05); }
+    .pn-ref-card.suppl .pn-chips .pn-chip:hover { border-color: rgba(99,102,241,.3); background: rgba(99,102,241,.05); }
+    .pn-legend { margin-top: 16px; padding: 14px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--tag-bg); display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+    .pn-ll { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; }
+    .pn-li { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pn-lie { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+    .pn-ld { width: 8px; height: 8px; border-radius: 50%; }
+    @media (max-width: 600px) {
+      .pn-body { grid-template-columns: 1fr; }
+      .pn-col { border-right: none; border-bottom: 1px solid var(--border); }
+      .pn-col:last-child { border-bottom: none; }
+      .pn-datebar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .pn-week-display { margin-left: 0; }
+    }
+
+    /* ── Ruler ── */
+    .pn-timeline-wrap { display: flex; gap: 0; align-items: flex-start; }
+    .pn-ruler {
+      width: 38px; flex-shrink: 0; position: relative;
+      border-right: 1px solid var(--border);
+      margin-right: 10px;
+    }
+    .pn-timeline { flex: 1; position: relative; min-width: 0; }
+    .pn-tick {
+      position: absolute; right: 0;
+      display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+      transform: translateY(-50%);
+    }
+    .pn-tick::after {
+      content: ''; display: block; height: 1px;
+      width: 6px; background: var(--border-hi);
+    }
+    .pn-tick.major::after { width: 10px; background: var(--text-dim); }
+    .pn-tick span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; color: var(--text-dim); line-height: 1;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html"><img src="../assets/img/favicon.svg" alt="MattHub"><span>MattHub</span></a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="pn-eyebrow">Prenatal Nutrition · 孕期营养指南</div>
+<h1 class="pn-title">孕期<span>营养配比</span>时间线</h1>
+<p class="pn-sub">三阶段视图 — 按孕周划分食物类别与关键微量元素补充建议。</p>
+
+<div class="pn-datebar">
+  <div class="pn-date-group">
+    <label for="conception-input">🔬 受精日</label>
+    <input type="date" id="conception-input">
+  </div>
+  <span class="pn-date-sep">⇄</span>
+  <div class="pn-date-group">
+    <label for="edd-input">📅 预产期</label>
+    <input type="date" id="edd-input">
+  </div>
+  <span class="pn-week-display hidden" id="week-display"></span>
+</div>
+
+<div class="pn-timeline-wrap">
+<div class="pn-ruler" id="pn-ruler"></div>
+<div class="pn-timeline" id="timeline">
+  <div class="pn-now-line" id="now-line"><span class="pn-now-label" id="now-label"></span></div>
+  <div class="pn-edd-line" id="edd-line"><span class="pn-edd-label" id="edd-label"></span></div>
+
+  <div class="pn-phase pn-p1" id="phase1">
+    <div class="pn-ph"><span class="pn-badge">T1</span><span class="pn-ptitle">孕早期</span><span class="pn-pweeks">Week 0 — 12 · 13周</span><span class="pn-psub">+0 kcal/day</span></div>
+    <div class="pn-body">
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🌾</span> 主食 · 碳水</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🍚</span><div class="pn-chip-info"><span class="pn-chip-name">米饭 / 面条</span><span class="pn-chip-note">200-250g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍞</span><div class="pn-chip-info"><span class="pn-chip-name">全麦面包</span><span class="pn-chip-note">粗细搭配</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍠</span><div class="pn-chip-info"><span class="pn-chip-name">红薯 / 土豆</span><span class="pn-chip-note">替代部分精粮</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥩</span> 肉蛋鱼 · 蛋白质</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🥚</span><div class="pn-chip-info"><span class="pn-chip-name">鸡蛋</span><span class="pn-chip-note">1个/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🐟</span><div class="pn-chip-info"><span class="pn-chip-name">鱼虾</span><span class="pn-chip-note">低汞深海鱼优先</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍗</span><div class="pn-chip-info"><span class="pn-chip-name">禽肉</span><span class="pn-chip-note">50-100g/天</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥬</span> 蔬菜 · 水果</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon">🥦</span><div class="pn-chip-info"><span class="pn-chip-name">深绿叶菜</span><span class="pn-chip-note">★ 叶酸来源 · 300g+</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍊</span><div class="pn-chip-info"><span class="pn-chip-name">柑橘类水果</span><span class="pn-chip-note">Vit C · 200g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍌</span><div class="pn-chip-info"><span class="pn-chip-name">香蕉 / 苹果</span><span class="pn-chip-note">缓解孕吐</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥛</span> 奶豆 · 油脂</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🥛</span><div class="pn-chip-info"><span class="pn-chip-name">牛奶 / 酸奶</span><span class="pn-chip-note">300ml/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫘</span><div class="pn-chip-info"><span class="pn-chip-name">豆腐 / 豆浆</span><span class="pn-chip-note">植物蛋白补充</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥜</span><div class="pn-chip-info"><span class="pn-chip-name">坚果</span><span class="pn-chip-note">10g/天 · 不过量</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">💊</span> 关键微量元素</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#a78bfa22;color:#a78bfa;border-radius:50%;font-size:10px;font-weight:700;">B9</span><div class="pn-chip-info"><span class="pn-chip-name">叶酸</span><span class="pn-chip-note">★ 600μg/天 · 必须补充剂</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#60a5fa22;color:#60a5fa;border-radius:50%;font-size:10px;font-weight:700;">I</span><div class="pn-chip-info"><span class="pn-chip-name">碘</span><span class="pn-chip-note">230μg/天 · 碘盐+海带</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#fbbf2422;color:#fbbf24;border-radius:50%;font-size:10px;font-weight:700;">Zn</span><div class="pn-chip-info"><span class="pn-chip-name">锌</span><span class="pn-chip-note">9.5mg/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#f8717122;color:#f87171;border-radius:50%;font-size:10px;font-weight:700;">B6</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 B6</span><span class="pn-chip-note">缓解孕吐</span></div></div></div><div class="pn-calbar" style="margin-top:10px;"><span>热量</span><div class="pn-calbar-fill"><span style="width:0%"></span></div><span>+0 kcal</span></div></div>
+    </div>
+  </div>
+
+  <div class="pn-conn">↓</div>
+
+  <div class="pn-phase pn-p2" id="phase2">
+    <div class="pn-ph"><span class="pn-badge">T2</span><span class="pn-ptitle">孕中期</span><span class="pn-pweeks">Week 13 — 27 · 15周</span><span class="pn-psub">+300 kcal/day</span></div>
+    <div class="pn-body">
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🌾</span> 主食 · 碳水</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🍚</span><div class="pn-chip-info"><span class="pn-chip-name">米饭 / 面条</span><span class="pn-chip-note">250-300g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥣</span><div class="pn-chip-info"><span class="pn-chip-name">杂粮粥</span><span class="pn-chip-note">燕麦/小米/糙米</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥔</span><div class="pn-chip-info"><span class="pn-chip-name">薯类</span><span class="pn-chip-note">膳食纤维 · 防便秘</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥩</span> 肉蛋鱼 · 蛋白质</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon">🥩</span><div class="pn-chip-info"><span class="pn-chip-name">红肉(牛/羊)</span><span class="pn-chip-note">★ 铁来源 · 每周3-4次</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥚</span><div class="pn-chip-info"><span class="pn-chip-name">鸡蛋</span><span class="pn-chip-note">1-2个/天</span></div></div><div class="pn-chip priority"><span class="pn-chip-icon">🐟</span><div class="pn-chip-info"><span class="pn-chip-name">深海鱼</span><span class="pn-chip-note">★ DHA · 2-3次/周</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🦐</span><div class="pn-chip-info"><span class="pn-chip-name">虾</span><span class="pn-chip-note">优质蛋白 + 锌</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫀</span><div class="pn-chip-info"><span class="pn-chip-name">动物肝脏</span><span class="pn-chip-note">铁+VitA · 每周1-2次</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥬</span> 蔬菜 · 水果</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🥬</span><div class="pn-chip-info"><span class="pn-chip-name">深色蔬菜</span><span class="pn-chip-note">400-500g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫑</span><div class="pn-chip-info"><span class="pn-chip-name">彩椒 / 番茄</span><span class="pn-chip-note">Vit C · 促铁吸收</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍇</span><div class="pn-chip-info"><span class="pn-chip-name">应季水果</span><span class="pn-chip-note">200-400g · 控糖</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥛</span> 奶豆 · 油脂</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon">🥛</span><div class="pn-chip-info"><span class="pn-chip-name">牛奶 / 酸奶</span><span class="pn-chip-note">★ 钙来源 · 400-500ml</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🧀</span><div class="pn-chip-info"><span class="pn-chip-name">奶酪</span><span class="pn-chip-note">高钙密度</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫘</span><div class="pn-chip-info"><span class="pn-chip-name">豆制品</span><span class="pn-chip-note">钙 + 植物蛋白</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥜</span><div class="pn-chip-info"><span class="pn-chip-name">坚果</span><span class="pn-chip-note">10g · VitE + 好脂肪</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">💊</span> 关键微量元素</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#34d39922;color:#34d399;border-radius:50%;font-size:10px;font-weight:700;">Ca</span><div class="pn-chip-info"><span class="pn-chip-name">钙</span><span class="pn-chip-note">★ 1000mg/天 · 骨骼发育</span></div></div><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#f8717122;color:#f87171;border-radius:50%;font-size:10px;font-weight:700;">Fe</span><div class="pn-chip-info"><span class="pn-chip-name">铁</span><span class="pn-chip-note">★ 24-29mg/天 · 造血</span></div></div><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#fbbf2422;color:#fbbf24;border-radius:50%;font-size:9px;font-weight:700;">DHA</span><div class="pn-chip-info"><span class="pn-chip-name">DHA</span><span class="pn-chip-note">★ 200mg/天 · 脑发育</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#a78bfa22;color:#a78bfa;border-radius:50%;font-size:10px;font-weight:700;">B9</span><div class="pn-chip-info"><span class="pn-chip-name">叶酸</span><span class="pn-chip-note">继续 400-600μg</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#60a5fa22;color:#60a5fa;border-radius:50%;font-size:10px;font-weight:700;">D3</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 D</span><span class="pn-chip-note">600IU · 促钙吸收</span></div></div></div><div class="pn-calbar" style="margin-top:10px;"><span>热量</span><div class="pn-calbar-fill"><span style="width:50%"></span></div><span>+300 kcal</span></div></div>
+    </div>
+  </div>
+
+  <div class="pn-conn">↓</div>
+
+  <div class="pn-phase pn-p3" id="phase3">
+    <div class="pn-ph"><span class="pn-badge">T3</span><span class="pn-ptitle">孕晚期</span><span class="pn-pweeks">Week 28 — 42 · 14周</span><span class="pn-psub">+450 kcal/day</span></div>
+    <div class="pn-body">
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🌾</span> 主食 · 碳水</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🍚</span><div class="pn-chip-info"><span class="pn-chip-name">米饭 / 面食</span><span class="pn-chip-note">300-400g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥣</span><div class="pn-chip-info"><span class="pn-chip-name">杂粮粥</span><span class="pn-chip-note">少量多餐 · 防烧心</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥩</span> 肉蛋鱼 · 蛋白质</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon">🥩</span><div class="pn-chip-info"><span class="pn-chip-name">红肉</span><span class="pn-chip-note">★ 铁峰值期 · 充足摄入</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🐟</span><div class="pn-chip-info"><span class="pn-chip-name">深海鱼</span><span class="pn-chip-note">DHA · 持续补充</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥚</span><div class="pn-chip-info"><span class="pn-chip-name">鸡蛋</span><span class="pn-chip-note">1-2个/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫀</span><div class="pn-chip-info"><span class="pn-chip-name">动物肝脏</span><span class="pn-chip-note">每周1次 · 补铁</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥬</span> 蔬菜 · 水果</div><div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🥬</span><div class="pn-chip-info"><span class="pn-chip-name">深色蔬菜</span><span class="pn-chip-note">500g/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫑</span><div class="pn-chip-info"><span class="pn-chip-name">富含 Vit C</span><span class="pn-chip-note">促铁吸收 · 彩椒/番茄</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍎</span><div class="pn-chip-info"><span class="pn-chip-name">低GI水果</span><span class="pn-chip-note">200-300g · 控血糖</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🥒</span><div class="pn-chip-info"><span class="pn-chip-name">高纤蔬菜</span><span class="pn-chip-note">芹菜/莴笋 · 防便秘</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">🥛</span> 奶豆 · 油脂</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon">🥛</span><div class="pn-chip-info"><span class="pn-chip-name">牛奶 / 酸奶</span><span class="pn-chip-note">★ 500ml/天</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫘</span><div class="pn-chip-info"><span class="pn-chip-name">豆制品</span><span class="pn-chip-note">钙 + 蛋白互补</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🫒</span><div class="pn-chip-info"><span class="pn-chip-name">植物油</span><span class="pn-chip-note">25g/天 · 橄榄油/亚麻油</span></div></div></div></div>
+      <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">💊</span> 关键微量元素</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#f8717122;color:#f87171;border-radius:50%;font-size:10px;font-weight:700;">Fe</span><div class="pn-chip-info"><span class="pn-chip-name">铁</span><span class="pn-chip-note">★ 29mg+ · 可能需铁剂</span></div></div><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#34d39922;color:#34d399;border-radius:50%;font-size:10px;font-weight:700;">Ca</span><div class="pn-chip-info"><span class="pn-chip-name">钙</span><span class="pn-chip-note">★ 1000-1200mg · 持续</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#fbbf2422;color:#fbbf24;border-radius:50%;font-size:9px;font-weight:700;">DHA</span><div class="pn-chip-info"><span class="pn-chip-name">DHA</span><span class="pn-chip-note">200mg · 脑发育冲刺</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#60a5fa22;color:#60a5fa;border-radius:50%;font-size:10px;font-weight:700;">D3</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 D</span><span class="pn-chip-note">600IU · 促钙吸收</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#a78bfa22;color:#a78bfa;border-radius:50%;font-size:10px;font-weight:700;">K2</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 K</span><span class="pn-chip-note">钙沉积 · 凝血储备</span></div></div></div><div class="pn-calbar" style="margin-top:10px;"><span>热量</span><div class="pn-calbar-fill"><span style="width:75%"></span></div><span>+450 kcal</span></div></div>
+    </div>
+  </div>
+</div><!-- end timeline -->
+</div><!-- end timeline-wrap -->
+
+<div class="pn-section-divider"><span class="pn-section-divider-label">📋 参考信息 · 全孕期适用</span></div>
+
+<div class="pn-ref-grid">
+  <div class="pn-ref-card avoid">
+    <div class="pn-ref-title">⚠ 孕期禁忌</div>
+    <div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">🍣</span><div class="pn-chip-info"><span class="pn-chip-name">生食</span><span class="pn-chip-note">生鱼片/溏心蛋/生肉</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🦈</span><div class="pn-chip-info"><span class="pn-chip-name">高汞鱼</span><span class="pn-chip-note">鲨鱼/旗鱼/金枪鱼限量</span></div></div><div class="pn-chip"><span class="pn-chip-icon">🍷</span><div class="pn-chip-info"><span class="pn-chip-name">酒精</span><span class="pn-chip-note">完全避免</span></div></div><div class="pn-chip"><span class="pn-chip-icon">☕</span><div class="pn-chip-info"><span class="pn-chip-name">咖啡因</span><span class="pn-chip-note">≤200mg/天 · ~1杯</span></div></div><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">过量 Vit A</span><span class="pn-chip-note">肝脏勿天天吃</span></div></div></div>
+  </div>
+  <div class="pn-ref-card suppl">
+    <div class="pn-ref-title">💡 建议补充剂</div>
+    <div class="pn-chips"><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">复合维生素</span><span class="pn-chip-note">含叶酸 · 全孕期</span></div></div><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">DHA 鱼油</span><span class="pn-chip-note">200mg+ · 孕中晚期</span></div></div><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">钙片</span><span class="pn-chip-note">饮食不足时 · 孕中晚期</span></div></div><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">铁剂</span><span class="pn-chip-note">贫血时 · 遵医嘱</span></div></div><div class="pn-chip"><span class="pn-chip-icon">💊</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 D</span><span class="pn-chip-note">600IU · 日照不足时</span></div></div></div>
+  </div>
+</div>
+
+<div class="pn-legend">
+  <span class="pn-ll">阶段 —</span>
+  <div class="pn-li">
+    <div class="pn-lie"><span class="pn-ld" style="background:#a78bfa"></span>T1 孕早期</div>
+    <div class="pn-lie"><span class="pn-ld" style="background:#34d399"></span>T2 孕中期</div>
+    <div class="pn-lie"><span class="pn-ld" style="background:#f87171"></span>T3 孕晚期</div>
+  </div>
+  <span class="pn-ll" style="margin-left:12px;">标记 —</span>
+  <div class="pn-li">
+    <div class="pn-lie"><span style="color:#a78bfa;font-size:10px;">★</span> 该阶段重点</div>
+    <div class="pn-lie"><span style="color:#ef4444;font-size:12px;font-family:monospace;">┄</span> 当前孕周</div>
+    <div class="pn-lie"><span style="color:#60a5fa;font-size:12px;font-family:monospace;">─</span> 预产期 EDD</div>
+  </div>
+</div>
+
+<footer>孕期营养配比指南 · 仅供参考，请遵医嘱 · 2025</footer>
+</div>
+
+<script>
+(function() {
+  const conceptionInput = document.getElementById('conception-input');
+  const eddInput        = document.getElementById('edd-input');
+  const weekDisplay     = document.getElementById('week-display');
+  const nowLine         = document.getElementById('now-line');
+  const nowLabel        = document.getElementById('now-label');
+  const eddLine         = document.getElementById('edd-line');
+  const eddLabel        = document.getElementById('edd-label');
+  const timeline        = document.getElementById('timeline');
+
+  const DAY_MS = 86400000;
+  const CONCEPTION_TO_EDD = 266;
+
+  const PHASES = [
+    { id: 'phase1', start: 0,  end: 13 },
+    { id: 'phase2', start: 13, end: 28 },
+    { id: 'phase3', start: 28, end: 42 },
+  ];
+
+  const savedC = localStorage.getItem('pn-conception');
+  const savedE = localStorage.getItem('pn-edd');
+  if (savedC) conceptionInput.value = savedC;
+  if (savedE) eddInput.value = savedE;
+  if (savedC && !savedE) syncEdd(savedC);
+  if (savedE && !savedC) syncConception(savedE);
+
+  // Render ruler after layout is ready
+  window.addEventListener('load', function() { updateTimeline(); renderRuler(); });
+
+  conceptionInput.addEventListener('change', function() {
+    localStorage.setItem('pn-conception', this.value);
+    if (this.value) { syncEdd(this.value); localStorage.setItem('pn-edd', eddInput.value); }
+    updateTimeline(); renderRuler();
+  });
+  eddInput.addEventListener('change', function() {
+    localStorage.setItem('pn-edd', this.value);
+    if (this.value) { syncConception(this.value); localStorage.setItem('pn-conception', conceptionInput.value); }
+    updateTimeline(); renderRuler();
+  });
+
+  function syncEdd(cStr) {
+    const d = new Date(cStr + 'T00:00:00');
+    d.setDate(d.getDate() + CONCEPTION_TO_EDD);
+    eddInput.value = fmtDate(d);
+  }
+  function syncConception(eStr) {
+    const d = new Date(eStr + 'T00:00:00');
+    d.setDate(d.getDate() - CONCEPTION_TO_EDD);
+    conceptionInput.value = fmtDate(d);
+  }
+  function fmtDate(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  // ── Core: get pixel position of a given week within the timeline ──
+  // el.offsetTop is relative to .pn-timeline (position:relative = offsetParent)
+  function getWeekPosition(week) {
+    let target = PHASES.find(function(p) { return week >= p.start && week < p.end; });
+    if (!target) target = PHASES[PHASES.length - 1]; // clamp to T3 end
+    const el = document.getElementById(target.id);
+    const headerH = el.querySelector('.pn-ph').offsetHeight;
+    const bodyH   = el.offsetHeight - headerH;
+    const frac    = Math.min(Math.max((week - target.start) / (target.end - target.start), 0), 1);
+    return el.offsetTop + headerH + bodyH * frac;
+  }
+
+  function positionLine(lineEl, labelEl, week, labelText) {
+    const top = getWeekPosition(week);
+    lineEl.style.display = 'block';
+    lineEl.style.top = top + 'px';
+    labelEl.textContent = labelText;
+  }
+
+  function updateTimeline() {
+    const eStr = eddInput.value;
+    positionEddLine(eStr);
+
+    if (!eStr) {
+      weekDisplay.classList.add('hidden');
+      nowLine.style.display = 'none';
+      return;
+    }
+
+    const edd = new Date(eStr + 'T00:00:00');
+    const lmp = new Date(edd.getTime() - 280 * DAY_MS);
+    const gestDays = Math.floor((new Date() - lmp) / DAY_MS);
+    const w = Math.floor(gestDays / 7);
+    const d = gestDays - w * 7;
+
+    if (gestDays < 0) {
+      weekDisplay.textContent = '距离孕期开始约 ' + Math.ceil(-gestDays / 7) + ' 周';
+      weekDisplay.classList.remove('hidden');
+      nowLine.style.display = 'none';
+      return;
+    }
+    if (w > 42) {
+      weekDisplay.textContent = '已超过预产期 ' + (w - 40) + ' 周';
+      weekDisplay.classList.remove('hidden');
+      nowLine.style.display = 'none';
+      return;
+    }
+
+    weekDisplay.textContent = '当前孕 ' + w + 'w' + d + 'd · 预产期 ' + eStr;
+    weekDisplay.classList.remove('hidden');
+    positionLine(nowLine, nowLabel, w + d / 7, '← 第 ' + w + 'w' + d + 'd');
+  }
+
+  function positionEddLine(eStr) {
+    if (!eStr) { eddLine.style.display = 'none'; return; }
+    positionLine(eddLine, eddLabel, 41, '预产期 EDD → ' + eStr);
+  }
+
+  // ── Ruler: week ticks on the left ──
+  function renderRuler() {
+    const ruler = document.getElementById('pn-ruler');
+    if (!ruler) return;
+
+    // Set ruler height to match timeline
+    ruler.style.height = timeline.offsetHeight + 'px';
+    ruler.innerHTML = '';
+
+    for (var week = 0; week <= 42; week++) {
+      var pos = getWeekPosition(week);
+      var isMajor = (week % 4 === 0);
+      var tick = document.createElement('div');
+      tick.className = 'pn-tick' + (isMajor ? ' major' : '');
+      tick.style.top = pos + 'px';
+      if (isMajor) {
+        var label = document.createElement('span');
+        label.textContent = 'w' + week;
+        tick.appendChild(label);
+      }
+      ruler.appendChild(tick);
+    }
+  }
+
+  var rt;
+  window.addEventListener('resize', function() {
+    clearTimeout(rt);
+    rt = setTimeout(function() { updateTimeline(); renderRuler(); }, 150);
+  });
+})();
+</script>
+</body>
+</html>
