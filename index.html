@@ -9,132 +9,165 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/shared.css">
   <style>
+    /* ── Hero ── */
+    .hero {
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: .5rem;
+    }
+    .hero-title {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 600;
+      letter-spacing: -.02em;
+      color: var(--text-hi);
+      line-height: 1.15;
+    }
+    .hero-title span { color: var(--accent); }
+    .hero-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: .5rem;
+      line-height: 1.7;
+    }
 
-    /* Search */
-    .search-wrap { position: relative; margin-bottom: 48px; }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; font-size: 15px; }
+    /* ── Search ── */
+    .search-wrap { position: relative; margin-bottom: 2.5rem; }
+    .search-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim); pointer-events: none; font-size: 15px;
+    }
     #search-input {
       width: 100%;
-      background: var(--surface);
+      background: var(--tag-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text-hi);
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
-      padding: 12px 16px 12px 40px;
+      font-size: 13px;
+      padding: 11px 120px 11px 40px;
       outline: none;
-      transition: border-color .15s;
+      transition: border-color .15s, background .15s;
     }
     #search-input::placeholder { color: var(--text-dim); }
-    #search-input:focus { border-color: var(--accent); }
+    #search-input:focus { border-color: var(--accent); background: var(--surface); }
     #search-input:disabled { opacity: .5; cursor: not-allowed; }
 
-    /* Search status badge */
     .search-status {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-      background: var(--tag-bg);
-      color: var(--text-dim);
-      transition: all .2s;
-      pointer-events: none;
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+      padding: 2px 7px; border-radius: 3px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-dim); pointer-events: none; transition: all .2s;
     }
     .search-status.loading { color: var(--accent); border-color: var(--accent); animation: blink 1s infinite; }
     .search-status.ready   { color: #6eff8a; border-color: #6eff8a33; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* Results dropdown */
     #search-results {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0; right: 0;
-      background: var(--surface);
-      border: 1px solid var(--border-hi);
-      border-radius: 6px;
-      overflow: hidden;
-      z-index: 100;
-      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 6px; overflow: hidden; z-index: 100; display: none;
     }
     .result-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background .1s;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; cursor: pointer;
+      border-bottom: 1px solid var(--border); transition: background .1s;
     }
     .result-item:last-child { border-bottom: none; }
-    .result-item:hover { background: var(--surface); filter: brightness(0.97); }
-    .result-icon { font-size: 16px; width: 20px; text-align: center; }
+    .result-item:hover { background: var(--tag-bg); }
+    .result-icon { font-size: 15px; width: 20px; text-align: center; }
     .result-info { flex: 1; min-width: 0; }
     .result-name { color: var(--text-hi); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .result-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
     .result-score { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
-    .no-result { padding: 16px 14px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    .no-result { padding: 14px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
 
-    /* Section / grid */
-    .section-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    /* ── Pinned grid ── */
+    .pinned-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+      margin-bottom: 2.5rem;
     }
-    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .pinned-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 48px; }
     .pin-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px 14px 12px;
-      cursor: pointer;
+      border-radius: 8px;
+      padding: 14px 16px 12px;
       text-decoration: none;
       display: block;
-      transition: border-color .15s, background .15s;
+      transition: border-color .15s, filter .15s;
       position: relative;
       overflow: hidden;
     }
-    .pin-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0; transition: opacity .15s; }
-    .pin-card:hover { border-color: var(--border-hi); background: var(--surface); filter: brightness(0.97); }
+    .pin-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; background: var(--accent); opacity: 0; transition: opacity .15s;
+    }
+    .pin-card:hover { border-color: var(--border-hi); filter: brightness(.97); }
     .pin-card:hover::before { opacity: 1; }
-    .pin-emoji { font-size: 20px; margin-bottom: 8px; display: block; }
-    .pin-name { color: var(--text-hi); font-size: 13px; font-weight: 500; display: block; margin-bottom: 4px; }
-    .pin-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; line-height: 1.4; }
-    .pin-tag { display: inline-block; margin-top: 8px; }
-    .pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
-    .page-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; text-decoration: none; transition: border-color .12s; }
-    .page-row:hover { border-color: var(--border-hi); }
+    .pin-card-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .pin-emoji { font-size: 17px; line-height: 1; }
+    .pin-name { color: var(--text-hi); font-size: 13px; font-weight: 500; flex: 1; }
+    .pin-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; line-height: 1.5; }
+    .pin-tag { margin-top: 10px; }
+
+    /* ── All pages ── */
+    .pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 6px;
+    }
+    .page-row {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 7px 12px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      text-decoration: none;
+      transition: border-color .12s, background .12s;
+    }
+    .page-row:hover { border-color: var(--border-hi); background: var(--surface); }
     .page-row-icon { font-size: 14px; width: 18px; text-align: center; }
-    .page-row-name { color: var(--text-hi); font-size: 13px; flex: 1; }
-
-
+    .page-row-name { color: var(--text-hi); font-size: 12px; font-weight: 500; flex: 1; }
+    .page-row-tag {
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+      color: var(--text-dim); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 1px 6px; white-space: nowrap;
+    }
   </style>
 </head>
 <body>
+<script src="assets/js/theme.js"></script>
 
 <div class="container">
 <header>
-  <div class="site-title"><img src="assets/img/favicon.svg" alt="MattHub"><span>MattHub</span> / home</div>
+  <div class="site-title"><img src="assets/img/favicon.svg" alt="MattHub"><span>MattHub</span></div>
   <div class="clock" id="clock"></div>
   <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
 </header>
 
-<script src="assets/js/theme.js"></script>
+<div class="hero">
+  <div class="hero-eyebrow">Personal Portal · <span id="hero-year"></span></div>
+  <h1 class="hero-title"><span>Matt</span>Hub</h1>
+  <p class="hero-desc">个人门户，汇聚常用工具、参考文档与研究笔记。</p>
+</div>
 
 <div class="search-wrap">
   <span class="search-icon">⌕</span>
-  <input id="search-input" type="text" placeholder="搜索页面 / search pages..." autocomplete="off" spellcheck="false" disabled>
+  <input id="search-input" type="text" placeholder="搜索页面 / search pages…" autocomplete="off" spellcheck="false" disabled>
   <span class="search-status loading" id="search-status">loading model…</span>
   <div id="search-results"></div>
 </div>
@@ -149,44 +182,31 @@
 </div>
 
 <script type="module">
-// ════════════════════════════════════════════════════
-//  页面数据从 site.json 加载（由 npm run embeddings 生成）
-//  不需要在这里手动维护任何列表
-// ════════════════════════════════════════════════════
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
 
 env.allowLocalModels = false;
+
+document.getElementById('hero-year').textContent = new Date().getFullYear();
 
 const statusEl  = document.getElementById('search-status');
 const inputEl   = document.getElementById('search-input');
 const resultsEl = document.getElementById('search-results');
 
-let PAGES            = [];
-let extractor        = null;
-let storedEmbeddings = null;
+let PAGES = [], extractor = null, storedEmbeddings = null;
 
 async function init() {
-  // 并行加载 site.json、embeddings.json、模型
   const [pages, emb] = await Promise.all([
     fetch('data/site.json').then(r => r.json()).catch(() => []),
     fetch('data/embeddings.json').then(r => r.json()).catch(() => null),
-    pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-      quantized: true
-    }).then(p => { extractor = p; })
+    pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', { quantized: true })
+      .then(p => { extractor = p; })
   ]);
 
-  PAGES            = pages;
-  storedEmbeddings = emb;
-
-  if (!PAGES.length) {
-    console.warn('[MattHub] site.json not found or empty — run: npm run embeddings');
-  }
-  if (!storedEmbeddings) {
-    console.warn('[MattHub] embeddings.json not found — run: npm run embeddings');
-  }
+  PAGES = pages; storedEmbeddings = emb;
+  if (!PAGES.length) console.warn('[MattHub] site.json not found — run: npm run embeddings');
+  if (!storedEmbeddings) console.warn('[MattHub] embeddings.json not found — run: npm run embeddings');
 
   renderPages();
-
   statusEl.textContent = 'ready';
   statusEl.className   = 'search-status ready';
   inputEl.disabled     = false;
@@ -200,7 +220,13 @@ function renderPages() {
   PAGES.filter(p => p.pinned).forEach(p => {
     const a = document.createElement('a');
     a.className = 'pin-card'; a.href = p.url;
-    a.innerHTML = `<span class="pin-emoji">${p.icon}</span><span class="pin-name">${p.name}</span><span class="pin-desc">${p.desc}</span><span class="pin-tag">${p.tag}</span>`;
+    a.innerHTML = `
+      <div class="pin-card-head">
+        <span class="pin-emoji">${p.icon}</span>
+        <span class="pin-name">${p.name}</span>
+      </div>
+      <div class="pin-desc">${p.desc}</div>
+      <div class="pin-tag tag">${p.tag}</div>`;
     pinnedGrid.appendChild(a);
   });
 
@@ -215,7 +241,6 @@ function renderPages() {
     `MattHub · ${PAGES.length} pages · semantic vector search · paraphrase-multilingual-MiniLM-L12-v2`;
 }
 
-// ── 向量搜索 ───────────────────────────────────────────
 function cosine(a, b) {
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
@@ -232,8 +257,7 @@ inputEl.addEventListener('input', () => {
 
 async function doSearch(q) {
   if (!extractor || !PAGES.length) return;
-
-  const out      = await extractor(q, { pooling: 'mean', normalize: true });
+  const out = await extractor(q, { pooling: 'mean', normalize: true });
   const queryVec = Array.from(out.data);
 
   const scored = storedEmbeddings
@@ -268,7 +292,6 @@ inputEl.addEventListener('keydown', e => {
   if (e.key === 'Escape') { inputEl.value = ''; resultsEl.style.display = 'none'; }
 });
 
-// Clock
 const tick = () => document.getElementById('clock').textContent =
   new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 tick(); setInterval(tick, 1000);
