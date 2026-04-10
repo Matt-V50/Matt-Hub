@@ -45,7 +45,7 @@
     .pn-ptitle { font-size: 13px; font-weight: 500; color: var(--pc); flex: 1; }
     .pn-psub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .04em; }
     .pn-pweeks { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .04em; white-space: nowrap; }
-    .pn-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; }
+    .pn-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; }
     .pn-col { padding: 12px 14px; border-right: 1px solid var(--border); }
     .pn-col:last-child { border-right: none; }
     .pn-col-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
@@ -91,6 +91,30 @@
       .pn-datebar { flex-direction: column; align-items: flex-start; gap: 10px; }
       .pn-week-display { margin-left: 0; }
     }
+
+    /* ── Ruler ── */
+    .pn-timeline-wrap { display: flex; gap: 0; align-items: flex-start; }
+    .pn-ruler {
+      width: 38px; flex-shrink: 0; position: relative;
+      border-right: 1px solid var(--border);
+      margin-right: 10px;
+    }
+    .pn-timeline { flex: 1; position: relative; min-width: 0; }
+    .pn-tick {
+      position: absolute; right: 0;
+      display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+      transform: translateY(-50%);
+    }
+    .pn-tick::after {
+      content: ''; display: block; height: 1px;
+      width: 6px; background: var(--border-hi);
+    }
+    .pn-tick.major::after { width: 10px; background: var(--text-dim); }
+    .pn-tick span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; color: var(--text-dim); line-height: 1;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -118,6 +142,8 @@
   <span class="pn-week-display hidden" id="week-display"></span>
 </div>
 
+<div class="pn-timeline-wrap">
+<div class="pn-ruler" id="pn-ruler"></div>
 <div class="pn-timeline" id="timeline">
   <div class="pn-now-line" id="now-line"><span class="pn-now-label" id="now-label"></span></div>
   <div class="pn-edd-line" id="edd-line"><span class="pn-edd-label" id="edd-label"></span></div>
@@ -158,7 +184,8 @@
       <div class="pn-col"><div class="pn-col-title"><span class="pn-col-icon">💊</span> 关键微量元素</div><div class="pn-chips"><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#f8717122;color:#f87171;border-radius:50%;font-size:10px;font-weight:700;">Fe</span><div class="pn-chip-info"><span class="pn-chip-name">铁</span><span class="pn-chip-note">★ 29mg+ · 可能需铁剂</span></div></div><div class="pn-chip priority"><span class="pn-chip-icon" style="background:#34d39922;color:#34d399;border-radius:50%;font-size:10px;font-weight:700;">Ca</span><div class="pn-chip-info"><span class="pn-chip-name">钙</span><span class="pn-chip-note">★ 1000-1200mg · 持续</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#fbbf2422;color:#fbbf24;border-radius:50%;font-size:9px;font-weight:700;">DHA</span><div class="pn-chip-info"><span class="pn-chip-name">DHA</span><span class="pn-chip-note">200mg · 脑发育冲刺</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#60a5fa22;color:#60a5fa;border-radius:50%;font-size:10px;font-weight:700;">D3</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 D</span><span class="pn-chip-note">600IU · 促钙吸收</span></div></div><div class="pn-chip"><span class="pn-chip-icon" style="background:#a78bfa22;color:#a78bfa;border-radius:50%;font-size:10px;font-weight:700;">K2</span><div class="pn-chip-info"><span class="pn-chip-name">维生素 K</span><span class="pn-chip-note">钙沉积 · 凝血储备</span></div></div></div><div class="pn-calbar" style="margin-top:10px;"><span>热量</span><div class="pn-calbar-fill"><span style="width:75%"></span></div><span>+450 kcal</span></div></div>
     </div>
   </div>
-</div>
+</div><!-- end timeline -->
+</div><!-- end timeline-wrap -->
 
 <div class="pn-section-divider"><span class="pn-section-divider-label">📋 参考信息 · 全孕期适用</span></div>
 
@@ -205,7 +232,6 @@
   const DAY_MS = 86400000;
   const CONCEPTION_TO_EDD = 266;
 
-  // T3 extends to week 42 (past EDD at 41w0d) to accommodate overdue
   const PHASES = [
     { id: 'phase1', start: 0,  end: 13 },
     { id: 'phase2', start: 13, end: 28 },
@@ -218,17 +244,19 @@
   if (savedE) eddInput.value = savedE;
   if (savedC && !savedE) syncEdd(savedC);
   if (savedE && !savedC) syncConception(savedE);
-  updateTimeline();
+
+  // Render ruler after layout is ready
+  window.addEventListener('load', function() { updateTimeline(); renderRuler(); });
 
   conceptionInput.addEventListener('change', function() {
     localStorage.setItem('pn-conception', this.value);
     if (this.value) { syncEdd(this.value); localStorage.setItem('pn-edd', eddInput.value); }
-    updateTimeline();
+    updateTimeline(); renderRuler();
   });
   eddInput.addEventListener('change', function() {
     localStorage.setItem('pn-edd', this.value);
     if (this.value) { syncConception(this.value); localStorage.setItem('pn-conception', conceptionInput.value); }
-    updateTimeline();
+    updateTimeline(); renderRuler();
   });
 
   function syncEdd(cStr) {
@@ -247,10 +275,27 @@
       String(d.getDate()).padStart(2,'0');
   }
 
+  // ── Core: get pixel position of a given week within the timeline ──
+  // el.offsetTop is relative to .pn-timeline (position:relative = offsetParent)
+  function getWeekPosition(week) {
+    let target = PHASES.find(function(p) { return week >= p.start && week < p.end; });
+    if (!target) target = PHASES[PHASES.length - 1]; // clamp to T3 end
+    const el = document.getElementById(target.id);
+    const headerH = el.querySelector('.pn-ph').offsetHeight;
+    const bodyH   = el.offsetHeight - headerH;
+    const frac    = Math.min(Math.max((week - target.start) / (target.end - target.start), 0), 1);
+    return el.offsetTop + headerH + bodyH * frac;
+  }
+
+  function positionLine(lineEl, labelEl, week, labelText) {
+    const top = getWeekPosition(week);
+    lineEl.style.display = 'block';
+    lineEl.style.top = top + 'px';
+    labelEl.textContent = labelText;
+  }
+
   function updateTimeline() {
     const eStr = eddInput.value;
-
-    // EDD line: always fixed at 41w0d (week 40 fully elapsed)
     positionEddLine(eStr);
 
     if (!eStr) {
@@ -280,39 +325,42 @@
 
     weekDisplay.textContent = '当前孕 ' + w + 'w' + d + 'd · 预产期 ' + eStr;
     weekDisplay.classList.remove('hidden');
-
-    // Day-accurate float
-    const currentWeek = w + d / 7;
-    positionLine(nowLine, nowLabel, currentWeek, '← 第 ' + w + 'w' + d + 'd');
+    positionLine(nowLine, nowLabel, w + d / 7, '← 第 ' + w + 'w' + d + 'd');
   }
 
   function positionEddLine(eStr) {
     if (!eStr) { eddLine.style.display = 'none'; return; }
-    // EDD = 40w0d = when week 40 begins; end of week 40 = 41w0d
     positionLine(eddLine, eddLabel, 41, '预产期 EDD → ' + eStr);
   }
 
-  function positionLine(lineEl, labelEl, week, labelText) {
-    let target = PHASES.find(function(p) { return week >= p.start && week < p.end; });
-    if (!target) target = PHASES[PHASES.length - 1];
+  // ── Ruler: week ticks on the left ──
+  function renderRuler() {
+    const ruler = document.getElementById('pn-ruler');
+    if (!ruler) return;
 
-    const el = document.getElementById(target.id);
-    const headerH = el.querySelector('.pn-ph').offsetHeight;
-    const bodyH   = el.offsetHeight - headerH;
-    const span    = target.end - target.start;
-    // Clamp frac to [0, 1]
-    const frac    = Math.min(Math.max((week - target.start) / span, 0), 1);
+    // Set ruler height to match timeline
+    ruler.style.height = timeline.offsetHeight + 'px';
+    ruler.innerHTML = '';
 
-    const top = (el.offsetTop - timeline.offsetTop) + headerH + bodyH * frac;
-    lineEl.style.display = 'block';
-    lineEl.style.top = top + 'px';
-    labelEl.textContent = labelText;
+    for (var week = 0; week <= 42; week++) {
+      var pos = getWeekPosition(week);
+      var isMajor = (week % 4 === 0);
+      var tick = document.createElement('div');
+      tick.className = 'pn-tick' + (isMajor ? ' major' : '');
+      tick.style.top = pos + 'px';
+      if (isMajor) {
+        var label = document.createElement('span');
+        label.textContent = 'w' + week;
+        tick.appendChild(label);
+      }
+      ruler.appendChild(tick);
+    }
   }
 
   var rt;
   window.addEventListener('resize', function() {
     clearTimeout(rt);
-    rt = setTimeout(updateTimeline, 150);
+    rt = setTimeout(function() { updateTimeline(); renderRuler(); }, 150);
   });
 })();
 </script>
