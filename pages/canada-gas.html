@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waterloo Gas Prices</title>
+  <meta name="description" content="Waterloo region gas prices tracker: regular, mid-grade and premium fuel price history by station and brand, sourced from GasBuddy">
+  <meta name="icon"    content="⛽">
+  <meta name="tag"     content="工具">
+  <meta name="pinned"  content="true">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/shared.css">
+  <script src="https://cdn.plot.ly/plotly-3.3.0.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="../assets/js/charty.js"></script>
+  <!-- Page-specific styles — all prefixed gas- -->
+  <style>
+    /* Wider container for chart */
+    .container { max-width: 1000px; }
+
+    /* Filters */
+    .gas-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+    }
+    .gas-filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .gas-filter-group .gas-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+    }
+
+    /* Button group */
+    .gas-btn-group { display: inline-flex; }
+    .gas-btn-group button {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .gas-btn-group button:first-child { border-radius: 4px 0 0 4px; }
+    .gas-btn-group button:last-child  { border-radius: 0 4px 4px 0; }
+    .gas-btn-group button:not(:last-child) { border-right: none; }
+    .gas-btn-group button:hover { background: var(--tag-bg); }
+    .gas-btn-group button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .gas-btn-group button.active + button { border-left-color: var(--accent); }
+
+    /* Select */
+    .gas-select {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      padding: 6px 28px 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    .gas-select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    /* Checkboxes */
+    .gas-checkbox-group { display: flex; gap: 14px; flex-wrap: wrap; }
+    .gas-checkbox-group label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .gas-checkbox-group input[type="checkbox"] { accent-color: var(--accent); }
+
+    /* Chart container */
+    #gas-chart {
+      width: 100%;
+      min-height: 480px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      position: relative;
+    }
+
+    /* Custom tooltip */
+    #gas-tooltip {
+      display: none;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      padding: 8px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      max-width: 320px;
+      white-space: nowrap;
+    }
+    #gas-tooltip .tt-date {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 5px;
+    }
+    #gas-tooltip .tt-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; line-height: 1.5; }
+    #gas-tooltip .tt-swatch { width: 10px; height: 3px; border-radius: 1px; flex-shrink: 0; }
+    #gas-tooltip .tt-swatch.dash-dash {
+      background: repeating-linear-gradient(90deg, var(--swatch-color) 0px, var(--swatch-color) 4px, transparent 4px, transparent 7px) !important;
+    }
+    #gas-tooltip .tt-swatch.dash-dot {
+      background: repeating-linear-gradient(90deg, var(--swatch-color) 0px, var(--swatch-color) 2px, transparent 2px, transparent 5px) !important;
+    }
+    #gas-tooltip .tt-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    #gas-tooltip .tt-val  { font-weight: 600; margin-left: auto; padding-left: 12px; }
+
+    /* Loading */
+    #gas-loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+    }
+    .gas-spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: gas-spin .7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes gas-spin { to { transform: rotate(360deg); } }
+
+    @media(max-width:600px) {
+      .gas-filters { gap: 10px; }
+      .gas-filter-group { width: 100%; }
+      .gas-select { width: 100%; }
+      #gas-chart { min-height: 350px; }
+    }
+  </style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">◈ <span>MattHub</span></a>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dim)">⛽ Waterloo Gas Prices</span>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div id="gas-loading">
+  <span class="gas-spinner"></span>Loading gas price data…
+</div>
+
+<div id="gas-app" style="display:none;">
+  <div class="gas-filters">
+    <div class="gas-filter-group">
+      <span class="gas-label">Time Range</span>
+      <div class="gas-btn-group" id="gas-time-btns">
+        <button data-days="7" class="active">7D</button>
+        <button data-days="30">1M</button>
+        <button data-days="90">3M</button>
+        <button data-days="0">All</button>
+      </div>
+    </div>
+    <div class="gas-filter-group">
+      <span class="gas-label">Station</span>
+      <select id="gas-station" class="gas-select"></select>
+    </div>
+    <div class="gas-filter-group">
+      <span class="gas-label">Brand</span>
+      <select id="gas-brand" class="gas-select">
+        <option value="ALL">All Brands</option>
+      </select>
+    </div>
+    <div class="gas-filter-group">
+      <span class="gas-label">Fuel Grade</span>
+      <div class="gas-checkbox-group" id="gas-grade-checks">
+        <label><input type="checkbox" value="regular_price" checked> Regular</label>
+        <label><input type="checkbox" value="midgrade_price"> Mid-grade</label>
+        <label><input type="checkbox" value="premium_price"> Premium</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="gas-chart">
+    <div id="gas-tooltip"></div>
+  </div>
+</div>
+
+<footer>
+  Data sourced from <a href="https://www.gasbuddy.com" target="_blank" style="color:var(--accent)">GasBuddy</a> · Updated on each push
+</footer>
+</div>
+
+<script>
+(function() {
+  const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNWUMa0BdOw0lwFw1oeHrcwKwC7QBO1W_5dez3Zj5IgXGj_YONJgV4UVppatFEOQDTd6sjXaW78EbA/pub?output=csv';
+
+  const GRADE_LABELS = { regular_price:'Regular', midgrade_price:'Mid-grade', premium_price:'Premium' };
+  const GRADE_DASH   = { regular_price:'solid',   midgrade_price:'dash',      premium_price:'dot' };
+
+  let stationMeta = {}, stationData = {}, allStationIds = [];
+  let currentDays = 7, currentBrand = 'ALL', currentStation = 'ALL', currentGrades = ['regular_price'];
+  let stationColorMap = {}, currentTraces = [];
+
+  function csvUrl(gid) { return SHEET_BASE + '&gid=' + gid; }
+
+  function loadAllData() {
+    Papa.parse(SHEET_BASE, {
+      download: true, header: true,
+      complete(results) {
+        results.data.forEach(row => {
+          if (!row.Station_ID || !row.Gid) return;
+          stationMeta[row.Station_ID] = { brand: row.Brand||'', address: row.Address||'', gid: row.Gid.trim() };
+        });
+        allStationIds = Object.keys(stationMeta);
+        allStationIds.forEach((sid, i) => stationColorMap[sid] = i);
+
+        let pending = allStationIds.length;
+        if (!pending) { document.getElementById('gas-loading').textContent = 'No stations found.'; return; }
+
+        allStationIds.forEach(sid => {
+          Papa.parse(csvUrl(stationMeta[sid].gid), {
+            download: true, header: true,
+            complete(res) {
+              stationData[sid] = res.data
+                .filter(r => r.timestamp)
+                .map(r => ({
+                  timestamp: new Date(r.timestamp),
+                  regular_price:  parseFloat(r.regular_price)  || null,
+                  midgrade_price: parseFloat(r.midgrade_price) || null,
+                  premium_price:  parseFloat(r.premium_price)  || null,
+                }))
+                .sort((a,b) => a.timestamp - b.timestamp);
+              if (!--pending) onAllLoaded();
+            },
+            error() { if (!--pending) onAllLoaded(); }
+          });
+        });
+      },
+      error() { document.getElementById('gas-loading').textContent = 'Failed to load data.'; }
+    });
+  }
+
+  function onAllLoaded() {
+    document.getElementById('gas-loading').style.display = 'none';
+    document.getElementById('gas-app').style.display = '';
+    buildFilters();
+    renderChart();
+    new MutationObserver(() => renderChart())
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  function buildFilters() {
+    const stSel = document.getElementById('gas-station');
+    stSel.innerHTML = '<option value="ALL">All Stations</option>';
+    allStationIds.forEach(sid => {
+      const o = document.createElement('option');
+      o.value = sid;
+      o.textContent = stationMeta[sid].brand + ' — ' + stationMeta[sid].address;
+      stSel.appendChild(o);
+    });
+
+    const brands = [...new Set(allStationIds.map(s => stationMeta[s].brand))].filter(Boolean).sort();
+    const brSel = document.getElementById('gas-brand');
+    brands.forEach(b => { const o = document.createElement('option'); o.value = o.textContent = b; brSel.appendChild(o); });
+
+    document.querySelectorAll('#gas-time-btns button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#gas-time-btns button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentDays = parseInt(this.dataset.days);
+        renderChart();
+      });
+    });
+    stSel.addEventListener('change', function() { currentStation = this.value; renderChart(); });
+    brSel.addEventListener('change', function() { currentBrand  = this.value; renderChart(); });
+    document.querySelectorAll('#gas-grade-checks input').forEach(cb => {
+      cb.addEventListener('change', function() {
+        currentGrades = [...document.querySelectorAll('#gas-grade-checks input:checked')].map(c => c.value);
+        if (!currentGrades.length) { this.checked = true; currentGrades = [this.value]; }
+        renderChart();
+      });
+    });
+  }
+
+  function getMidnightShapes(cutoff, isDark) {
+    const shapes = [], now = new Date();
+    let from = cutoff ? new Date(cutoff) : (() => {
+      let e = now;
+      allStationIds.forEach(sid => { const r = stationData[sid]; if (r?.length && r[0].timestamp < e) e = r[0].timestamp; });
+      return e;
+    })();
+    let d = new Date(from); d.setHours(0,0,0,0); d.setDate(d.getDate()+1);
+    while (d <= now) {
+      const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+      shapes.push({ type:'line', x0:`${y}-${m}-${dd} 00:00:00`, x1:`${y}-${m}-${dd} 00:00:00`, y0:0, y1:1, yref:'paper',
+        line: { color: isDark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.12)', width:1, dash:'dot' } });
+      d = new Date(d.getTime() + 86400000);
+    }
+    return shapes;
+  }
+
+  function getTraceValueAtX(trace, hoverX) {
+    const ms = hoverX.getTime();
+    let best = -1;
+    for (let i=0; i<trace.x.length; i++) {
+      if (trace.x[i].getTime() <= ms) best = i; else break;
+    }
+    if (best === -1) {
+      if (trace.x.length && trace.x[0].getTime()-ms < 7200000) return { val:trace.y[0] };
+      return null;
+    }
+    return { val: trace.y[best] };
+  }
+
+  function fmtDate(d) {
+    const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    const h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0'), ap=h>=12?'PM':'AM', h12=h%12||12;
+    return `${mo} ${d.getDate()}, ${d.getFullYear()}  ${h12}:${m} ${ap}`;
+  }
+
+  function showTooltip(eventData) {
+    const tt = document.getElementById('gas-tooltip');
+    const chartEl = document.getElementById('gas-chart');
+    if (!eventData?.points?.length) { tt.style.display='none'; return; }
+    const hoverX = new Date(eventData.points[0].x);
+    const entries = currentTraces.map(t => {
+      const r = getTraceValueAtX(t, hoverX);
+      return r ? { name:t.name, val:r.val, color:t.line.color, dash:t.line.dash||'solid' } : null;
+    }).filter(Boolean).sort((a,b) => b.val-a.val);
+    if (!entries.length) { tt.style.display='none'; return; }
+
+    tt.innerHTML = `<div class="tt-date">${fmtDate(hoverX)}</div>` +
+      entries.map(e => `<div class="tt-row">
+        <span class="tt-swatch dash-${e.dash}" style="background:${e.color};--swatch-color:${e.color}"></span>
+        <span class="tt-name">${e.name}</span>
+        <span class="tt-val">${e.val.toFixed(1)}</span>
+      </div>`).join('');
+    tt.style.display = 'block';
+
+    const rect = chartEl.getBoundingClientRect();
+    const evt = eventData.event;
+    let x = evt ? evt.clientX-rect.left : 100;
+    let y = evt ? evt.clientY-rect.top  : 100;
+    const tw = tt.offsetWidth, th = tt.offsetHeight;
+    let left = x+16, top = y-th/2;
+    if (left+tw > rect.width-10) left = x-tw-16;
+    if (top < 4) top = 4;
+    if (top+th > rect.height-4) top = rect.height-th-4;
+    tt.style.left = left+'px';
+    tt.style.top  = top+'px';
+  }
+
+  function renderChart() {
+    let ids = allStationIds;
+    if (currentStation !== 'ALL') ids = ids.filter(s => s === currentStation);
+    if (currentBrand   !== 'ALL') ids = ids.filter(s => stationMeta[s].brand === currentBrand);
+
+    const cutoff = currentDays > 0 ? new Date(Date.now() - currentDays*86400000) : null;
+    const isDark = charty.getCurrentTheme() === 'dark';
+    const layoutBase = charty.getThemedLayoutBase();
+    const palette = charty.palette;
+    const traces = [];
+
+    ids.forEach(sid => {
+      const rows = (stationData[sid]||[]);
+      const filtered = cutoff ? rows.filter(r => r.timestamp >= cutoff) : rows;
+      if (!filtered.length) return;
+      const color = palette[stationColorMap[sid] % palette.length];
+      const label = stationMeta[sid].address;
+      currentGrades.forEach(grade => {
+        const xs=[], ys=[];
+        filtered.forEach(r => { if (r[grade]!=null && !isNaN(r[grade])) { xs.push(r.timestamp); ys.push(r[grade]); } });
+        if (!xs.length) return;
+        const suffix = currentGrades.length>1 ? ` (${GRADE_LABELS[grade]})` : '';
+        traces.push({ x:xs, y:ys, name:label+suffix, type:'scatter', mode:'lines',
+          line:{ color, width:2, dash:GRADE_DASH[grade] }, hoverinfo:'none' });
+      });
+    });
+
+    const rangeLabel = {7:'Last 7 Days',30:'Last Month',90:'Last 3 Months',0:'All Time'}[currentDays]||'All Time';
+    const gradeLabel = currentGrades.map(g=>GRADE_LABELS[g]).join(', ');
+    currentTraces = traces;
+
+    const layout = { ...layoutBase,
+      title: { text:`${gradeLabel} — ${rangeLabel}`, font:{size:14,family:'IBM Plex Mono,monospace',color:isDark?'#e0e0e0':'#111'}, x:0.5 },
+      xaxis: { ...layoutBase.xaxis, type:'date', tickformat:currentDays<=7?'%b %d %H:%M':'%b %d',
+        showspikes:true, spikemode:'across', spikesnap:'cursor',
+        spikecolor:isDark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.25)', spikethickness:1, spikedash:'solid' },
+      yaxis: { ...layoutBase.yaxis, title:{text:'Price (¢/L)',font:{size:12}} },
+      legend: { ...layoutBase.legend, orientation:'h', yanchor:'top', y:-0.22, xanchor:'center', x:0.5 },
+      hovermode:'x', hoverdistance:50,
+      shapes: getMidnightShapes(cutoff, isDark),
+      margin: {t:50,b:110,l:60,r:20}
+    };
+
+    const config = { displayModeBar:false, responsive:true };
+    if (!traces.length) {
+      Plotly.newPlot('gas-chart', [], { ...layout, annotations:[{
+        text:'No data for current filters', showarrow:false,
+        font:{size:14,color:'#999'}, xref:'paper', yref:'paper', x:0.5, y:0.5
+      }]}, config);
+    } else {
+      Plotly.newPlot('gas-chart', traces, layout, config);
+      const el = document.getElementById('gas-chart');
+      el.on('plotly_hover', showTooltip);
+      el.on('plotly_unhover', () => document.getElementById('gas-tooltip').style.display='none');
+      el.addEventListener('mouseleave', () => document.getElementById('gas-tooltip').style.display='none');
+    }
+  }
+
+  loadAllData();
+})();
+</script>
+</body>
+</html>
