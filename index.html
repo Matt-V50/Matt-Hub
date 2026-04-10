@@ -7,50 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/shared.css">
   <style>
-    :root {
-      --bg:        #f7f7f5;
-      --surface:   #ffffff;
-      --border:    #e0e0e0;
-      --border-hi: #ccc;
-      --text:      #555;
-      --text-dim:  #aaa;
-      --text-hi:   #111;
-      --accent:    #2a6ef5;
-      --tag-bg:    #f0f0f0;
-    }
-    [data-theme="dark"] {
-      --bg:        #0d0d0d;
-      --surface:   #141414;
-      --border:    #232323;
-      --border-hi: #333;
-      --text:      #c8c8c8;
-      --text-dim:  #555;
-      --text-hi:   #f0f0f0;
-      --accent:    #e8ff6e;
-      --tag-bg:    #1a1a1a;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 14px;
-      min-height: 100vh;
-      padding: 48px 24px 80px;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 40px 48px 56px;
-    }
-    header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
-    .site-title { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-dim); letter-spacing: .08em; }
-    .site-title span { color: var(--accent); }
-    .clock { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); margin-left: auto; }
 
     /* Search */
     .search-wrap { position: relative; margin-bottom: 48px; }
@@ -134,7 +92,6 @@
       gap: 10px;
     }
     .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .section-label { margin-bottom: 14px; }
     .pinned-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 48px; }
     .pin-card {
       background: var(--surface);
@@ -154,26 +111,12 @@
     .pin-emoji { font-size: 20px; margin-bottom: 8px; display: block; }
     .pin-name { color: var(--text-hi); font-size: 13px; font-weight: 500; display: block; margin-bottom: 4px; }
     .pin-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; line-height: 1.4; }
-    .pin-tag { display: inline-block; margin-top: 8px; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
+    .pin-tag { display: inline-block; margin-top: 8px; }
     .pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
     .page-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; text-decoration: none; transition: border-color .12s; }
     .page-row:hover { border-color: var(--border-hi); }
     .page-row-icon { font-size: 14px; width: 18px; text-align: center; }
     .page-row-name { color: var(--text-hi); font-size: 13px; flex: 1; }
-    .page-row-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
-    footer { margin-top: 64px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 16px; }
-    #theme-toggle {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      color: var(--text-dim);
-      cursor: pointer;
-      font-size: 14px;
-      padding: 4px 8px;
-      transition: border-color .15s;
-      margin-left: 12px;
-    }
-    #theme-toggle:hover { border-color: var(--border-hi); }
   </style>
 </head>
 <body>
@@ -185,25 +128,7 @@
   <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
 </header>
 
-<script>
-  const browserPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const setTheme = (theme) => {
-    const t = theme || localStorage.getItem('theme') || browserPref;
-    if (t === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.getElementById('theme-toggle').textContent = '☀️';
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      document.getElementById('theme-toggle').textContent = '🌙';
-    }
-  };
-  const toggleTheme = () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
-    setTheme(next);
-  };
-  setTheme();
-</script>
+<script src="assets/js/theme.js"></script>
 
 <div class="search-wrap">
   <span class="search-icon">⌕</span>

@@ -1,0 +1,132 @@
+/* ── MattHub shared styles ─────────────────────────── */
+
+/* Theme variables */
+:root {
+  --bg:        #f7f7f5;
+  --surface:   #ffffff;
+  --border:    #e0e0e0;
+  --border-hi: #ccc;
+  --text:      #555;
+  --text-dim:  #aaa;
+  --text-hi:   #111;
+  --accent:    #2a6ef5;
+  --tag-bg:    #f0f0f0;
+}
+[data-theme="dark"] {
+  --bg:        #0d0d0d;
+  --surface:   #141414;
+  --border:    #232323;
+  --border-hi: #333;
+  --text:      #c8c8c8;
+  --text-dim:  #555;
+  --text-hi:   #f0f0f0;
+  --accent:    #e8ff6e;
+  --tag-bg:    #1a1a1a;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Base */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+}
+
+/* Container */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px 48px 56px;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.site-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: .08em;
+  text-decoration: none;
+}
+.site-title span { color: var(--accent); }
+.back {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.back:hover { color: var(--accent); }
+.clock {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+/* Theme toggle */
+#theme-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  transition: border-color .15s;
+  margin-left: 12px;
+}
+#theme-toggle:hover { border-color: var(--border-hi); }
+
+/* Section label */
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Tag pill */
+.tag {
+  display: inline-block;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* Footer */
+footer {
+  margin-top: 64px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
