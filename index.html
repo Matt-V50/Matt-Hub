@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MattHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #f7f7f5;
+      --surface:   #ffffff;
+      --border:    #e0e0e0;
+      --border-hi: #ccc;
+      --text:      #555;
+      --text-dim:  #aaa;
+      --text-hi:   #111;
+      --accent:    #2a6ef5;
+      --tag-bg:    #f0f0f0;
+    }
+    [data-theme="dark"] {
+      --bg:        #0d0d0d;
+      --surface:   #141414;
+      --border:    #232323;
+      --border-hi: #333;
+      --text:      #c8c8c8;
+      --text-dim:  #555;
+      --text-hi:   #f0f0f0;
+      --accent:    #e8ff6e;
+      --tag-bg:    #1a1a1a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 48px 32px 80px;
+    }
+    header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 40px; }
+    .site-title { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-dim); letter-spacing: .08em; }
+    .site-title span { color: var(--accent); }
+    .clock { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); margin-left: auto; }
+
+    /* Search */
+    .search-wrap { position: relative; margin-bottom: 40px; max-width: 640px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; font-size: 15px; }
+    #search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-hi);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      padding: 12px 16px 12px 40px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    #search-input::placeholder { color: var(--text-dim); }
+    #search-input:focus { border-color: var(--accent); }
+    #search-input:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Search status badge */
+    .search-status {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      color: var(--text-dim);
+      transition: all .2s;
+      pointer-events: none;
+    }
+    .search-status.loading { color: var(--accent); border-color: var(--accent); animation: blink 1s infinite; }
+    .search-status.ready   { color: #6eff8a; border-color: #6eff8a33; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* Results dropdown */
+    #search-results {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      overflow: hidden;
+      z-index: 100;
+      display: none;
+    }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-item:hover { background: var(--surface); filter: brightness(0.97); }
+    .result-icon { font-size: 16px; width: 20px; text-align: center; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { color: var(--text-hi); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+    .result-score { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
+    .no-result { padding: 16px 14px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+    /* Section / grid */
+    .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .pinned-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 40px; }
+    .pin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 14px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: border-color .15s, background .15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .pin-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0; transition: opacity .15s; }
+    .pin-card:hover { border-color: var(--border-hi); background: var(--surface); filter: brightness(0.97); }
+    .pin-card:hover::before { opacity: 1; }
+    .pin-emoji { font-size: 20px; margin-bottom: 8px; display: block; }
+    .pin-name { color: var(--text-hi); font-size: 13px; font-weight: 500; display: block; margin-bottom: 4px; }
+    .pin-desc { color: var(--text-dim); font-size: 11px; font-family: 'IBM Plex Mono', monospace; line-height: 1.4; }
+    .pin-tag { display: inline-block; margin-top: 8px; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
+    .pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; }
+    .page-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; text-decoration: none; transition: border-color .12s; }
+    .page-row:hover { border-color: var(--border-hi); }
+    .page-row-icon { font-size: 14px; width: 18px; text-align: center; }
+    .page-row-name { color: var(--text-hi); font-size: 13px; flex: 1; }
+    .page-row-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
+    footer { margin-top: 64px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 16px; }
+    #theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 8px;
+      transition: border-color .15s;
+      margin-left: 12px;
+    }
+    #theme-toggle:hover { border-color: var(--border-hi); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="site-title">◈ <span>MattHub</span> / home</div>
+  <div class="clock" id="clock"></div>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<script>
+  const browserPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const setTheme = (theme) => {
+    const t = theme || localStorage.getItem('theme') || browserPref;
+    if (t === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('theme-toggle').textContent = '☀️';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.getElementById('theme-toggle').textContent = '🌙';
+    }
+  };
+  const toggleTheme = () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    setTheme(next);
+  };
+  setTheme();
+</script>
+
+<div class="search-wrap">
+  <span class="search-icon">⌕</span>
+  <input id="search-input" type="text" placeholder="搜索页面 / search pages..." autocomplete="off" spellcheck="false" disabled>
+  <span class="search-status loading" id="search-status">loading model…</span>
+  <div id="search-results"></div>
+</div>
+
+<div class="section-label">置顶 / pinned</div>
+<div class="pinned-grid" id="pinned-grid"></div>
+
+<div class="section-label">所有页面 / all pages</div>
+<div class="pages-grid" id="pages-grid"></div>
+
+<footer id="footer"></footer>
+
+<script type="module">
+// ════════════════════════════════════════════════════
+//  页面数据从 site.json 加载（由 npm run embeddings 生成）
+//  不需要在这里手动维护任何列表
+// ════════════════════════════════════════════════════
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+const statusEl  = document.getElementById('search-status');
+const inputEl   = document.getElementById('search-input');
+const resultsEl = document.getElementById('search-results');
+
+let PAGES            = [];
+let extractor        = null;
+let storedEmbeddings = null;
+
+async function init() {
+  // 并行加载 site.json、embeddings.json、模型
+  const [pages, emb] = await Promise.all([
+    fetch('data/site.json').then(r => r.json()).catch(() => []),
+    fetch('data/embeddings.json').then(r => r.json()).catch(() => null),
+    pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
+      quantized: true
+    }).then(p => { extractor = p; })
+  ]);
+
+  PAGES            = pages;
+  storedEmbeddings = emb;
+
+  if (!PAGES.length) {
+    console.warn('[MattHub] site.json not found or empty — run: npm run embeddings');
+  }
+  if (!storedEmbeddings) {
+    console.warn('[MattHub] embeddings.json not found — run: npm run embeddings');
+  }
+
+  renderPages();
+
+  statusEl.textContent = 'ready';
+  statusEl.className   = 'search-status ready';
+  inputEl.disabled     = false;
+  inputEl.placeholder  = '搜索页面 / search pages…';
+}
+
+function renderPages() {
+  const pinnedGrid = document.getElementById('pinned-grid');
+  const pagesGrid  = document.getElementById('pages-grid');
+
+  PAGES.filter(p => p.pinned).forEach(p => {
+    const a = document.createElement('a');
+    a.className = 'pin-card'; a.href = p.url;
+    a.innerHTML = `<span class="pin-emoji">${p.icon}</span><span class="pin-name">${p.name}</span><span class="pin-desc">${p.desc}</span><span class="pin-tag">${p.tag}</span>`;
+    pinnedGrid.appendChild(a);
+  });
+
+  PAGES.forEach(p => {
+    const a = document.createElement('a');
+    a.className = 'page-row'; a.href = p.url;
+    a.innerHTML = `<span class="page-row-icon">${p.icon}</span><span class="page-row-name">${p.name}</span><span class="page-row-tag">${p.tag}</span>`;
+    pagesGrid.appendChild(a);
+  });
+
+  document.getElementById('footer').textContent =
+    `MattHub · ${PAGES.length} pages · semantic vector search · paraphrase-multilingual-MiniLM-L12-v2`;
+}
+
+// ── 向量搜索 ───────────────────────────────────────────
+function cosine(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+
+let searchTimer = null;
+inputEl.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = inputEl.value.trim();
+  if (!q) { resultsEl.style.display = 'none'; return; }
+  searchTimer = setTimeout(() => doSearch(q), 300);
+});
+
+async function doSearch(q) {
+  if (!extractor || !PAGES.length) return;
+
+  const out      = await extractor(q, { pooling: 'mean', normalize: true });
+  const queryVec = Array.from(out.data);
+
+  const scored = storedEmbeddings
+    ? PAGES.map((p, i) => ({ page: p, score: cosine(queryVec, storedEmbeddings[i]) }))
+    : await Promise.all(PAGES.map(async p => {
+        const o = await extractor(`${p.name} ${p.desc} ${p.tag}`, { pooling: 'mean', normalize: true });
+        return { page: p, score: cosine(queryVec, Array.from(o.data)) };
+      }));
+
+  const results = scored.filter(r => r.score > 0.2).sort((a, b) => b.score - a.score).slice(0, 6);
+
+  resultsEl.innerHTML = results.length
+    ? results.map(r => `
+        <div class="result-item" onclick="location.href='${r.page.url}'">
+          <span class="result-icon">${r.page.icon}</span>
+          <div class="result-info">
+            <div class="result-name">${r.page.name}</div>
+            <div class="result-desc">${r.page.desc}</div>
+          </div>
+          <span class="result-score">${(r.score * 100).toFixed(0)}%</span>
+        </div>`).join('')
+    : '<div class="no-result">无匹配结果 / no results</div>';
+
+  resultsEl.style.display = 'block';
+}
+
+document.addEventListener('click', e => {
+  if (!inputEl.contains(e.target) && !resultsEl.contains(e.target))
+    resultsEl.style.display = 'none';
+});
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { inputEl.value = ''; resultsEl.style.display = 'none'; }
+});
+
+// Clock
+const tick = () => document.getElementById('clock').textContent =
+  new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+tick(); setInterval(tick, 1000);
+
+init();
+</script>
+</body>
+</html>

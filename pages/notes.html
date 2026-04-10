@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文献阅读笔记</title>
+  <meta name="description" content="论文阅读与想法记录 paper reading notes and research ideas">
+  <meta name="icon"        content="📝">
+  <meta name="tag"         content="笔记">
+  <meta name="pinned"      content="true">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f7f5; --surface: #fff; --border: #e0e0e0; --border-hi: #ccc;
+      --text: #555; --text-dim: #aaa; --text-hi: #111; --accent: #2a6ef5; --tag-bg: #f0f0f0;
+    }
+    [data-theme="dark"] {
+      --bg: #0d0d0d; --surface: #141414; --border: #232323; --border-hi: #333;
+      --text: #c8c8c8; --text-dim: #555; --text-hi: #f0f0f0; --accent: #e8ff6e; --tag-bg: #1a1a1a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 48px 32px 80px; max-width: 800px; }
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+    .back { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); text-decoration: none; }
+    .back:hover { color: var(--accent); }
+    h1 { font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--text-dim); font-weight: 400; }
+    h1 span { color: var(--accent); }
+    #theme-toggle { margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 4px 8px; }
+
+    .note-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px 24px; margin-bottom: 12px; }
+    .note-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .note-title { color: var(--text-hi); font-size: 14px; font-weight: 500; }
+    .note-date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); margin-left: auto; }
+    .note-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); background: var(--tag-bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
+    .note-body { color: var(--text); font-size: 13px; line-height: 1.7; }
+    .note-body p { margin-bottom: 8px; }
+    .note-body p:last-child { margin-bottom: 0; }
+    .note-link { color: var(--accent); text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+    .note-link:hover { text-decoration: underline; }
+
+    .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  </style>
+</head>
+<body>
+<script>
+  const setTheme = (t) => {
+    const theme = t || localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    theme === 'dark' ? document.documentElement.setAttribute('data-theme','dark') : document.documentElement.removeAttribute('data-theme');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  };
+  const toggleTheme = () => { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', next); setTheme(next); };
+  setTheme();
+</script>
+
+<header>
+  <a class="back" href="../index.html">← MattHub</a>
+  <h1>◈ <span>文献阅读笔记</span></h1>
+  <button id="theme-toggle" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">2024</div>
+
+<div class="note-card">
+  <div class="note-header">
+    <span class="note-title">SAM-Med3D: Towards General-Purpose Segmentation Models for Volumetric Medical Images</span>
+    <span class="note-tag">分割</span>
+    <span class="note-date">2024-03-12</span>
+  </div>
+  <div class="note-body">
+    <p>将 SAM 扩展到 3D 医学图像分割。核心改动是把 2D image encoder 替换成 3D ViT，同时引入 3D prompt encoder 支持点、框提示。</p>
+    <p>训练数据用了 21k+ 个 3D 医学图像样本，涵盖 CT/MRI 多个模态。zero-shot 能力在通用分割任务上显著优于之前方法。</p>
+    <p>注意事项：输入需要 resample 到 1mm isotropic，坐标系对齐是关键，ToCanonical 之后 axis ordering 会变。</p>
+    <a class="note-link" href="https://arxiv.org/abs/2310.15161" target="_blank">→ arxiv:2310.15161</a>
+  </div>
+</div>
+
+<div class="note-card">
+  <div class="note-header">
+    <span class="note-title">TorchIO: a Python library for efficient loading, preprocessing, augmentation and patch-based sampling of medical images in deep learning</span>
+    <span class="note-tag">工具</span>
+    <span class="note-date">2024-01-05</span>
+  </div>
+  <div class="note-body">
+    <p>Subject-based API 是关键设计——image 和 label 共享同一个 transform，保证空间对齐。不要对 image/label 分别跑 transform。</p>
+    <p>Resample(reference) 是最可靠的 inverse transform 方式，比手动算 affine 矩阵靠谱得多。</p>
+    <a class="note-link" href="https://torchio.readthedocs.io" target="_blank">→ 文档</a>
+  </div>
+</div>
+</body>
+</html>
