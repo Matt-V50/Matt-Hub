@@ -1,0 +1,43 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'pages/**/*.html'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Cache model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-multilingual-minilm-${{ runner.os }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate site.json + embeddings.json
+        run: npm run embeddings
+
+      # main 分支内容 + 生成文件一起推到 gh-pages
+      # main 分支本身保持干净，没有任何 bot commit
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          exclude_assets: '.github,node_modules,generate-embeddings.js,package.json,package-lock.json'
