@@ -86,7 +86,7 @@ header {
   font-size: 14px;
   padding: 4px 8px;
   transition: border-color .15s;
-  margin-left: 12px;
+  margin-left: auto;
 }
 #theme-toggle:hover { border-color: var(--border-hi); }
 
