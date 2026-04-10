@@ -52,6 +52,36 @@
   .cl-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
   .cl-legend .p { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
 
+  /* Legend filter interaction */
+  .cl-legend .cl-pill {
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+    user-select: none;
+  }
+  .cl-legend .cl-pill:hover { transform: translateY(-1px); }
+  .cl-legend .cl-pill.cl-legend-active {
+    transform: translateY(-1px);
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  /* When a filter is active: dim non-matching pills in table */
+  .cl-filtering .cl-pill { opacity: .18; transition: opacity .2s, box-shadow .2s; }
+  .cl-filtering .cl-pill.cl-glow {
+    opacity: 1;
+    box-shadow: 0 0 0 2px currentColor, 0 0 10px currentColor;
+    animation: cl-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes cl-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px currentColor, 0 0 8px currentColor; }
+    50%       { box-shadow: 0 0 0 2px currentColor, 0 0 16px currentColor; }
+  }
+  /* Keep non-typed pills readable */
+  .cl-filtering .cl-px,
+  .cl-filtering .cl-bank,
+  .cl-filtering .cl-eco-n,
+  .cl-filtering .cl-eco-s { opacity: 1; }
+
   .cl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -48px; padding: 0 48px; }
   @media(max-width: 700px) { .cl-scroll { margin: 0 -24px; padding: 0 24px; } }
 
@@ -119,13 +149,13 @@
 </div>
 
 <div class="cl-legend">
-  <span class="cl-pill cl-pf">全价超市</span>
-  <span class="cl-pill cl-pd">折扣店</span>
-  <span class="cl-pill cl-pp">药房</span>
-  <span class="cl-pill cl-pg">加油站</span>
-  <span class="cl-pill cl-pi">金融</span>
-  <span class="cl-pill cl-pe">娱乐 / 航空</span>
-  <span class="cl-pill cl-po">零售 / 其他</span>
+  <span class="cl-pill cl-pf" data-filter="cl-pf">全价超市</span>
+  <span class="cl-pill cl-pd" data-filter="cl-pd">折扣店</span>
+  <span class="cl-pill cl-pp" data-filter="cl-pp">药房</span>
+  <span class="cl-pill cl-pg" data-filter="cl-pg">加油站</span>
+  <span class="cl-pill cl-pi" data-filter="cl-pi">金融</span>
+  <span class="cl-pill cl-pe" data-filter="cl-pe">娱乐 / 航空</span>
+  <span class="cl-pill cl-po" data-filter="cl-po">零售 / 其他</span>
   <span class="cl-pill cl-px">空缺</span>
 </div>
 
@@ -287,10 +317,39 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Animate share bars
   document.querySelectorAll('.cl-share-f').forEach(f => {
     const w = f.dataset.w;
     f.style.width = '0%';
     requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = w; }));
+  });
+
+  // Legend filter
+  const table = document.querySelector('.cl-mx');
+  let activeFilter = null;
+
+  document.querySelectorAll('.cl-legend [data-filter]').forEach(legendPill => {
+    legendPill.addEventListener('click', () => {
+      const filter = legendPill.dataset.filter;
+
+      if (activeFilter === filter) {
+        // Deselect
+        activeFilter = null;
+        legendPill.classList.remove('cl-legend-active');
+        table.classList.remove('cl-filtering');
+        table.querySelectorAll('.cl-pill.cl-glow').forEach(p => p.classList.remove('cl-glow'));
+      } else {
+        // Deselect previous
+        document.querySelectorAll('.cl-legend .cl-legend-active').forEach(p => p.classList.remove('cl-legend-active'));
+        table.querySelectorAll('.cl-pill.cl-glow').forEach(p => p.classList.remove('cl-glow'));
+
+        // Select new
+        activeFilter = filter;
+        legendPill.classList.add('cl-legend-active');
+        table.classList.add('cl-filtering');
+        table.querySelectorAll('.cl-pill.' + filter).forEach(p => p.classList.add('cl-glow'));
+      }
+    });
   });
 });
 </script>
