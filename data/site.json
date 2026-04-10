@@ -22,5 +22,13 @@
     "desc": "加拿大消费积分生态圈全景 Canadian loyalty ecosystem 2026: PC Optimum, Scene+, Triangle, Moi, Journie — 超市、药房、加油站、银行卡矩阵对比分析",
     "tag": "参考",
     "pinned": false
+  },
+  {
+    "name": "孕期营养配比指南",
+    "url": "pages/pregnancy.html",
+    "icon": "🤰",
+    "desc": "Pregnancy nutrition guide: three-phase timeline with food categories, key micronutrients, and personalized weekly tracker.",
+    "tag": "参考",
+    "pinned": false
   }
 ]
