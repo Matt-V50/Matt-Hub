@@ -1,5 +1,13 @@
 [
   {
+    "name": "3DGS Ecosystem Stack",
+    "url": "pages/3dgs-ecosystem.html",
+    "icon": "🧊",
+    "desc": "3D Gaussian Splatting industry ecosystem map: five-layer stack from hardware foundations to end applications, covering key players in AV, robotics, real estate, VFX, GIS, and industrial digital twins. Market intelligence 2025-2026.",
+    "tag": "参考",
+    "pinned": true
+  },
+  {
     "name": "文献阅读笔记",
     "url": "pages/notes.html",
     "icon": "📝",
