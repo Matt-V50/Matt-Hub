@@ -22,7 +22,9 @@ jobs:
       - name: Cache model weights
         uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface
+          path: |
+            ~/.cache/huggingface
+            /root/.cache/huggingface
           key: hf-multilingual-minilm-${{ runner.os }}
 
       - name: Install dependencies
@@ -31,12 +33,18 @@ jobs:
       - name: Generate site.json + embeddings.json
         run: npm run embeddings
 
-      # main 分支内容 + 生成文件一起推到 gh-pages
-      # main 分支本身保持干净，没有任何 bot commit
+      # 把要部署的文件复制到 _site/，绕开 .gitignore 对 data/ 的影响
+      - name: Prepare deploy directory
+        run: |
+          mkdir _site
+          cp index.html _site/
+          [ -d pages ]  && cp -r pages  _site/ || true
+          [ -d data ]   && cp -r data   _site/ || true
+          [ -d assets ] && cp -r assets _site/ || true
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: _site
           publish_branch: gh-pages
-          exclude_assets: '.github,node_modules,generate-embeddings.js,package.json,package-lock.json'
