@@ -8,6 +8,14 @@
     "pinned": true
   },
   {
+    "name": "Waterloo Gas Prices",
+    "url": "pages/canada-gas.html",
+    "icon": "⛽",
+    "desc": "Waterloo region gas prices tracker: regular, mid-grade and premium fuel price history by station and brand, sourced from GasBuddy",
+    "tag": "工具",
+    "pinned": true
+  },
+  {
     "name": "加拿大消费积分生态圈",
     "url": "pages/canada-loyalty.html",
     "icon": "🍁",
