@@ -17,7 +17,7 @@
  */
 
 import { pipeline, env } from '@xenova/transformers';
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 env.allowLocalModels = false;
