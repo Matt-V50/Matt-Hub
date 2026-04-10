@@ -40,7 +40,6 @@
     --cl-ent-bg:#72243E;  --cl-ent:#F4C0D1;
   }
 
-  /* Override container for wider layout */
   .container { font-family: var(--cl-font-cn); }
 
   .cl-hero { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-hi); }
@@ -115,10 +114,10 @@
 
   .cl-bank { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; background: var(--tag-bg); color: var(--text-dim); margin: 2px; border: .5px solid var(--border); }
 
-  .cl-share { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-  .cl-share-t { height: 4px; flex: 1; border-radius: 2px; background: var(--border); overflow: hidden; min-width: 40px; max-width: 80px; }
+  .cl-share { margin-top: 6px; display: inline-block; }
+  .cl-share-t { display: block; width: 72px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
   .cl-share-f { height: 100%; border-radius: 2px; transition: width .8s ease; }
-  .cl-share-l { font-family: var(--cl-font-mono); font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+  .cl-share-l { display: block; font-family: var(--cl-font-mono); font-size: 10px; color: var(--text-dim); line-height: 1.4; margin-top: 3px; }
 
   .cl-insight { padding: 1.25rem 1.5rem; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 10px; margin-top: 1rem; }
   .cl-insight h3 { font-family: var(--cl-font-en); font-size: 14px; font-weight: 700; margin-bottom: .5rem; color: var(--text-hi); }
