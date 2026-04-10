@@ -20,8 +20,9 @@
     .pn-datebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--tag-bg); }
     .pn-date-group { display: flex; align-items: center; gap: 8px; }
     .pn-date-group label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: .04em; white-space: nowrap; }
-    .pn-date-group input[type="date"] { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-hi); outline: none; cursor: pointer; }
+    .pn-date-group input[type="date"] { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-hi); outline: none; cursor: pointer; color-scheme: light; }
     .pn-date-group input[type="date"]:focus { border-color: var(--accent); }
+    [data-theme="dark"] .pn-date-group input[type="date"] { color-scheme: dark; }
     .pn-date-sep { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--border-hi); }
     .pn-week-display { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 500; margin-left: auto; }
     .pn-week-display.hidden { display: none; }
@@ -160,6 +161,11 @@
 
 <div class="pn-datebar">
   <div class="pn-date-group">
+    <label for="lmp-input">🩸 末次月经</label>
+    <input type="date" id="lmp-input">
+  </div>
+  <span class="pn-date-sep">⇄</span>
+  <div class="pn-date-group">
     <label for="conception-input">🔬 受精日</label>
     <input type="date" id="conception-input">
   </div>
@@ -251,6 +257,7 @@
 
 <script>
 (function() {
+  const lmpInput        = document.getElementById('lmp-input');
   const conceptionInput = document.getElementById('conception-input');
   const eddInput        = document.getElementById('edd-input');
   const weekDisplay     = document.getElementById('week-display');
@@ -279,26 +286,61 @@
   // Render ruler after layout is ready
   window.addEventListener('load', function() { updateTimeline(); renderRuler(); });
 
+  lmpInput.addEventListener('change', function() {
+    localStorage.setItem('pn-lmp', this.value);
+    if (this.value) {
+      syncConceptionFromLmp(this.value);
+      syncEdd(conceptionInput.value);
+      localStorage.setItem('pn-conception', conceptionInput.value);
+      localStorage.setItem('pn-edd', eddInput.value);
+    }
+    updateTimeline(); renderRuler();
+  });
   conceptionInput.addEventListener('change', function() {
     localStorage.setItem('pn-conception', this.value);
-    if (this.value) { syncEdd(this.value); localStorage.setItem('pn-edd', eddInput.value); }
+    if (this.value) {
+      syncLmp(this.value);
+      syncEdd(this.value);
+      localStorage.setItem('pn-lmp', lmpInput.value);
+      localStorage.setItem('pn-edd', eddInput.value);
+    }
     updateTimeline(); renderRuler();
   });
   eddInput.addEventListener('change', function() {
     localStorage.setItem('pn-edd', this.value);
-    if (this.value) { syncConception(this.value); localStorage.setItem('pn-conception', conceptionInput.value); }
+    if (this.value) {
+      syncConception(this.value);
+      syncLmp(conceptionInput.value);
+      localStorage.setItem('pn-conception', conceptionInput.value);
+      localStorage.setItem('pn-lmp', lmpInput.value);
+    }
     updateTimeline(); renderRuler();
   });
 
   function syncEdd(cStr) {
+    if (!cStr) return;
     const d = new Date(cStr + 'T00:00:00');
     d.setDate(d.getDate() + CONCEPTION_TO_EDD);
     eddInput.value = fmtDate(d);
   }
   function syncConception(eStr) {
+    if (!eStr) return;
     const d = new Date(eStr + 'T00:00:00');
     d.setDate(d.getDate() - CONCEPTION_TO_EDD);
     conceptionInput.value = fmtDate(d);
+  }
+  // LMP ↔ conception: LMP + 14 days = conception
+  function syncConceptionFromLmp(lStr) {
+    if (!lStr) return;
+    const d = new Date(lStr + 'T00:00:00');
+    d.setDate(d.getDate() + 14);
+    conceptionInput.value = fmtDate(d);
+  }
+  function syncLmp(cStr) {
+    if (!cStr) return;
+    const d = new Date(cStr + 'T00:00:00');
+    d.setDate(d.getDate() - 14);
+    lmpInput.value = fmtDate(d);
   }
   function fmtDate(d) {
     return d.getFullYear() + '-' +
