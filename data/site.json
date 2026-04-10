@@ -1,0 +1,18 @@
+[
+  {
+    "name": "文献阅读笔记",
+    "url": "pages/notes.html",
+    "icon": "📝",
+    "desc": "论文阅读与想法记录 paper reading notes and research ideas",
+    "tag": "笔记",
+    "pinned": true
+  },
+  {
+    "name": "TorchIO 备忘录",
+    "url": "pages/torchio-cheatsheet.html",
+    "icon": "🧮",
+    "desc": "TorchIO transform API quick reference cheatsheet 常用变换接口速查",
+    "tag": "参考",
+    "pinned": false
+  }
+]
