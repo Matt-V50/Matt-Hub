@@ -304,7 +304,7 @@ async function doSearch(q) {
         return { page: p, score: cosine(queryVec, Array.from(o.data)) };
       }));
 
-  const results = scored.filter(r => r.score > 0.2).sort((a, b) => b.score - a.score).slice(0, 6);
+  const results = scored.filter(r => r.score > 0.1).sort((a, b) => b.score - a.score).slice(0, 6);
 
   resultsEl.innerHTML = results.length
     ? results.map(r => `
