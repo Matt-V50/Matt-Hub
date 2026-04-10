@@ -236,8 +236,8 @@ let storedEmbeddings = null;
 async function init() {
   // 并行加载 site.json、embeddings.json、模型
   const [pages, emb] = await Promise.all([
-    fetch('site.json').then(r => r.json()).catch(() => []),
-    fetch('embeddings.json').then(r => r.json()).catch(() => null),
+    fetch('data/site.json').then(r => r.json()).catch(() => []),
+    fetch('data/embeddings.json').then(r => r.json()).catch(() => null),
     pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
       quantized: true
     }).then(p => { extractor = p; })
