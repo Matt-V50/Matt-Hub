@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>加拿大消费积分生态圈</title>
+<meta name="description" content="加拿大消费积分生态圈全景 Canadian loyalty ecosystem 2026: PC Optimum, Scene+, Triangle, Moi, Journie — 超市、药房、加油站、银行卡矩阵对比分析">
+<meta name="icon"    content="🍁">
+<meta name="tag"     content="参考">
+<meta name="pinned"  content="false">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&family=Noto+Sans+SC:wght@400;500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+  /* Page-specific variables — prefixed cl- to avoid conflicts */
+  :root {
+    --cl-bg2:#F0EFE9; --cl-bg3:#E8E7E0;
+    --cl-text2:#6B6A65; --cl-text3:#9C9B95;
+    --cl-border2:rgba(0,0,0,0.14);
+    --cl-font-cn:'Noto Sans SC',sans-serif;
+    --cl-font-en:'DM Sans',sans-serif;
+    --cl-font-mono:'Space Mono',monospace;
+    --cl-full:#185FA5; --cl-full-bg:#E6F1FB;
+    --cl-disc:#854F0B; --cl-disc-bg:#FAEEDA;
+    --cl-phar:#0F6E56; --cl-phar-bg:#E1F5EE;
+    --cl-gas:#993C1D;  --cl-gas-bg:#FAECE7;
+    --cl-fin:#534AB7;  --cl-fin-bg:#EEEDFE;
+    --cl-ent:#993556;  --cl-ent-bg:#FBEAF0;
+  }
+  [data-theme="dark"] {
+    --cl-bg2:#252523; --cl-bg3:#333331;
+    --cl-text2:#9C9B95; --cl-text3:#6B6A65;
+    --cl-border2:rgba(255,255,255,0.14);
+    --cl-full-bg:#0C447C; --cl-full:#B5D4F4;
+    --cl-disc-bg:#633806; --cl-disc:#FAC775;
+    --cl-phar-bg:#085041; --cl-phar:#9FE1CB;
+    --cl-gas-bg:#712B13;  --cl-gas:#F5C4B3;
+    --cl-fin-bg:#3C3489;  --cl-fin:#CECBF6;
+    --cl-ent-bg:#72243E;  --cl-ent:#F4C0D1;
+  }
+
+  /* Override container for wider layout */
+  .container { max-width: 1100px; font-family: var(--cl-font-cn); }
+
+  .cl-hero { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-hi); }
+  .cl-eyebrow { font-family: var(--cl-font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: .5rem; }
+  .cl-title { font-family: var(--cl-font-en); font-size: clamp(1.5rem,3.5vw,2.2rem); font-weight: 700; line-height: 1.15; letter-spacing: -.02em; color: var(--text-hi); }
+  .cl-title span { display: block; font-family: var(--cl-font-cn); font-size: clamp(.9rem,1.8vw,1.1rem); font-weight: 500; color: var(--text-dim); letter-spacing: 0; margin-top: .3rem; }
+  .cl-desc { font-size: 13px; color: var(--text-dim); margin-top: .8rem; max-width: 700px; line-height: 1.7; }
+
+  .cl-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .cl-legend .p { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+
+  .cl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -48px; padding: 0 48px; }
+  @media(max-width: 700px) { .cl-scroll { margin: 0 -24px; padding: 0 24px; } }
+
+  .cl-mx { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; min-width: 860px; }
+  .cl-mx th, .cl-mx td { padding: 10px 12px; text-align: left; vertical-align: top; }
+  .cl-mx thead th {
+    font-family: var(--cl-font-en); font-size: 11px; font-weight: 500;
+    color: var(--text-dim); letter-spacing: .5px;
+    border-bottom: 1px solid var(--cl-border2);
+    position: sticky; top: 0; background: var(--surface); z-index: 2; white-space: nowrap;
+  }
+  .cl-mx thead th .col-zh { display: block; font-family: var(--cl-font-cn); font-size: 11px; color: var(--text-dim); font-weight: 400; margin-top: 1px; }
+  .cl-mx tbody tr { transition: background .15s; }
+  .cl-mx tbody tr:hover { background: var(--tag-bg); }
+  .cl-mx tbody td { border-bottom: .5px solid var(--border); }
+  .cl-mx tbody td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 130px; }
+  .cl-mx tbody tr:hover td:first-child { background: var(--tag-bg); }
+
+  .cl-eco-n { font-family: var(--cl-font-en); font-size: 15px; font-weight: 700; display: block; margin-bottom: 2px; }
+  .cl-eco-s { font-size: 11px; color: var(--text-dim); display: block; line-height: 1.4; }
+
+  .cl-pill { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 500; margin: 2px; white-space: nowrap; line-height: 1.4; }
+  .cl-pf { background: var(--cl-full-bg); color: var(--cl-full); }
+  .cl-pd { background: var(--cl-disc-bg); color: var(--cl-disc); }
+  .cl-pp { background: var(--cl-phar-bg); color: var(--cl-phar); }
+  .cl-pg { background: var(--cl-gas-bg);  color: var(--cl-gas); }
+  .cl-pi { background: var(--cl-fin-bg);  color: var(--cl-fin); }
+  .cl-pe { background: var(--cl-ent-bg);  color: var(--cl-ent); }
+  .cl-po { background: var(--tag-bg); color: var(--text-dim); }
+  .cl-px { background: transparent; color: var(--text-dim); border: .5px dashed var(--border-hi); font-style: italic; }
+
+  .cl-bank { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; background: var(--tag-bg); color: var(--text-dim); margin: 2px; border: .5px solid var(--border); }
+
+  .cl-share { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .cl-share-t { height: 4px; flex: 1; border-radius: 2px; background: var(--tag-bg); overflow: hidden; max-width: 80px; }
+  .cl-share-f { height: 100%; border-radius: 2px; transition: width .8s ease; }
+  .cl-share-l { font-family: var(--cl-font-mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+
+  .cl-insight { padding: 1.25rem 1.5rem; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 10px; margin-top: 1rem; }
+  .cl-insight h3 { font-family: var(--cl-font-en); font-size: 14px; font-weight: 700; margin-bottom: .5rem; color: var(--text-hi); }
+  .cl-insight p { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: .5rem; }
+  .cl-insight p:last-child { margin-bottom: 0; }
+  .cl-insight strong { color: var(--text-hi); }
+
+  .cl-score { font-family: var(--cl-font-mono); font-size: 12px; color: var(--text); line-height: 2.2; }
+
+  hr.cl-div { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">◈ <span>MattHub</span></a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="cl-hero">
+  <div class="cl-eyebrow">Loyalty ecosystem · 2026</div>
+  <h1 class="cl-title">Canadian Consumer Loyalty Ecosystem
+    <span>加拿大消费积分生态圈全景</span>
+  </h1>
+  <p class="cl-desc">积分体系是加拿大消费生态的真正骨架——它把超市、药房、加油站、银行信用卡串联成封闭的"围墙花园"。一旦选择了一个阵营，你的日常消费就被锁定在这个闭环里。下面这张矩阵以积分体系为行、业态为列，揭示五大生态圈的覆盖范围与竞争空白。</p>
+</div>
+
+<div class="cl-legend">
+  <span class="cl-pill cl-pf">全价超市</span>
+  <span class="cl-pill cl-pd">折扣店</span>
+  <span class="cl-pill cl-pp">药房</span>
+  <span class="cl-pill cl-pg">加油站</span>
+  <span class="cl-pill cl-pi">金融</span>
+  <span class="cl-pill cl-pe">娱乐 / 航空</span>
+  <span class="cl-pill cl-po">零售 / 其他</span>
+  <span class="cl-pill cl-px">空缺</span>
+</div>
+
+<div class="cl-scroll">
+<table class="cl-mx">
+<thead>
+<tr>
+  <th></th>
+  <th>Grocery (full price)<span class="col-zh">全价超市</span></th>
+  <th>Grocery (discount)<span class="col-zh">折扣超市</span></th>
+  <th>Pharmacy<span class="col-zh">药房</span></th>
+  <th>Gas station<span class="col-zh">加油站</span></th>
+  <th>Finance / entertainment<span class="col-zh">金融 / 娱乐</span></th>
+  <th>Bank card glue<span class="col-zh">粘合剂: 银行卡</span></th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+  <span class="cl-eco-n" style="color:#D63031">PC Optimum</span>
+  <span class="cl-eco-s">Loblaw 系<br>1600万+活跃会员</span>
+</td>
+<td>
+  <span class="cl-pill cl-pf">Loblaws</span><span class="cl-pill cl-pf">Superstore</span><span class="cl-pill cl-pf">Zehrs</span><span class="cl-pill cl-pf">Fortinos</span><span class="cl-pill cl-pf">Provigo</span><span class="cl-pill cl-pf">T&T 大统华</span><span class="cl-pill cl-pf">Valu-mart</span><span class="cl-pill cl-pf">Independent</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="60%" style="background:#D63031"></div></div><span class="cl-share-l">~30% 杂货</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pd">No Frills</span><span class="cl-pill cl-pd">Maxi</span><span class="cl-pill cl-pd">no name Store</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="70%" style="background:#E67E22"></div></div><span class="cl-share-l">~35% 折扣</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pp">Shoppers Drug Mart</span><span class="cl-pill cl-pp">Pharmaprix</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="86%" style="background:#0F6E56"></div></div><span class="cl-share-l">1,300+ 店 · 最大连锁药房</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pg">Esso</span><span class="cl-pill cl-pg">Mobil</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="50%" style="background:#993C1D"></div></div><span class="cl-share-l">全国最多站点</span></div>
+</td>
+<td><span class="cl-pill cl-pi">PC Financial</span><span class="cl-pill cl-pi">PC Mastercard</span></td>
+<td><span class="cl-bank">PC Mastercard (自有)</span></td>
+</tr>
+
+<tr>
+<td>
+  <span class="cl-eco-n" style="color:#00843D">Scene+</span>
+  <span class="cl-eco-s">Empire / Sobeys 系</span>
+</td>
+<td>
+  <span class="cl-pill cl-pf">Sobeys</span><span class="cl-pill cl-pf">Safeway</span><span class="cl-pill cl-pf">IGA</span><span class="cl-pill cl-pf">Foodland</span><span class="cl-pill cl-pf">Thrifty Foods</span><span class="cl-pill cl-pf">Farm Boy</span><span class="cl-pill cl-pf">Longo's</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="40%" style="background:#00843D"></div></div><span class="cl-share-l">~20% 杂货</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pd">FreshCo</span><span class="cl-pill cl-pd">Chalo! FreshCo</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="24%" style="background:#E67E22"></div></div><span class="cl-share-l">~12% 折扣 · 追赶中</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pp">Lawtons Drugs</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="10%" style="background:#0F6E56"></div></div><span class="cl-share-l">仅大西洋省份</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pg">Shell</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="30%" style="background:#993C1D"></div></div><span class="cl-share-l">全国覆盖 · 2025起接入</span></div>
+</td>
+<td><span class="cl-pill cl-pe">Cineplex (电影)</span></td>
+<td><span class="cl-bank">Scotiabank Scene+ Visa</span></td>
+</tr>
+
+<tr>
+<td>
+  <span class="cl-eco-n" style="color:#E65100">Triangle</span>
+  <span class="cl-eco-s">Canadian Tire 系<br>1100万+活跃会员</span>
+</td>
+<td><span class="cl-pill cl-px">无超市</span></td>
+<td><span class="cl-pill cl-px">无折扣超市</span></td>
+<td><span class="cl-pill cl-px">无药房</span></td>
+<td>
+  <span class="cl-pill cl-pg">Petro-Canada</span><span class="cl-pill cl-pg">Gas+</span><span class="cl-pill cl-po">Petro-Points 联盟</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="46%" style="background:#993C1D"></div></div><span class="cl-share-l">1,800+ Petro/Gas+ 站</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-po">Canadian Tire</span><span class="cl-pill cl-po">Sport Chek</span><span class="cl-pill cl-po">Mark's</span><span class="cl-pill cl-po">Party City</span><span class="cl-pill cl-pe">WestJet (2026)</span><span class="cl-pill cl-pe">Tim Hortons (2026)</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="60%" style="background:#E65100"></div></div><span class="cl-share-l">五金零售第一 · $17B</span></div>
+</td>
+<td><span class="cl-bank">Triangle Mastercard (自有)</span><span class="cl-bank">RBC (合作 · 2026)</span></td>
+</tr>
+
+<tr>
+<td>
+  <span class="cl-eco-n" style="color:#003DA5">Moi</span>
+  <span class="cl-eco-s">Metro 系<br>仅 Ontario + Québec</span>
+</td>
+<td>
+  <span class="cl-pill cl-pf">Metro</span><span class="cl-pill cl-pf">Metro Plus</span><span class="cl-pill cl-pf">Adonis</span><span class="cl-pill cl-pf">Première Moisson</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="20%" style="background:#003DA5"></div></div><span class="cl-share-l">~10% 杂货 (ON+QC)</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pd">Food Basics</span><span class="cl-pill cl-pd">Super C</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="30%" style="background:#E67E22"></div></div><span class="cl-share-l">~15% 折扣 (ON+QC)</span></div>
+</td>
+<td>
+  <span class="cl-pill cl-pp">Jean Coutu</span><span class="cl-pill cl-pp">Brunet</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="50%" style="background:#0F6E56"></div></div><span class="cl-share-l">640 药房 · QC 第一</span></div>
+</td>
+<td><span class="cl-pill cl-px">无加油站</span></td>
+<td><span class="cl-pill cl-px">无外部合作</span></td>
+<td><span class="cl-bank">Moi Visa (自有)</span></td>
+</tr>
+
+<tr>
+<td>
+  <span class="cl-eco-n" style="color:#888">Journie</span>
+  <span class="cl-eco-s">独立第四阵营<br>纯加油站联盟</span>
+</td>
+<td><span class="cl-pill cl-px">无超市</span></td>
+<td><span class="cl-pill cl-px">无折扣超市</span></td>
+<td><span class="cl-pill cl-px">无药房</span></td>
+<td>
+  <span class="cl-pill cl-pg">Chevron</span><span class="cl-pill cl-pg">Ultramar</span><span class="cl-pill cl-pg">Pioneer</span><span class="cl-pill cl-pg">Fas Gas</span>
+  <div class="cl-share"><div class="cl-share-t"><div class="cl-share-f" data-w="20%" style="background:#993C1D"></div></div><span class="cl-share-l">区域覆盖</span></div>
+</td>
+<td><span class="cl-pill cl-pe">Aeroplan (航空)</span></td>
+<td><span class="cl-bank">CIBC (合作)</span></td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<hr class="cl-div">
+
+<div class="cl-insight">
+  <h3>Ecosystem coverage score</h3>
+  <p class="cl-score">
+    PC Optimum &nbsp;&nbsp; 超市 &#9632; &nbsp; 折扣 &#9632; &nbsp; 药房 &#9632; &nbsp; 加油 &#9632; &nbsp; 金融 &#9632; &nbsp;&nbsp; <strong>5/5 全覆盖</strong><br>
+    Scene+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 超市 &#9632; &nbsp; 折扣 &#9632; &nbsp; 药房 &#9643; &nbsp; 加油 &#9632; &nbsp; 娱乐 &#9632; &nbsp;&nbsp; <strong>4/5</strong> 药房弱<br>
+    Triangle &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 超市 &#9643; &nbsp; 折扣 &#9643; &nbsp; 药房 &#9643; &nbsp; 加油 &#9632; &nbsp; 零售 &#9632; &nbsp;&nbsp; <strong>2/5</strong> 无食品+药房<br>
+    Moi &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 超市 &#9632; &nbsp; 折扣 &#9632; &nbsp; 药房 &#9632; &nbsp; 加油 &#9643; &nbsp; 金融 &#9643; &nbsp;&nbsp; <strong>3/5</strong> 最封闭<br>
+    Journie &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 超市 &#9643; &nbsp; 折扣 &#9643; &nbsp; 药房 &#9643; &nbsp; 加油 &#9632; &nbsp; 航空 &#9632; &nbsp;&nbsp; <strong>2/5</strong> 纯加油
+  </p>
+</div>
+
+<div style="height:1rem"></div>
+
+<div class="cl-insight">
+  <h3>Key insights</h3>
+  <p><strong>PC Optimum 是唯一的满格生态圈</strong>——超市、折扣店、药房、加油站、金融全部自有控制。这就是 Loblaw 能占 30% 杂货市场份额的结构性原因。</p>
+  <p><strong>Scene+ 的药房是致命短板</strong>——Lawtons 仅覆盖大西洋省份，远不如 Shoppers Drug Mart 的 1,300+ 店全国网络。高频日常消费的黏性因此大打折扣。</p>
+  <p><strong>Triangle 正在跨界进化</strong>——没有超市、没有药房，但 2026 年接入 WestJet 航空和 Tim Hortons 咖啡后，将从"五金零售积分"变成覆盖加油、出行、每日咖啡的通用积分平台。</p>
+  <p><strong>Metro (Moi) 最封闭也最脆弱</strong>——没有加油站、没有外部银行合作、仅限两省。这解释了为什么它无法全国扩张，也是三大超市集团中份额最小的。</p>
+  <p><strong>银行卡是放大器而非主体</strong>——每个生态圈绑定不同银行: Loblaw=自有 PC Financial, Sobeys=Scotiabank, Canadian Tire=RBC, Journie=CIBC。银行不构成独立生态，但它把积分赚取速度提升 3-7 倍，是锁定消费者的关键杠杆。</p>
+</div>
+
+<footer>
+  数据来源: Dalhousie University / Statista、USDA Retail Foods Annual、各公司年报与积分计划官网、dunnhumby RPI 2025、Competition Bureau of Canada<br>
+  市场份额为杂货食品零售估算值，各业态份额为近似值 · 更新于 2026 年 4 月
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.cl-share-f').forEach(f => {
+    const w = f.dataset.w;
+    f.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = w; }));
+  });
+});
+</script>
+</body>
+</html>
