@@ -302,43 +302,38 @@
     { id: 'phase3', start: 28, end: 42 },
   ];
 
-  const savedC = localStorage.getItem('pn-conception');
+  // Only EDD is stored; all three fields are derived from it on load
   const savedE = localStorage.getItem('pn-edd');
-  if (savedC) conceptionInput.value = savedC;
-  if (savedE) eddInput.value = savedE;
-  if (savedC && !savedE) syncEdd(savedC);
-  if (savedE && !savedC) syncConception(savedE);
+  if (savedE) {
+    eddInput.value = savedE;
+    syncConception(savedE);
+    syncLmp(conceptionInput.value);
+  }
 
   // Render ruler after layout is ready
   window.addEventListener('load', function() { updateTimeline(); renderRuler(); });
 
   lmpInput.addEventListener('change', function() {
-    localStorage.setItem('pn-lmp', this.value);
     if (this.value) {
       syncConceptionFromLmp(this.value);
       syncEdd(conceptionInput.value);
-      localStorage.setItem('pn-conception', conceptionInput.value);
       localStorage.setItem('pn-edd', eddInput.value);
     }
     updateTimeline(); renderRuler();
   });
   conceptionInput.addEventListener('change', function() {
-    localStorage.setItem('pn-conception', this.value);
     if (this.value) {
       syncLmp(this.value);
       syncEdd(this.value);
-      localStorage.setItem('pn-lmp', lmpInput.value);
       localStorage.setItem('pn-edd', eddInput.value);
     }
     updateTimeline(); renderRuler();
   });
   eddInput.addEventListener('change', function() {
-    localStorage.setItem('pn-edd', this.value);
     if (this.value) {
       syncConception(this.value);
       syncLmp(conceptionInput.value);
-      localStorage.setItem('pn-conception', conceptionInput.value);
-      localStorage.setItem('pn-lmp', lmpInput.value);
+      localStorage.setItem('pn-edd', this.value);
     }
     updateTimeline(); renderRuler();
   });
