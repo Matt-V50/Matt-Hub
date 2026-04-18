@@ -30,5 +30,13 @@
     "desc": "Pregnancy nutrition guide: three-phase timeline with food categories, key micronutrients, and personalized weekly tracker.",
     "tag": "参考",
     "pinned": false
+  },
+  {
+    "name": "糖类分子百科",
+    "url": "pages/sugars.html",
+    "icon": "📄",
+    "desc": "",
+    "tag": "其他",
+    "pinned": false
   }
 ]
