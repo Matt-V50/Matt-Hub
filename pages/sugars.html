@@ -3,89 +3,266 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>糖类分子百科</title>
+<title>糖类分子百科 · Carbohydrate Encyclopedia</title>
+<meta name="keywords" content="糖类,单糖,双糖,多糖,葡萄糖,果糖,半乳糖,蔗糖,乳糖,麦芽糖,纤维素,淀粉,糖原,哈沃斯式,分子结构,词源,carbohydrate,monosaccharide,disaccharide,polysaccharide,glucose,fructose,galactose,sucrose,lactose,maltose,cellulose,starch,glycogen,3D molecule,Haworth projection,etymology"/>
+<meta name="author" content="MattHub"/>
+<meta property="og:title" content="糖类分子百科 · Carbohydrate Encyclopedia"/>
+<meta property="og:description" content="20余种糖类的 2D/3D 分子结构、D/L 手性、α/β 异头体与完整词源 — Interactive 3D carbohydrate structures with etymology from PIE roots."/>
+<meta property="og:type" content="website"/>
+<meta name="description" content="糖类分子百科 — 涵盖葡萄糖、果糖、半乳糖、蔗糖、乳糖、麦芽糖、棉子糖、水苏糖、纤维素、淀粉、糖原等20余种单糖、双糖、三糖、四糖及多糖。每种糖附 PubChem 2D 结构图、可旋转 3D Ball-and-Stick 模型（含 Surface）、D/L 手性对映体、α/β 异头体对比，以及从原始印欧语根追溯至现代命名的完整词源。Interactive carbohydrate encyclopedia covering monosaccharides, disaccharides, oligosaccharides and polysaccharides — glucose, fructose, galactose, sucrose, lactose, maltose, raffinose, stachyose, cellulose, starch, glycogen and more. Features PubChem 2D structures, interactive 3D ball-and-stick viewers with VDW surface, D/L enantiomers, α/β anomers, and full etymology from Proto-Indo-European roots to IUPAC names."/>
+<meta name="icon"   content="🍬"/>
+<meta name="tag"    content="参考"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"/>
-<!-- NO defer: KaTeX must be available synchronously when renderGrid runs -->
+<!-- KaTeX must load synchronously — no defer -->
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Georgia',serif;background:#f5f4f0;color:#1a1a18;min-height:100vh}
-header{background:#fff;border-bottom:1px solid #e8e6df;padding:20px 36px 14px}
-header h1{font-size:25px;font-weight:700}
-header h1 span{color:#1d9e75}
-header p{font-size:11px;color:#aaa;font-family:system-ui,sans-serif;font-style:italic;margin-top:3px}
-.tabs{display:flex;border-bottom:2px solid #e8e6df;background:#fff;padding:0 36px;overflow-x:auto}
-.tab{font-size:13px;font-family:system-ui,sans-serif;font-weight:600;padding:11px 18px;
-  border:none;background:transparent;cursor:pointer;color:#999;
-  border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s}
-.tab.active{color:#1a1a18;border-bottom-color:#1d9e75}
-.tab:hover:not(.active){color:#1a1a18}
-.panel{display:none;max-width:1280px;margin:0 auto;padding:24px 18px}
-.panel.active{display:block}
-.sec-intro{font-size:12.5px;color:#888;font-family:system-ui,sans-serif;margin-bottom:20px;line-height:1.75;max-width:920px}
-.ring-pill{display:inline-block;font-size:11px;font-family:system-ui,sans-serif;font-weight:600;padding:2px 8px;border-radius:12px;margin:0 2px;vertical-align:middle}
-.sugar-grid{position:relative;}
-.sugar-grid .card{position:absolute;width:calc(50% - 9px);transition:top .25s ease,left .25s ease;}
-@media(max-width:640px){.sugar-grid .card{width:100%;}}
+/* ── Page-specific overrides (all unsuffixed selectors scoped to this page) ── */
+/* Body override: shared.css sets padding/font; we add grid-level max-width */
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* Header layout for this page */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 36px 14px;
+}
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-hi);
+  font-family: 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.01em;
+}
+.header-title span { color: var(--accent); }
+.header-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .06em;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0 36px;
+  overflow-x: auto;
+}
+.tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  letter-spacing: .04em;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-hi); }
+
+/* Panel */
+.panel { display: none; max-width: 1280px; margin: 0 auto; padding: 24px 18px; }
+.panel.active { display: block; }
+.sec-intro {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: 'IBM Plex Sans', sans-serif;
+  margin-bottom: 20px;
+  line-height: 1.75;
+  max-width: 920px;
+}
+.ring-pill {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin: 0 2px;
+  vertical-align: middle;
+}
+
+/* Masonry grid */
+.sugar-grid { position: relative; }
+.sugar-grid .card { position: absolute; width: calc(50% - 9px); transition: top .25s ease, left .25s ease; }
+@media(max-width:640px){ .sugar-grid .card { width: 100%; } }
 
 /* Card */
-.card{background:#fff;border:1px solid #e8e6df;border-radius:12px;overflow:hidden}
-.stripe{height:5px}
-.card-top{padding:12px 16px 10px;border-bottom:1px solid #f0efe9;position:relative}
-.wiki-link{float:right;margin-left:8px;font-size:10px;font-family:system-ui,sans-serif;color:#1d9e75;text-decoration:none;border:1px solid #c0e8d8;border-radius:20px;padding:2px 8px;background:#f0fdf8;opacity:.9;transition:opacity .15s;white-space:nowrap}
-.wiki-link:hover{opacity:1}
-.name-zh{font-size:17px;font-weight:700}
-.name-en{font-size:13px;color:#777;font-family:system-ui,sans-serif;margin-left:6px}
-.formula-wrap{display:inline-block;margin-left:8px;vertical-align:middle}
-.ring-badge{display:inline-block;font-size:10px;font-family:system-ui,sans-serif;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;color:#fff}
-.etym-block{margin-top:9px;font-size:11.5px;font-family:system-ui,sans-serif;color:#555;line-height:1.65}
-.etym-path{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px}
-.etym-flag{font-size:14px;flex-shrink:0;margin-top:1px}
-.etym-text em{font-style:italic;color:#444;font-family:Georgia,serif}
-.units-row{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:8px}
-.pill{font-size:10px;font-family:system-ui,sans-serif;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff}
-.link-badge{font-size:10px;font-family:monospace;border:1px solid #d8d0f0;border-radius:4px;padding:2px 7px;background:#f4f0ff;color:#6040a0;font-weight:600}
-.link-full{font-size:10px;font-family:monospace;color:#aaa;margin-left:2px}
-.source-note{font-size:11px;font-family:system-ui,sans-serif;color:#999;margin-top:6px;display:flex;align-items:center;gap:4px}
-.poly-note{font-size:10px;font-family:system-ui,sans-serif;color:#bbb;margin-top:5px}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color .15s;
+}
+.card:hover { border-color: var(--border-hi); }
+.stripe { height: 4px; }
+.card-top { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); position: relative; }
+.wiki-link {
+  float: right;
+  margin-left: 8px;
+  font-size: 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  opacity: .8;
+  transition: opacity .15s, border-color .15s;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+.wiki-link:hover { opacity: 1; border-color: var(--accent); }
+.name-zh { font-size: 16px; font-weight: 500; color: var(--text-hi); }
+.name-en { font-size: 12px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; margin-left: 6px; letter-spacing: .02em; }
+.formula-wrap { display: inline-block; margin-left: 8px; vertical-align: middle; }
+.ring-badge {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  color: #fff;
+  letter-spacing: .04em;
+}
+.etym-block { margin-top: 9px; font-size: 11px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text-dim); line-height: 1.65; }
+.etym-path { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 3px; }
+.etym-flag { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.etym-text em { font-style: italic; color: var(--text); font-family: 'IBM Plex Sans', sans-serif; }
+.units-row { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.pill { font-size: 9px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; padding: 2px 8px; border-radius: 3px; color: #fff; letter-spacing: .03em; }
+.link-badge {
+  font-size: 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  background: var(--tag-bg);
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: .03em;
+}
+.link-full { font-size: 9px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); margin-left: 3px; }
+.source-note { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); margin-top: 6px; display: flex; align-items: center; gap: 4px; letter-spacing: .02em; }
+.poly-note { font-size: 9px; font-family: 'IBM Plex Mono', monospace; color: var(--text-dim); margin-top: 5px; opacity: .7; }
 
-/* 2D | 3D row — identical structure for main card and anomer panels */
-.mol-row{display:flex;min-height:200px}
-.pane-2d{width:200px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-right:1px solid #f0efe9;position:relative;padding:8px}
-.pane-2d img{max-width:178px;max-height:168px;object-fit:contain}
-.pane-label-2d{position:absolute;top:5px;left:7px;font-size:9px;color:#ccc;font-family:system-ui,sans-serif;pointer-events:none;user-select:none}
-.pane-3d{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:#fff}
-.pane-label-3d{position:absolute;top:5px;left:7px;font-size:9px;color:#ccc;font-family:system-ui,sans-serif;pointer-events:none;user-select:none;z-index:3}
-.viewer-el{flex:1;min-height:200px}
-.v-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#bbb;font-family:system-ui,sans-serif;pointer-events:none;z-index:2}
-/* surface button top-right of 3D pane */
-.surf-btn{position:absolute;top:5px;right:7px;z-index:3;font-size:10px;font-family:system-ui,sans-serif;padding:2px 9px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;transition:all .12s}
-.surf-btn.on{background:#1d9e75;border-color:#1d9e75;color:#fff}
+/* 2D | 3D row */
+.mol-row { display: flex; min-height: 200px; }
+.pane-2d {
+  width: 200px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: relative; padding: 8px;
+}
+.pane-2d img { max-width: 178px; max-height: 168px; object-fit: contain; }
+.pane-label-2d {
+  position: absolute; top: 5px; left: 7px;
+  font-size: 9px; color: var(--text-dim); opacity: .5;
+  font-family: 'IBM Plex Mono', monospace;
+  pointer-events: none; user-select: none; letter-spacing: .08em;
+}
+.pane-3d {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  position: relative; background: var(--surface);
+}
+.pane-label-3d {
+  position: absolute; top: 5px; left: 7px;
+  font-size: 9px; color: var(--text-dim); opacity: .5;
+  font-family: 'IBM Plex Mono', monospace;
+  pointer-events: none; user-select: none; letter-spacing: .08em; z-index: 3;
+}
+.viewer-el { flex: 1; min-height: 200px; }
+.v-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text-dim); opacity: .6;
+  font-family: 'IBM Plex Mono', monospace;
+  pointer-events: none; z-index: 2; letter-spacing: .06em;
+}
+.surf-btn {
+  position: absolute; top: 5px; right: 7px; z-index: 3;
+  font-size: 9px; font-family: 'IBM Plex Mono', monospace;
+  padding: 2px 8px; border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-dim);
+  cursor: pointer; transition: all .12s; letter-spacing: .04em;
+}
+.surf-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+[data-theme="dark"] .surf-btn.on { color: #000; }
 
-/* Skeleton shimmer */
-.skeleton{border-radius:6px;background:linear-gradient(90deg,#f0efeb 25%,#e8e7e2 50%,#f0efeb 75%);background-size:200% 100%;animation:shimmer 1.2s infinite}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Skeleton */
+.skeleton {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--tag-bg) 25%, var(--border) 50%, var(--tag-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
 /* Accordion */
-.accord-section{border-top:1px solid #f0efe9}
-.accord-btn{width:100%;border:none;background:#fafaf8;padding:7px 16px;font-size:11px;font-family:system-ui,sans-serif;color:#888;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:background .12s}
-.accord-btn:hover{background:#f3f2ee;color:#555}
-.accord-btn .arr{font-size:10px;display:inline-block;transition:transform .2s}
-.accord-btn.open .arr{transform:rotate(90deg)}
-.accord-body{display:none}
-.accord-body.open{display:block}
-/* anomer sub-panel label (above the mol-row) */
-.anomer-sub-label{font-size:10px;font-family:system-ui,sans-serif;color:#999;padding:5px 14px 4px;background:#fafaf8;border-bottom:1px solid #f5f4f0}
-/* anomer note text */
-.anomer-note{font-size:11px;font-family:system-ui,sans-serif;color:#666;background:#faf8ff;border-top:1px solid #ece8f8;border-bottom:1px solid #ece8f8;padding:5px 14px;line-height:1.6}
-.anomer-note .al{color:#c03060;font-weight:700}
-.anomer-note .be{color:#1d9e75;font-weight:700}
+.accord-section { border-top: 1px solid var(--border); }
+.accord-btn {
+  width: 100%; border: none;
+  background: var(--tag-bg);
+  padding: 7px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+  cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 6px;
+  transition: background .12s, color .12s;
+  letter-spacing: .04em;
+}
+.accord-btn:hover { background: var(--border); color: var(--text-hi); }
+.accord-btn .arr { font-size: 9px; display: inline-block; transition: transform .2s; }
+.accord-btn.open .arr { transform: rotate(90deg); }
+.accord-body { display: none; }
+.accord-body.open { display: block; }
+.anomer-sub-label {
+  font-size: 9px; font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-dim); letter-spacing: .06em;
+  padding: 5px 14px 4px;
+  background: var(--tag-bg); border-bottom: 1px solid var(--border);
+}
+.anomer-note {
+  font-size: 11px; font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text-dim);
+  background: var(--tag-bg);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 5px 14px; line-height: 1.6;
+}
+.anomer-note .al { color: #e05080; font-weight: 600; }
+.anomer-note .be { color: #40b88a; font-weight: 600; }
 </style>
 </head>
 <body>
+<script src="../assets/js/theme.js"></script>
 <header>
-  <h1>糖类<span>分子百科</span></h1>
-  <p>Carbohydrate Encyclopedia · 2D PubChem + 3D Ball &amp; Stick · 词源追溯至原始印欧语根</p>
+  <div class="header-left">
+    <div class="header-title">糖类<span>分子百科</span></div>
+    <div class="header-sub">CARBOHYDRATE ENCYCLOPEDIA · 2D + 3D · ETYMOLOGY</div>
+  </div>
+  <button id="theme-toggle" onclick="toggleTheme()"></button>
 </header>
 <div class="tabs">
   <button class="tab active" onclick="showTab(0)">🍬 单糖</button>
@@ -129,8 +306,39 @@ function renderFml(str,el){
   catch(e){el.textContent=str;}
 }
 
-const url2d=(cid,sz=200)=>`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/PNG?image_size=${sz}x${sz}`;
-const url3d=cid=>`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`;
+// CID → slug mapping (mirrors download_molecules.py)
+const CID_SLUG = {
+  5793:'glucose', 2723872:'fructose', 6036:'galactose', 18950:'mannose',
+  135191:'xylose', 10975657:'ribose', 17106:'fucose',
+  // D/L open-chain
+  107689:'glucose_L_open', 159034:'fructose_L_open', 91666:'galactose_L_open',
+  122386:'mannose_L_open', 61495:'xylose_L_open', 68327:'ribose_L_open',
+  439553:'fucose_D_rare',
+  // anomers
+  79025:'glucose_alpha_D_pyra', 64689:'glucose_beta_D_pyra',
+  2723877:'fructose_beta_D_fura',
+  439559:'galactose_alpha_D', 439557:'galactose_beta_D',
+  439530:'mannose_alpha_D',   439531:'mannose_beta_D',
+  16088714:'xylose_alpha_D',  24894893:'xylose_beta_D',
+  3004008:'ribose_alpha_D_fura', 440997:'ribose_beta_D_fura',
+  439554:'fucose_alpha_L',    102007:'fucose_beta_L',
+  // disaccharides
+  5988:'sucrose', 84571:'lactose', 439341:'maltose', 10712:'cellobiose',
+  7427:'trehalose', 20056559:'gentiobiose',
+  // oligo
+  65533:'raffinose', 442813:'gentianose', 441374:'stachyose', 439586:'maltotriose',
+};
+const LOCAL_BASE = 'assets/img/molecules';
+const url2d = (cid, slugOverride) => {
+  const slug = slugOverride || CID_SLUG[cid];
+  if (slug) return `${LOCAL_BASE}/${slug}_2d.png`;
+  return `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/PNG?image_size=200x200`;
+};
+const url3d = (cid, slugOverride) => {
+  const slug = slugOverride || CID_SLUG[cid];
+  if (slug) return `${LOCAL_BASE}/${slug}_3d.sdf`;
+  return `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`;
+};
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 // variants: array of accordion sections, each with title + panels [{label,cid}]
@@ -241,19 +449,19 @@ const OLIGO=[
 ];
 
 const POLY=[
-  {zh:'直链淀粉',en:'Amylose',formula:'(C6H10O5)n',cid:439341,color:C.poly,
+  {zh:'直链淀粉',en:'Amylose',formula:'(C6H10O5)n',cid:439341,color:C.poly,localSlug:'amylose_fragment',
    etym:[{flag:F.grc,text:'希腊语 <em>amylon</em>（ἄμυλον）"精细面粉"（<em>a-</em>无+<em>myle</em>磨坊，捣碎提取的淀粉）'},{flag:F.de,text:'→ Nägeli（1858）将淀粉分为可溶直链（<em>Amylose</em>）和不溶支链（<em>Amylopektin</em>）'}],
    units:[{label:'Glc α-1,4',color:C.glucose}],polyNote:'多糖聚合物，3D 以麦芽糖（CID 439341）示意 α-1,4 重复单元',
    source:'占植物淀粉约 20–30%；马铃薯、玉米、大米',sourceIcon:'🥔',wiki:'https://zh.wikipedia.org/wiki/直链淀粉'},
-  {zh:'支链淀粉',en:'Amylopectin',formula:'(C6H10O5)n',cid:439586,color:C.poly,
+  {zh:'支链淀粉',en:'Amylopectin',formula:'(C6H10O5)n',cid:439586,color:C.poly,localSlug:'amylopectin_fragment',
    etym:[{flag:F.grc,text:'<em>amylon</em>（同上）+ 希腊语 <em>pektos</em>（πηκτός）"固化"（cf. pectin 果胶）'},{flag:F.de,text:'→ Nägeli（1858）命名 <em>Amylodextrin</em>，后改 <em>Amylopektin</em>；糯米支链淀粉含量 >98%'}],
    units:[{label:'Glc α-1,4',color:C.glucose},{label:'+ α-1,6 支链',color:'#a07040'}],polyNote:'多糖聚合物，3D 以麦芽三糖（CID 439586）示意 α-1,4 骨架',
    source:'占植物淀粉约 70–80%；糯米含量极高',sourceIcon:'🌾',wiki:'https://zh.wikipedia.org/wiki/支链淀粉'},
-  {zh:'纤维素',en:'Cellulose',formula:'(C6H10O5)n',cid:10712,color:'#4a7c59',
+  {zh:'纤维素',en:'Cellulose',formula:'(C6H10O5)n',cid:10712,color:'#4a7c59',localSlug:'cellulose_fragment',
    etym:[{flag:F.la,text:'拉丁语 <em>cellula</em>"小房间"（植物细胞）'},{flag:F.fr,text:'→ Anselme Payen（1838）从棉花中提取，命名 <em>cellulose</em>；β-1,4 键使链呈直线，地球上最丰富的有机化合物'}],
    units:[{label:'Glc β-1,4',color:'#4a7c59'}],polyNote:'多糖聚合物，3D 以纤维二糖（CID 10712）示意 β-1,4 重复单元',
    source:'木材（~50%）、棉花（~90%）、亚麻、秸秆',sourceIcon:'🌳',wiki:'https://zh.wikipedia.org/wiki/纤维素'},
-  {zh:'糖原',en:'Glycogen',formula:'(C6H10O5)n',cid:439341,color:C.poly,
+  {zh:'糖原',en:'Glycogen',formula:'(C6H10O5)n',cid:439341,color:C.poly,localSlug:'glycogen_fragment',
    etym:[{flag:F.grc,text:'希腊语 <em>glykys</em>"甜" + <em>-gen</em>（γεν"产生者"）= "产生葡萄糖者"'},{flag:F.fr,text:'→ Claude Bernard（1857）发现肝脏储糖物质，命名 <em>glycogène</em>；比支链淀粉分支更密（每6–8个葡萄糖一个分支点）'}],
    units:[{label:'Glc α-1,4',color:C.glucose},{label:'+ α-1,6 支链',color:'#a07040'}],polyNote:'多糖聚合物，3D 以麦芽糖（CID 439341）示意 α-1,4 骨架（高频 α-1,6 分支）',
    source:'动物肝脏（~10% 湿重）和骨骼肌（~2%）',sourceIcon:'🥩',wiki:'https://zh.wikipedia.org/wiki/糖原'},
@@ -261,12 +469,12 @@ const POLY=[
 
 // ── 3D viewer store ───────────────────────────────────────────────────────────
 const V={};
-async function initV(divEl,loadEl,cid,key){
+async function initV(divEl,loadEl,cid,key,slugOverride){
   if(V[key])return;
-  const viewer=$3Dmol.createViewer(divEl,{backgroundColor:'#ffffff',antialias:true});
+  const viewer=$3Dmol.createViewer(divEl,{backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#ffffff',antialias:true});
   V[key]={viewer,surfOn:true};
   try{
-    const res=await fetch(url3d(cid));
+    const res=await fetch(url3d(cid,slugOverride));
     if(!res.ok)throw new Error('HTTP '+res.status);
     viewer.addModel(await res.text(),'sdf');
     applyV(key);
@@ -297,16 +505,16 @@ const io=new IntersectionObserver(entries=>{
     if(!e.isIntersecting)return;
     io.unobserve(e.target);
     const el=e.target;
-    const key=el.dataset.vkey,cid=+el.dataset.cid;
+    const key=el.dataset.vkey,cid=+el.dataset.cid,slug=el.dataset.slug||undefined;
     if(!key||!cid)return;
-    initV(el.querySelector('.viewer-el'),el.querySelector('.v-loading'),cid,key);
+    initV(el.querySelector('.viewer-el'),el.querySelector('.v-loading'),cid,key,slug);
   });
 },{rootMargin:'300px'});
 
 // ── Load 2D image ─────────────────────────────────────────────────────────────
-function load2d(cid,skEl){
+function load2d(cid,skEl,slugOverride){
   const img=new Image();
-  img.src=url2d(cid,200);
+  img.src=url2d(cid,slugOverride);
   img.style.cssText='max-width:178px;max-height:168px;object-fit:contain';
   img.onload=()=>skEl.replaceWith(img);
   img.onerror=()=>{skEl.style.cssText='width:60px;height:60px;font-size:10px;color:#ccc;display:flex;align-items:center;justify-content:center';skEl.textContent='暂无';};
@@ -314,15 +522,16 @@ function load2d(cid,skEl){
 
 // ── Build mol-row (2D left | 3D right) ───────────────────────────────────────
 let seq=0;
-function buildMolRow(cid,vkey){
+function buildMolRow(cid,vkey,slugOverride){
   const skId='sk-'+vkey;
+  const slugAttr=slugOverride?`data-slug="${slugOverride}"`:'';
   const html=`
     <div class="mol-row">
       <div class="pane-2d">
         <span class="pane-label-2d">2D</span>
         <div class="skeleton" id="${skId}" style="width:150px;height:140px"></div>
       </div>
-      <div class="pane-3d" data-vkey="${vkey}" data-cid="${cid}">
+      <div class="pane-3d" data-vkey="${vkey}" data-cid="${cid}" ${slugAttr}>
         <span class="pane-label-3d">3D</span>
         <button class="surf-btn on" onclick="toggleSurf('${vkey}',this)">Surface</button>
         <div class="v-loading">加载 3D…</div>
@@ -396,7 +605,7 @@ function buildCard(m,gridId){
       <div class="units-row">${pillsH}${fixedLink}</div>
       ${srcH}${polyH}
     </div>
-    ${buildMolRow(m.cid,key)}
+    ${buildMolRow(m.cid,key,m.localSlug)}
     ${accordsH}
   `;
 
@@ -406,7 +615,7 @@ function buildCard(m,gridId){
 
   // 2D images
   const mainSk=card.querySelector('#sk-'+key);
-  if(mainSk)load2d(m.cid,mainSk);
+  if(mainSk)load2d(m.cid,mainSk,m.localSlug);
 
   // variant 2D images
   (m.variants||[]).forEach((vr,vi)=>{
@@ -449,16 +658,11 @@ function showTab(n){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
 }
 </script>
-</body>
-</html>
-<script>
-// ── JS Masonry ────────────────────────────────────────────────────────────────
-// Key insight: each card is assigned a column at creation time and STAYS there.
-// We only update top positions within each column when a card in that column changes height.
-// This means expanding card A in col-0 never moves cards in col-1.
 
-const cardCol = new WeakMap();   // card → column index (fixed at birth)
-const colCards = new Map();      // gridId → [[], []]  cards per column
+<script>
+// ── JS Masonry (column-affinity: each card stays in its assigned column) ──────
+const cardCol = new WeakMap();
+const colCards = new Map();
 
 function getColCards(grid) {
   if (!colCards.has(grid)) colCards.set(grid, [[], []]);
@@ -466,9 +670,11 @@ function getColCards(grid) {
 }
 
 function assignColumn(card, grid) {
-  if (cardCol.has(card)) return;   // already assigned
+  if (cardCol.has(card)) return;
   const cc = getColCards(grid);
-  // pick shorter column by sum of current card heights
+  const isMobile = window.innerWidth <= 640;
+  if (isMobile) { cardCol.set(card, 0); cc[0].push(card); return; }
+  // pick shorter column by total rendered height
   const h0 = cc[0].reduce((s, c) => s + c.offsetHeight, 0);
   const h1 = cc[1].reduce((s, c) => s + c.offsetHeight, 0);
   const col = h0 <= h1 ? 0 : 1;
@@ -486,7 +692,6 @@ function relayout(grid) {
   const cc = getColCards(grid);
 
   if (cols === 1) {
-    // Single column: stack everything
     let top = 0;
     cards.forEach(card => {
       card.style.width = colW + 'px';
@@ -498,10 +703,8 @@ function relayout(grid) {
     return;
   }
 
-  // Assign columns for any new cards (idempotent)
   cards.forEach(card => assignColumn(card, grid));
 
-  // Recompute top positions column by column
   const colH = [0, 0];
   [0, 1].forEach(col => {
     let top = 0;
@@ -522,11 +725,10 @@ function relayoutAll() {
   });
 }
 
-// Watch card additions
+// Watch card additions via MutationObserver
 document.querySelectorAll('.sugar-grid').forEach(grid => {
   new MutationObserver(mutations => {
     if (!grid.closest('.panel.active')) return;
-    // assign columns for newly added cards then relayout
     mutations.forEach(m => m.addedNodes.forEach(n => {
       if (n.classList && n.classList.contains('card')) assignColumn(n, grid);
     }));
@@ -534,17 +736,17 @@ document.querySelectorAll('.sugar-grid').forEach(grid => {
   }).observe(grid, { childList: true });
 });
 
-// Watch every card's size change (accordion open/close, image load, 3D load)
+// Watch card size changes via ResizeObserver
 const ro = new ResizeObserver(entries => {
   const grids = new Set();
   entries.forEach(e => {
-    const grid = e.target.closest('.sugar-grid');
-    if (grid && grid.closest('.panel.active')) grids.add(grid);
+    const g = e.target.closest('.sugar-grid');
+    if (g && g.closest('.panel.active')) grids.add(g);
   });
   grids.forEach(relayout);
 });
 
-// Observe cards as they are created — patch buildCard to register with RO
+// Patch buildCard to register each new card with ResizeObserver
 const _buildCard = buildCard;
 buildCard = function(m, gridId) {
   const card = _buildCard(m, gridId);
@@ -552,11 +754,24 @@ buildCard = function(m, gridId) {
   return card;
 };
 
-window.addEventListener('resize', relayoutAll);
+// Patch openAccord to trigger relayout after expand/collapse
+const _openAccord = openAccord;
+openAccord = function(btn, id) {
+  _openAccord(btn, id);
+  const grid = btn.closest('.sugar-grid');
+  if (!grid) return;
+  setTimeout(() => relayout(grid), 30);
+  setTimeout(() => relayout(grid), 320);
+};
 
+// Patch showTab to relayout newly visible grid
 const _showTab = showTab;
 showTab = function(n) {
   _showTab(n);
   setTimeout(relayoutAll, 10);
 };
+
+window.addEventListener('resize', relayoutAll);
 </script>
+</body>
+</html>
