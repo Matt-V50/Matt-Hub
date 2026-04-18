@@ -313,7 +313,7 @@ const CID_SLUG = {
   // oligo
   65533:'raffinose', 442813:'gentianose', 441374:'stachyose', 439586:'maltotriose',
 };
-const LOCAL_BASE = 'assets/img/molecules';
+const LOCAL_BASE = '../assets/img/molecules';
 const url2d = (cid, slugOverride) => {
   const slug = slugOverride || CID_SLUG[cid];
   if (slug) return `${LOCAL_BASE}/${slug}_2d.png`;
