@@ -456,12 +456,25 @@ const POLY=[
 const V={};
 async function initV(divEl,loadEl,cid,key,slugOverride){
   if(V[key])return;
-  const viewer=$3Dmol.createViewer(divEl,{backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#ffffff',antialias:true});
+
+  // Wait until the container has real dimensions.
+  // Viewers inside a collapsed accordion have offsetWidth=0 which causes
+  // the WebGL "GL_INVALID_OPERATION: Insufficient buffer size" bug.
+  await new Promise(resolve=>{
+    (function check(){
+      if(divEl.offsetWidth>0&&divEl.offsetHeight>0){resolve();return;}
+      requestAnimationFrame(check);
+    })();
+  });
+
+  const bg=getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#ffffff';
+  const viewer=$3Dmol.createViewer(divEl,{backgroundColor:bg,antialias:true});
   V[key]={viewer,surfOn:true};
   try{
     const res=await fetch(url3d(cid,slugOverride));
     if(!res.ok)throw new Error('HTTP '+res.status);
     viewer.addModel(await res.text(),'sdf');
+    viewer.resize(); // sync WebGL canvas to actual CSS dimensions before render
     applyV(key);
     viewer.zoomTo();viewer.zoom(0.82);
     if(loadEl)loadEl.style.display='none';
@@ -618,14 +631,25 @@ function buildCard(m,gridId){
   return card;
 }
 
-// ── Accordion open (lazy-loads 3D) ────────────────────────────────────────────
+// ── Accordion open ────────────────────────────────────────────────────────────
 function openAccord(btn,id){
   const body=document.getElementById(id);
   const open=body.classList.toggle('open');
   btn.classList.toggle('open',open);
-  if(open){
-    body.querySelectorAll('[data-vkey]').forEach(el=>io.observe(el));
-  }
+  if(!open)return;
+  // Wait one rAF so display:block is painted and layout dimensions are real,
+  // then init new viewers (initV will also rAF-wait) or resize existing ones.
+  requestAnimationFrame(()=>{
+    body.querySelectorAll('[data-vkey]').forEach(el=>{
+      const key=el.dataset.vkey;
+      if(V[key]){
+        V[key].viewer.resize();
+        V[key].viewer.render();
+      } else {
+        io.observe(el);
+      }
+    });
+  });
 }
 
 // ── Render grids ──────────────────────────────────────────────────────────────
