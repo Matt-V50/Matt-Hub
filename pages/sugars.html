@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>糖类分子百科</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"/>
+<!-- NO defer: KaTeX must be available synchronously when renderGrid runs -->
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia',serif;background:#f5f4f0;color:#1a1a18;min-height:100vh}
+header{background:#fff;border-bottom:1px solid #e8e6df;padding:20px 36px 14px}
+header h1{font-size:25px;font-weight:700}
+header h1 span{color:#1d9e75}
+header p{font-size:11px;color:#aaa;font-family:system-ui,sans-serif;font-style:italic;margin-top:3px}
+.tabs{display:flex;border-bottom:2px solid #e8e6df;background:#fff;padding:0 36px;overflow-x:auto}
+.tab{font-size:13px;font-family:system-ui,sans-serif;font-weight:600;padding:11px 18px;
+  border:none;background:transparent;cursor:pointer;color:#999;
+  border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s}
+.tab.active{color:#1a1a18;border-bottom-color:#1d9e75}
+.tab:hover:not(.active){color:#1a1a18}
+.panel{display:none;max-width:1280px;margin:0 auto;padding:24px 18px}
+.panel.active{display:block}
+.sec-intro{font-size:12.5px;color:#888;font-family:system-ui,sans-serif;margin-bottom:20px;line-height:1.75;max-width:920px}
+.ring-pill{display:inline-block;font-size:11px;font-family:system-ui,sans-serif;font-weight:600;padding:2px 8px;border-radius:12px;margin:0 2px;vertical-align:middle}
+.sugar-grid{position:relative;}
+.sugar-grid .card{position:absolute;width:calc(50% - 9px);transition:top .25s ease,left .25s ease;}
+@media(max-width:640px){.sugar-grid .card{width:100%;}}
+
+/* Card */
+.card{background:#fff;border:1px solid #e8e6df;border-radius:12px;overflow:hidden}
+.stripe{height:5px}
+.card-top{padding:12px 16px 10px;border-bottom:1px solid #f0efe9;position:relative}
+.wiki-link{float:right;margin-left:8px;font-size:10px;font-family:system-ui,sans-serif;color:#1d9e75;text-decoration:none;border:1px solid #c0e8d8;border-radius:20px;padding:2px 8px;background:#f0fdf8;opacity:.9;transition:opacity .15s;white-space:nowrap}
+.wiki-link:hover{opacity:1}
+.name-zh{font-size:17px;font-weight:700}
+.name-en{font-size:13px;color:#777;font-family:system-ui,sans-serif;margin-left:6px}
+.formula-wrap{display:inline-block;margin-left:8px;vertical-align:middle}
+.ring-badge{display:inline-block;font-size:10px;font-family:system-ui,sans-serif;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;color:#fff}
+.etym-block{margin-top:9px;font-size:11.5px;font-family:system-ui,sans-serif;color:#555;line-height:1.65}
+.etym-path{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px}
+.etym-flag{font-size:14px;flex-shrink:0;margin-top:1px}
+.etym-text em{font-style:italic;color:#444;font-family:Georgia,serif}
+.units-row{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:8px}
+.pill{font-size:10px;font-family:system-ui,sans-serif;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff}
+.link-badge{font-size:10px;font-family:monospace;border:1px solid #d8d0f0;border-radius:4px;padding:2px 7px;background:#f4f0ff;color:#6040a0;font-weight:600}
+.link-full{font-size:10px;font-family:monospace;color:#aaa;margin-left:2px}
+.source-note{font-size:11px;font-family:system-ui,sans-serif;color:#999;margin-top:6px;display:flex;align-items:center;gap:4px}
+.poly-note{font-size:10px;font-family:system-ui,sans-serif;color:#bbb;margin-top:5px}
+
+/* 2D | 3D row — identical structure for main card and anomer panels */
+.mol-row{display:flex;min-height:200px}
+.pane-2d{width:200px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-right:1px solid #f0efe9;position:relative;padding:8px}
+.pane-2d img{max-width:178px;max-height:168px;object-fit:contain}
+.pane-label-2d{position:absolute;top:5px;left:7px;font-size:9px;color:#ccc;font-family:system-ui,sans-serif;pointer-events:none;user-select:none}
+.pane-3d{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:#fff}
+.pane-label-3d{position:absolute;top:5px;left:7px;font-size:9px;color:#ccc;font-family:system-ui,sans-serif;pointer-events:none;user-select:none;z-index:3}
+.viewer-el{flex:1;min-height:200px}
+.v-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#bbb;font-family:system-ui,sans-serif;pointer-events:none;z-index:2}
+/* surface button top-right of 3D pane */
+.surf-btn{position:absolute;top:5px;right:7px;z-index:3;font-size:10px;font-family:system-ui,sans-serif;padding:2px 9px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;transition:all .12s}
+.surf-btn.on{background:#1d9e75;border-color:#1d9e75;color:#fff}
+
+/* Skeleton shimmer */
+.skeleton{border-radius:6px;background:linear-gradient(90deg,#f0efeb 25%,#e8e7e2 50%,#f0efeb 75%);background-size:200% 100%;animation:shimmer 1.2s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Accordion */
+.accord-section{border-top:1px solid #f0efe9}
+.accord-btn{width:100%;border:none;background:#fafaf8;padding:7px 16px;font-size:11px;font-family:system-ui,sans-serif;color:#888;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:background .12s}
+.accord-btn:hover{background:#f3f2ee;color:#555}
+.accord-btn .arr{font-size:10px;display:inline-block;transition:transform .2s}
+.accord-btn.open .arr{transform:rotate(90deg)}
+.accord-body{display:none}
+.accord-body.open{display:block}
+/* anomer sub-panel label (above the mol-row) */
+.anomer-sub-label{font-size:10px;font-family:system-ui,sans-serif;color:#999;padding:5px 14px 4px;background:#fafaf8;border-bottom:1px solid #f5f4f0}
+/* anomer note text */
+.anomer-note{font-size:11px;font-family:system-ui,sans-serif;color:#666;background:#faf8ff;border-top:1px solid #ece8f8;border-bottom:1px solid #ece8f8;padding:5px 14px;line-height:1.6}
+.anomer-note .al{color:#c03060;font-weight:700}
+.anomer-note .be{color:#1d9e75;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>糖类<span>分子百科</span></h1>
+  <p>Carbohydrate Encyclopedia · 2D PubChem + 3D Ball &amp; Stick · 词源追溯至原始印欧语根</p>
+</header>
+<div class="tabs">
+  <button class="tab active" onclick="showTab(0)">🍬 单糖</button>
+  <button class="tab" onclick="showTab(1)">🍭 双糖</button>
+  <button class="tab" onclick="showTab(2)">🌿 三糖 &amp; 四糖</button>
+  <button class="tab" onclick="showTab(3)">🌾 淀粉 &amp; 纤维素</button>
+</div>
+<div class="panel active" id="panel-0">
+  <p class="sec-intro">单糖是糖类最小单元，不可水解。环状形式分两类：
+    <span class="ring-pill" style="background:#5060c0;color:#fff">🔵 吡喃糖 Pyranose</span> 六元环，名称来自 <em>pyran</em>（PIE <em>*péh₂wr̥</em>"火"→希腊语 <em>pyr</em>→加热麦麸蒸馏得吡喃）；
+    <span class="ring-pill" style="background:#c06020;color:#fff">🟠 呋喃糖 Furanose</span> 五元环，名称来自 <em>furan</em>（拉丁语 <em>furfur</em>"麸皮"→蒸馏麸皮得呋喃）。
+    展开每张卡片可查看 D/L 手性分子及 α/β 异头体的 2D &amp; 3D 结构。</p>
+  <div class="sugar-grid" id="grid-mono"></div>
+</div>
+<div class="panel" id="panel-1">
+  <p class="sec-intro">双糖由两个单糖通过糖苷键缩合，顶部色条拼接两种单元颜色，链接方式显示简写和标准记法。</p>
+  <div class="sugar-grid" id="grid-di"></div>
+</div>
+<div class="panel" id="panel-2">
+  <p class="sec-intro">三糖和四糖由3–4个单糖单元连接，广泛存在于豆类和谷物中，是肠道益生菌的重要食物来源。</p>
+  <div class="sugar-grid" id="grid-oligo"></div>
+</div>
+<div class="panel" id="panel-3">
+  <p class="sec-intro">多糖由数百至数万个葡萄糖单元构成。α-糖苷键（淀粉、糖原）人体可消化；β-糖苷键（纤维素）不可消化。3D 以对应寡糖片段示意。</p>
+  <div class="sugar-grid" id="grid-poly"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.1.0/3Dmol-min.js"></script>
+<script>
+const C={glucose:'#7c5cbf',fructose:'#1d9e75',galactose:'#e07b30',mannose:'#3b82c4',xylose:'#c4445a',ribose:'#9b6b14',fucose:'#6b7f3e',poly:'#5a7080'};
+const F={PIE:'🌍',grc:'🇬🇷',la:'🇮🇹',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',en:'🇬🇧',sa:'☸️',he:'🇮🇱'};
+const RING_BG={pyranose:'#5060c0',furanose:'#c06020'};
+
+// KaTeX formula render — katex is loaded synchronously so always available
+function renderFml(str,el){
+  const body=str
+    .replace(/\(([^)]+)\)n/g,'($1)_{n}')
+    .replace(/([A-Za-z])(\d+)/g,'$1_{$2}')
+    .replace(/_\{1\}/g,'');
+  try{katex.render('\\mathrm{'+body+'}',el,{throwOnError:false,output:'html'});}
+  catch(e){el.textContent=str;}
+}
+
+const url2d=(cid,sz=200)=>`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/PNG?image_size=${sz}x${sz}`;
+const url3d=cid=>`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`;
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+// variants: array of accordion sections, each with title + panels [{label,cid}]
+const MONO=[
+  {zh:'葡萄糖',en:'Glucose',formula:'C6H12O6',cid:5793,color:C.glucose,ring:'pyranose',ringLabel:'吡喃糖',
+   etym:[{flag:F.PIE,text:'PIE <em>*dlku-</em>/<em>*gluku-</em> "甜"（同根：拉丁语 <em>dulcis</em>）'},{flag:F.grc,text:'→ 希腊语 <em>glykys</em>（γλυκύς）"甜"；同根词：glycerin、glycol'},{flag:F.fr,text:'→ 化学家 Dumas（1838）命名 <em>glucose</em>，<em>-ose</em> 为糖类后缀'}],
+   variants:[
+     {title:'D/L 手性分子',note:'D-葡萄糖（右旋，血糖形式）与 L-葡萄糖（左旋，生物不可利用）互为对映体，C5 的 CH₂OH 方向相反。',
+      panels:[{label:'D-Glucose（开链）',cid:5793},{label:'L-Glucose（开链）',cid:107689}]},
+     {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下（轴向，36%）；<span class="be">β</span>-D：C1-OH 向上（赤道向，64%）。',
+      panels:[{label:'α-D-Glucopyranose',cid:79025},{label:'β-D-Glucopyranose',cid:64689}]},
+   ],
+   units:[{label:'Glc',color:C.glucose}],wiki:'https://zh.wikipedia.org/wiki/葡萄糖'},
+  {zh:'果糖',en:'Fructose',formula:'C6H12O6',cid:2723872,color:C.fructose,ring:'furanose',ringLabel:'呋喃糖',
+   etym:[{flag:F.PIE,text:'PIE <em>*bhrug-</em> "享用、消耗"'},{flag:F.la,text:'→ 拉丁语 <em>fructus</em> "果实"（cf. frugal 节俭）'},{flag:F.en,text:'→ 英语 <em>fructose</em>（1864），大量存在于水果和蜂蜜中'}],
+   variants:[
+     {title:'D/L 手性分子',note:'自然界几乎只存在 D-果糖；L-果糖极罕见，甜度低。',
+      panels:[{label:'D-Fructose（开链）',cid:2723872},{label:'L-Fructose（开链）',cid:159034}]},
+     {title:'α / β 异头体',note:'游离态：<span class="be">β</span>-D-吡喃果糖为主（~73%）。蔗糖中固定为 <span class="be">β</span>-D-呋喃果糖（C2 为异头碳）。',
+      panels:[{label:'β-D-Fructopyranose',cid:2723872},{label:'β-D-Fructofuranose',cid:2723877}]},
+   ],
+   units:[{label:'Fru',color:C.fructose}],wiki:'https://zh.wikipedia.org/wiki/果糖'},
+  {zh:'半乳糖',en:'Galactose',formula:'C6H12O6',cid:6036,color:C.galactose,ring:'pyranose',ringLabel:'吡喃糖',
+   etym:[{flag:F.PIE,text:'PIE <em>*g(a)lag-</em> "乳汁"（部分学者认为源自赫梯语 <em>galaktar</em>）'},{flag:F.grc,text:'→ 希腊语 <em>gala</em>（γάλα，属格 galaktos）"乳汁"；同根词：galaxy（银河）'},{flag:F.fr,text:'→ 法语 <em>galactose</em>（1855），乳糖的水解产物；与葡萄糖仅 C4-OH 方向不同（差向异构）'}],
+   variants:[
+     {title:'D/L 手性分子',note:'D-半乳糖是乳糖组分，L-半乳糖存在于某些植物多糖中（如 L-半乳聚糖）。',
+      panels:[{label:'D-Galactose（开链）',cid:6036},{label:'L-Galactose（开链）',cid:91666}]},
+     {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上；C4-OH 均向上（与葡萄糖的区别）。',
+      panels:[{label:'α-D-Galactopyranose',cid:439559},{label:'β-D-Galactopyranose',cid:439557}]},
+   ],
+   units:[{label:'Gal',color:C.galactose}],wiki:'https://zh.wikipedia.org/wiki/半乳糖'},
+  {zh:'甘露糖',en:'Mannose',formula:'C6H12O6',cid:18950,color:C.mannose,ring:'pyranose',ringLabel:'吡喃糖',
+   etym:[{flag:F.he,text:'希伯来语 <em>mān</em>（מָן）"甘露"，《出埃及记》旷野食物'},{flag:F.ar,text:'→ 阿拉伯语 <em>mann</em>，植物含糖树脂（甘露树脂）'},{flag:F.de,text:'→ Emil Fischer（1888）从甘露醇氧化得到；与葡萄糖仅 C2-OH 方向不同（C2 差向异构）'}],
+   variants:[
+     {title:'D/L 手性分子',note:'D-甘露糖广泛存在于植物糖蛋白；L-甘露糖较罕见，见于某些细菌多糖。',
+      panels:[{label:'D-Mannose（开链）',cid:18950},{label:'L-Mannose（开链）',cid:122386}]},
+     {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上；C2-OH 均向上（与葡萄糖的区别）。',
+      panels:[{label:'α-D-Mannopyranose',cid:439530},{label:'β-D-Mannopyranose',cid:439531}]},
+   ],
+   units:[{label:'Man',color:C.mannose}],wiki:'https://zh.wikipedia.org/wiki/甘露糖'},
+  {zh:'木糖',en:'Xylose',formula:'C5H10O5',cid:135191,color:C.xylose,ring:'pyranose',ringLabel:'吡喃糖',
+   etym:[{flag:F.PIE,text:'PIE <em>*ksulo-</em> "木材"'},{flag:F.grc,text:'→ 希腊语 <em>xylon</em>（ξύλον）"木材"；同根词：xylophone、xylem（木质部）'},{flag:F.en,text:'→ 英语 <em>xylose</em>（1891），首次从玉米秆和木材水解物中分离；半纤维素（木聚糖）的主要单元'}],
+   variants:[
+     {title:'D/L 手性分子',note:'D-木糖是半纤维素的组成单元；L-木糖存在于某些植物糖苷中。',
+      panels:[{label:'D-Xylose（开链）',cid:135191},{label:'L-Xylose（开链）',cid:61495}]},
+     {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D-木吡喃糖：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上。五碳糖戊糖，无 C6。',
+      panels:[{label:'α-D-Xylopyranose',cid:16088714},{label:'β-D-Xylopyranose',cid:24894893}]},
+   ],
+   units:[{label:'Xyl',color:C.xylose}],wiki:'https://zh.wikipedia.org/wiki/木糖'},
+  {zh:'核糖',en:'Ribose',formula:'C5H10O5',cid:10975657,color:C.ribose,ring:'furanose',ringLabel:'呋喃糖',
+   etym:[{flag:F.ar,text:'阿拉伯语 <em>ʻarab</em> → 阿拉伯糖（<em>arabinose</em>），首次从阿拉伯树胶中分离'},{flag:F.de,text:'→ Emil Fischer（1891）将 arabinose 字母重排（arab→rib）造词 <em>Ribose</em>；RNA 中以 β-D-呋喃核糖形式存在'}],
+   variants:[
+     {title:'D/L 手性分子',note:'D-核糖是 RNA 和多种辅酶（NAD⁺、FAD）的组成成分；L-核糖极为罕见。',
+      panels:[{label:'D-Ribose（开链）',cid:10975657},{label:'L-Ribose（开链）',cid:68327}]},
+     {title:'α / β 异头体（呋喃糖）',note:'在核苷酸中固定为 <span class="be">β</span>-D-呋喃核糖；<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上。',
+      panels:[{label:'α-D-Ribofuranose',cid:3004008},{label:'β-D-Ribofuranose',cid:440997}]},
+   ],
+   units:[{label:'Rib',color:C.ribose}],wiki:'https://zh.wikipedia.org/wiki/核糖'},
+  {zh:'岩藻糖',en:'Fucose',formula:'C6H12O5',cid:17106,color:C.fucose,ring:'pyranose',ringLabel:'吡喃糖（脱氧）',
+   etym:[{flag:F.grc,text:'希腊语 <em>phykos</em>（φῦκος）"海藻、紫红色颜料"'},{flag:F.la,text:'→ 新拉丁语 <em>Fucus</em>（墨角藻属），由 Linnaeus 命名'},{flag:F.de,text:'→ Hoffman（1913）从墨角藻分离 6-脱氧-L-半乳糖，命名 <em>Fucose</em>；ABO 血型抗原关键组分'}],
+   variants:[
+     {title:'D/L 手性分子',note:'自然界以 <strong>L-岩藻糖</strong>为主（与大多数单糖相反）；D-岩藻糖少见，见于细菌脂多糖。',
+      panels:[{label:'L-Fucose（主要形式）',cid:17106},{label:'D-Fucose（稀有）',cid:439553}]},
+     {title:'α / β 异头体（L-吡喃糖）',note:'L 型规则与 D 型相反：<span class="al">α</span>-L：C1-OH 向上；<span class="be">β</span>-L：C1-OH 向下。6 位为甲基（脱氧，无 OH）。',
+      panels:[{label:'α-L-Fucopyranose',cid:439554},{label:'β-L-Fucopyranose',cid:102007}]},
+   ],
+   units:[{label:'Fuc',color:C.fucose}],wiki:'https://zh.wikipedia.org/wiki/岩藻糖'},
+];
+
+const DI=[
+  {zh:'蔗糖',en:'Sucrose',formula:'C12H22O11',cid:5988,accent:[C.glucose,C.fructose],
+   etym:[{flag:F.PIE,text:'PIE <em>*swad-</em> "甜、令人愉悦"（同根：sweet, suave）'},{flag:'☸️',text:'→ 梵语 <em>śarkarā</em>（शर्करा）"砂粒、粗糖"（甘蔗汁结晶形态）'},{flag:F.ar,text:'→ 阿拉伯语 <em>sukkar</em> → 波斯语 → 法语 <em>sucre</em>'},{flag:F.fr,text:'→ Berthelot（1857）命名 <em>sucrose</em>，-ose 后缀由此普及'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Fru',color:C.fructose}],link:'α-1,2-β',linkNote:'α-D-Glcp-(1↔2)-β-D-Fruf（两端均为异头碳，非还原糖）',wiki:'https://zh.wikipedia.org/wiki/蔗糖'},
+  {zh:'乳糖',en:'Lactose',formula:'C12H22O11',cid:84571,accent:[C.galactose,C.glucose],
+   etym:[{flag:F.PIE,text:'PIE <em>*g(a)lag-</em> "乳汁"（拉丁语借入时首辅音 g- 因异化消失）'},{flag:F.la,text:'→ 拉丁语 <em>lac</em>（属格 <em>lactis</em>）"乳汁"；同根词：latte、lettuce、galaxy'},{flag:F.fr,text:'→ Berthelot（1856）命名 <em>lactose</em>'}],
+   units:[{label:'Gal',color:C.galactose},{label:'Glc',color:C.glucose}],link:'β-1,4',linkNote:'β-D-Galp-(1→4)-D-Glcp（还原糖）',wiki:'https://zh.wikipedia.org/wiki/乳糖'},
+  {zh:'麦芽糖',en:'Maltose',formula:'C12H22O11',cid:439341,accent:[C.glucose,C.glucose],
+   etym:[{flag:F.PIE,text:'PIE <em>*meld-</em> "柔软、融化"（同根：mild, melt）'},{flag:F.en,text:'→ 古英语 <em>mealt</em>"麦芽"；大麦发芽时淀粉水解为麦芽糖'},{flag:F.en,text:'→ 英语 <em>maltose</em>（1882），淀粉酶水解淀粉的主要二糖产物'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose}],link:'α-1,4',linkNote:'α-D-Glcp-(1→4)-D-Glcp（还原糖）',wiki:'https://zh.wikipedia.org/wiki/麦芽糖'},
+  {zh:'纤维二糖',en:'Cellobiose',formula:'C12H22O11',cid:10712,accent:[C.glucose,C.glucose],
+   etym:[{flag:F.la,text:'拉丁语 <em>cellula</em>"小房间"（植物细胞）'},{flag:F.fr,text:'→ Payen（1838）命名纤维素 <em>cellulose</em>'},{flag:F.en,text:'→ <em>cellobiose</em>（1901），纤维素水解的二糖单元；与麦芽糖仅糖苷键构型不同（β vs α）'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose}],link:'β-1,4',linkNote:'β-D-Glcp-(1→4)-D-Glcp（还原糖，纤维素重复单元）',wiki:'https://en.wikipedia.org/wiki/Cellobiose'},
+  {zh:'海藻糖',en:'Trehalose',formula:'C12H22O11',cid:7427,accent:[C.glucose,C.glucose],
+   etym:[{flag:F.ar,text:'阿拉伯语/波斯语 <em>trehala</em>：鞘翅目昆虫茧分泌的含糖物质'},{flag:F.fr,text:'→ Berthelot（1858）分离命名；在昆虫血淋巴中含量极高，功能类似血糖'}],
+   units:[{label:'Glc α',color:C.glucose},{label:'Glc α',color:C.glucose}],link:'α-1,1-α',linkNote:'α-D-Glcp-(1↔1)-α-D-Glcp（两端均为异头碳，非还原糖）',wiki:'https://zh.wikipedia.org/wiki/海藻糖'},
+  {zh:'龙胆二糖',en:'Gentiobiose',formula:'C12H22O11',cid:20056559,accent:[C.glucose,C.glucose],
+   etym:[{flag:F.la,text:'以伊利里亚国王 <em>Gentius</em>（公元前2世纪）命名，据载他发现了龙胆根的药用价值'},{flag:F.la,text:'→ 龙胆属 <em>Gentiana</em>；龙胆二糖（1923）从龙胆苷水解物中分离，含 β-1,6 键'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose}],link:'β-1,6',linkNote:'β-D-Glcp-(1→6)-D-Glcp（还原糖）',wiki:'https://en.wikipedia.org/wiki/Gentiobiose'},
+];
+
+const OLIGO=[
+  {zh:'棉子糖',en:'Raffinose',formula:'C18H32O16',cid:65533,accent:[C.galactose,C.glucose,C.fructose],
+   etym:[{flag:F.fr,text:'法语 <em>raffiner</em>"精炼"；1876年在甜菜糖精炼母液中发现，Gal-Glc-Fru 三糖，棉子糖家族（RFO）最小成员'}],
+   units:[{label:'Gal',color:C.galactose},{label:'Glc',color:C.glucose},{label:'Fru',color:C.fructose}],
+   link:'Gal α-1,6→Glc α-1,2-β Fru',source:'大豆、豆类、卷心菜、芦笋、全谷物',sourceIcon:'🫘',wiki:'https://zh.wikipedia.org/wiki/棉子糖'},
+  {zh:'龙胆三糖',en:'Gentianose',formula:'C18H32O16',cid:442813,accent:[C.glucose,C.glucose,C.fructose],
+   etym:[{flag:F.la,text:'同龙胆属 <em>Gentiana</em>；龙胆三糖（1905）= β-龙胆二糖基-蔗糖，在蔗糖葡萄糖端 C6 再接一个葡萄糖'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose},{label:'Fru',color:C.fructose}],
+   link:'Glc β-1,6→Glc α-1,2-β Fru',source:'龙胆属植物根部（Gentiana lutea 等）',sourceIcon:'🌿',wiki:'https://en.wikipedia.org/wiki/Gentianose'},
+  {zh:'水苏糖',en:'Stachyose',formula:'C24H42O21',cid:441374,accent:[C.galactose,C.galactose,C.glucose,C.fructose],
+   etym:[{flag:F.grc,text:'希腊语 <em>stachys</em>（στάχυς）"麦穗"，水苏属叶片排列如麦穗'},{flag:F.de,text:'→ von Baeyer 实验室（1887）从水苏块根首次分离，命名 <em>Stachyose</em>；棉子糖再接一个 Gal 的四糖'}],
+   units:[{label:'Gal',color:C.galactose},{label:'Gal',color:C.galactose},{label:'Glc',color:C.glucose},{label:'Fru',color:C.fructose}],
+   link:'Gal α-1,6→Gal α-1,6→Glc α-1,2-β Fru',source:'大豆、绿豆、扁豆、甜菜',sourceIcon:'🌱',wiki:'https://zh.wikipedia.org/wiki/水苏糖'},
+  {zh:'麦芽三糖',en:'Maltotriose',formula:'C18H32O16',cid:439586,accent:[C.glucose,C.glucose,C.glucose],
+   etym:[{flag:F.en,text:'<em>malto-</em>（麦芽糖）+ 希腊语 <em>tri-</em>（三）+ <em>-ose</em>；α-淀粉酶水解淀粉产生的最短产物之一'}],
+   units:[{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose},{label:'Glc',color:C.glucose}],
+   link:'α-1,4 / α-1,4',source:'淀粉水解中间产物；啤酒发酵',sourceIcon:'🍺',wiki:'https://en.wikipedia.org/wiki/Maltotriose'},
+];
+
+const POLY=[
+  {zh:'直链淀粉',en:'Amylose',formula:'(C6H10O5)n',cid:439341,color:C.poly,
+   etym:[{flag:F.grc,text:'希腊语 <em>amylon</em>（ἄμυλον）"精细面粉"（<em>a-</em>无+<em>myle</em>磨坊，捣碎提取的淀粉）'},{flag:F.de,text:'→ Nägeli（1858）将淀粉分为可溶直链（<em>Amylose</em>）和不溶支链（<em>Amylopektin</em>）'}],
+   units:[{label:'Glc α-1,4',color:C.glucose}],polyNote:'多糖聚合物，3D 以麦芽糖（CID 439341）示意 α-1,4 重复单元',
+   source:'占植物淀粉约 20–30%；马铃薯、玉米、大米',sourceIcon:'🥔',wiki:'https://zh.wikipedia.org/wiki/直链淀粉'},
+  {zh:'支链淀粉',en:'Amylopectin',formula:'(C6H10O5)n',cid:439586,color:C.poly,
+   etym:[{flag:F.grc,text:'<em>amylon</em>（同上）+ 希腊语 <em>pektos</em>（πηκτός）"固化"（cf. pectin 果胶）'},{flag:F.de,text:'→ Nägeli（1858）命名 <em>Amylodextrin</em>，后改 <em>Amylopektin</em>；糯米支链淀粉含量 >98%'}],
+   units:[{label:'Glc α-1,4',color:C.glucose},{label:'+ α-1,6 支链',color:'#a07040'}],polyNote:'多糖聚合物，3D 以麦芽三糖（CID 439586）示意 α-1,4 骨架',
+   source:'占植物淀粉约 70–80%；糯米含量极高',sourceIcon:'🌾',wiki:'https://zh.wikipedia.org/wiki/支链淀粉'},
+  {zh:'纤维素',en:'Cellulose',formula:'(C6H10O5)n',cid:10712,color:'#4a7c59',
+   etym:[{flag:F.la,text:'拉丁语 <em>cellula</em>"小房间"（植物细胞）'},{flag:F.fr,text:'→ Anselme Payen（1838）从棉花中提取，命名 <em>cellulose</em>；β-1,4 键使链呈直线，地球上最丰富的有机化合物'}],
+   units:[{label:'Glc β-1,4',color:'#4a7c59'}],polyNote:'多糖聚合物，3D 以纤维二糖（CID 10712）示意 β-1,4 重复单元',
+   source:'木材（~50%）、棉花（~90%）、亚麻、秸秆',sourceIcon:'🌳',wiki:'https://zh.wikipedia.org/wiki/纤维素'},
+  {zh:'糖原',en:'Glycogen',formula:'(C6H10O5)n',cid:439341,color:C.poly,
+   etym:[{flag:F.grc,text:'希腊语 <em>glykys</em>"甜" + <em>-gen</em>（γεν"产生者"）= "产生葡萄糖者"'},{flag:F.fr,text:'→ Claude Bernard（1857）发现肝脏储糖物质，命名 <em>glycogène</em>；比支链淀粉分支更密（每6–8个葡萄糖一个分支点）'}],
+   units:[{label:'Glc α-1,4',color:C.glucose},{label:'+ α-1,6 支链',color:'#a07040'}],polyNote:'多糖聚合物，3D 以麦芽糖（CID 439341）示意 α-1,4 骨架（高频 α-1,6 分支）',
+   source:'动物肝脏（~10% 湿重）和骨骼肌（~2%）',sourceIcon:'🥩',wiki:'https://zh.wikipedia.org/wiki/糖原'},
+];
+
+// ── 3D viewer store ───────────────────────────────────────────────────────────
+const V={};
+async function initV(divEl,loadEl,cid,key){
+  if(V[key])return;
+  const viewer=$3Dmol.createViewer(divEl,{backgroundColor:'#ffffff',antialias:true});
+  V[key]={viewer,surfOn:true};
+  try{
+    const res=await fetch(url3d(cid));
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    viewer.addModel(await res.text(),'sdf');
+    applyV(key);
+    viewer.zoomTo();viewer.zoom(0.82);
+    if(loadEl)loadEl.style.display='none';
+  }catch(e){
+    if(loadEl){loadEl.textContent='3D 加载失败 ('+e.message+')';loadEl.style.color='#c05';}
+  }
+}
+function applyV(key){
+  const{viewer,surfOn}=V[key];
+  viewer.setStyle({},{stick:{colorscheme:'Jmol',radius:.12},sphere:{colorscheme:'Jmol',scale:.28}});
+  viewer.setStyle({elem:'H'},{stick:{colorscheme:'Jmol',radius:.07},sphere:{colorscheme:'Jmol',scale:.17}});
+  viewer.removeAllSurfaces();
+  if(surfOn)viewer.addSurface($3Dmol.SurfaceType.VDW,{opacity:.28,colorscheme:'Jmol'});
+  viewer.render();
+}
+function toggleSurf(key,btn){
+  if(!V[key])return;
+  V[key].surfOn=!V[key].surfOn;
+  btn.classList.toggle('on',V[key].surfOn);
+  applyV(key);
+}
+
+// ── IntersectionObserver ──────────────────────────────────────────────────────
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    io.unobserve(e.target);
+    const el=e.target;
+    const key=el.dataset.vkey,cid=+el.dataset.cid;
+    if(!key||!cid)return;
+    initV(el.querySelector('.viewer-el'),el.querySelector('.v-loading'),cid,key);
+  });
+},{rootMargin:'300px'});
+
+// ── Load 2D image ─────────────────────────────────────────────────────────────
+function load2d(cid,skEl){
+  const img=new Image();
+  img.src=url2d(cid,200);
+  img.style.cssText='max-width:178px;max-height:168px;object-fit:contain';
+  img.onload=()=>skEl.replaceWith(img);
+  img.onerror=()=>{skEl.style.cssText='width:60px;height:60px;font-size:10px;color:#ccc;display:flex;align-items:center;justify-content:center';skEl.textContent='暂无';};
+}
+
+// ── Build mol-row (2D left | 3D right) ───────────────────────────────────────
+let seq=0;
+function buildMolRow(cid,vkey){
+  const skId='sk-'+vkey;
+  const html=`
+    <div class="mol-row">
+      <div class="pane-2d">
+        <span class="pane-label-2d">2D</span>
+        <div class="skeleton" id="${skId}" style="width:150px;height:140px"></div>
+      </div>
+      <div class="pane-3d" data-vkey="${vkey}" data-cid="${cid}">
+        <span class="pane-label-3d">3D</span>
+        <button class="surf-btn on" onclick="toggleSurf('${vkey}',this)">Surface</button>
+        <div class="v-loading">加载 3D…</div>
+        <div class="viewer-el"></div>
+      </div>
+    </div>`;
+  return html;
+}
+
+// ── Build card ────────────────────────────────────────────────────────────────
+function buildCard(m,gridId){
+  const idx=seq++;
+  const key=gridId+'-'+idx;
+
+  // stripe
+  let stripe;
+  if(m.accent&&Array.isArray(m.accent)){
+    const pct=100/m.accent.length;
+    stripe='background:linear-gradient(90deg,'+m.accent.map((c,i)=>c+' '+i*pct+'%,'+c+' '+(i+1)*pct+'%').join(',')+')';
+  }else{stripe='background:'+(m.color||C.poly);}
+
+  // ring badge
+  const rbg=m.ring?RING_BG[m.ring]||'#888':null;
+  const ringH=rbg?`<span class="ring-badge" style="background:${rbg}">${m.ringLabel||m.ring}</span>`:'';
+
+  // etym
+  const etymH=(m.etym||[]).map(p=>`<div class="etym-path"><span class="etym-flag">${p.flag}</span><span class="etym-text">${p.text}</span></div>`).join('');
+
+  // pills + link
+  const pillsH=(m.units||[]).map(u=>`<span class="pill" style="background:${u.color}">${u.label}</span>`).join('');
+  const linkH=m.link?`<span class="link-badge">${m.link}</span>${m.linkNote?`<span class="link-full">${m.linkNote}</span>`:'`'}`:
+              (m.link?`<span class="link-full">${m.link}</span>`:'');
+  const fixedLink=m.link?`<span class="link-badge">${m.link}</span>${m.linkNote?`<span class="link-full">${m.linkNote}</span>`:''}`:'';
+
+  const srcH=m.source?`<div class="source-note"><span>${m.sourceIcon}</span>${m.source}</div>`:'';
+  const polyH=m.polyNote?`<div class="poly-note">⚠️ ${m.polyNote}</div>`:'';
+
+  // variant accordions
+  let accordsH='';
+  (m.variants||[]).forEach((vr,vi)=>{
+    const vid=key+'-v'+vi;
+    const panelsH=vr.panels.map((pn,pi)=>{
+      const pk=vid+'-p'+pi;
+      const molRowH=buildMolRow(pn.cid,pk);
+      return `<div style="border-top:1px solid #f0efe9">
+        <div class="anomer-sub-label">${pn.label}</div>
+        ${molRowH}
+      </div>`;
+    }).join('');
+    accordsH+=`
+      <div class="accord-section">
+        <button class="accord-btn" onclick="openAccord(this,'${vid}')">
+          <span class="arr">▶</span>${vr.title}
+        </button>
+        <div class="accord-body" id="${vid}">
+          <div class="anomer-note">${vr.note}</div>
+          ${panelsH}
+        </div>
+      </div>`;
+  });
+
+  const card=document.createElement('div');
+  card.className='card';
+  card.innerHTML=`
+    <div class="stripe" style="${stripe}"></div>
+    <div class="card-top">
+      <a class="wiki-link" href="${m.wiki}" target="_blank" rel="noopener">Wikipedia ↗</a>
+      <span class="name-zh">${m.zh}</span><span class="name-en">${m.en}</span>
+      <span class="formula-wrap" id="fml-${key}"></span>${ringH}
+      <div class="etym-block">${etymH}</div>
+      <div class="units-row">${pillsH}${fixedLink}</div>
+      ${srcH}${polyH}
+    </div>
+    ${buildMolRow(m.cid,key)}
+    ${accordsH}
+  `;
+
+  // KaTeX — katex is already loaded synchronously
+  const fmlEl=card.querySelector('#fml-'+key);
+  if(fmlEl)renderFml(m.formula,fmlEl);
+
+  // 2D images
+  const mainSk=card.querySelector('#sk-'+key);
+  if(mainSk)load2d(m.cid,mainSk);
+
+  // variant 2D images
+  (m.variants||[]).forEach((vr,vi)=>{
+    vr.panels.forEach((pn,pi)=>{
+      const pk=key+'-v'+vi+'-p'+pi;
+      const sk=card.querySelector('#sk-'+pk);
+      if(sk)load2d(pn.cid,sk);
+    });
+  });
+
+  // observe main 3D pane
+  const p3d=card.querySelector('[data-vkey="'+key+'"]');
+  if(p3d)io.observe(p3d);
+
+  return card;
+}
+
+// ── Accordion open (lazy-loads 3D) ────────────────────────────────────────────
+function openAccord(btn,id){
+  const body=document.getElementById(id);
+  const open=body.classList.toggle('open');
+  btn.classList.toggle('open',open);
+  if(open){
+    body.querySelectorAll('[data-vkey]').forEach(el=>io.observe(el));
+  }
+}
+
+// ── Render grids ──────────────────────────────────────────────────────────────
+function renderGrid(data,id){
+  const el=document.getElementById(id);
+  data.forEach((m,i)=>setTimeout(()=>el.appendChild(buildCard(m,id)),i*200));
+}
+renderGrid(MONO,'grid-mono');
+renderGrid(DI,'grid-di');
+renderGrid(OLIGO,'grid-oligo');
+renderGrid(POLY,'grid-poly');
+
+function showTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+}
+</script>
+</body>
+</html>
+<script>
+// ── JS Masonry ────────────────────────────────────────────────────────────────
+// Key insight: each card is assigned a column at creation time and STAYS there.
+// We only update top positions within each column when a card in that column changes height.
+// This means expanding card A in col-0 never moves cards in col-1.
+
+const cardCol = new WeakMap();   // card → column index (fixed at birth)
+const colCards = new Map();      // gridId → [[], []]  cards per column
+
+function getColCards(grid) {
+  if (!colCards.has(grid)) colCards.set(grid, [[], []]);
+  return colCards.get(grid);
+}
+
+function assignColumn(card, grid) {
+  if (cardCol.has(card)) return;   // already assigned
+  const cc = getColCards(grid);
+  // pick shorter column by sum of current card heights
+  const h0 = cc[0].reduce((s, c) => s + c.offsetHeight, 0);
+  const h1 = cc[1].reduce((s, c) => s + c.offsetHeight, 0);
+  const col = h0 <= h1 ? 0 : 1;
+  cardCol.set(card, col);
+  cc[col].push(card);
+}
+
+function relayout(grid) {
+  const cards = [...grid.querySelectorAll(':scope > .card')];
+  if (!cards.length) return;
+  const isMobile = window.innerWidth <= 640;
+  const cols = isMobile ? 1 : 2;
+  const gap = 18;
+  const colW = (grid.offsetWidth - (cols - 1) * gap) / cols;
+  const cc = getColCards(grid);
+
+  if (cols === 1) {
+    // Single column: stack everything
+    let top = 0;
+    cards.forEach(card => {
+      card.style.width = colW + 'px';
+      card.style.left = '0px';
+      card.style.top = top + 'px';
+      top += card.offsetHeight + gap;
+    });
+    grid.style.height = top + 'px';
+    return;
+  }
+
+  // Assign columns for any new cards (idempotent)
+  cards.forEach(card => assignColumn(card, grid));
+
+  // Recompute top positions column by column
+  const colH = [0, 0];
+  [0, 1].forEach(col => {
+    let top = 0;
+    (cc[col] || []).forEach(card => {
+      card.style.width = colW + 'px';
+      card.style.left = col * (colW + gap) + 'px';
+      card.style.top = top + 'px';
+      top += card.offsetHeight + gap;
+    });
+    colH[col] = top;
+  });
+  grid.style.height = Math.max(...colH) + 'px';
+}
+
+function relayoutAll() {
+  document.querySelectorAll('.sugar-grid').forEach(g => {
+    if (g.closest('.panel.active')) relayout(g);
+  });
+}
+
+// Watch card additions
+document.querySelectorAll('.sugar-grid').forEach(grid => {
+  new MutationObserver(mutations => {
+    if (!grid.closest('.panel.active')) return;
+    // assign columns for newly added cards then relayout
+    mutations.forEach(m => m.addedNodes.forEach(n => {
+      if (n.classList && n.classList.contains('card')) assignColumn(n, grid);
+    }));
+    relayout(grid);
+  }).observe(grid, { childList: true });
+});
+
+// Watch every card's size change (accordion open/close, image load, 3D load)
+const ro = new ResizeObserver(entries => {
+  const grids = new Set();
+  entries.forEach(e => {
+    const grid = e.target.closest('.sugar-grid');
+    if (grid && grid.closest('.panel.active')) grids.add(grid);
+  });
+  grids.forEach(relayout);
+});
+
+// Observe cards as they are created — patch buildCard to register with RO
+const _buildCard = buildCard;
+buildCard = function(m, gridId) {
+  const card = _buildCard(m, gridId);
+  ro.observe(card);
+  return card;
+};
+
+window.addEventListener('resize', relayoutAll);
+
+const _showTab = showTab;
+showTab = function(n) {
+  _showTab(n);
+  setTimeout(relayoutAll, 10);
+};
+</script>
