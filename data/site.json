@@ -32,11 +32,11 @@
     "pinned": false
   },
   {
-    "name": "糖类分子百科",
+    "name": "糖类分子百科 · Carbohydrate Encyclopedia",
     "url": "pages/sugars.html",
-    "icon": "📄",
-    "desc": "",
-    "tag": "其他",
+    "icon": "🍬",
+    "desc": "糖类分子百科 — 涵盖葡萄糖、果糖、半乳糖、蔗糖、乳糖、麦芽糖、棉子糖、水苏糖、纤维素、淀粉、糖原等20余种单糖、双糖、三糖、四糖及多糖。每种糖附 PubChem 2D 结构图、可旋转 3D Ball-and-Stick 模型（含 Surface）、D/L 手性对映体、α/β 异头体对比，以及从原始印欧语根追溯至现代命名的完整词源。Interactive carbohydrate encyclopedia covering monosaccharides, disaccharides, oligosaccharides and polysaccharides — glucose, fructose, galactose, sucrose, lactose, maltose, raffinose, stachyose, cellulose, starch, glycogen and more. Features PubChem 2D structures, interactive 3D ball-and-stick viewers with VDW surface, D/L enantiomers, α/β anomers, and full etymology from Proto-Indo-European roots to IUPAC names.",
+    "tag": "参考",
     "pinned": false
   }
 ]
