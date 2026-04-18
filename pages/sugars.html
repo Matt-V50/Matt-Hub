@@ -293,25 +293,69 @@ function renderFml(str,el){
 
 // CID → slug mapping (mirrors download_molecules.py)
 const CID_SLUG = {
-  5793:'glucose', 2723872:'fructose', 6036:'galactose', 18950:'mannose',
-  135191:'xylose', 10975657:'ribose', 17106:'fucose',
-  // D/L open-chain
-  107689:'glucose_L_open', 159034:'fructose_L_open', 91666:'galactose_L_open',
-  122386:'mannose_L_open', 61495:'xylose_L_open', 68327:'ribose_L_open',
-  439553:'fucose_D_rare',
-  // anomers
-  79025:'glucose_alpha_D_pyra', 64689:'glucose_beta_D_pyra',
-  2723877:'fructose_beta_D_fura',
-  439559:'galactose_alpha_D', 439557:'galactose_beta_D',
-  439530:'mannose_alpha_D',   439531:'mannose_beta_D',
-  16088714:'xylose_alpha_D',  24894893:'xylose_beta_D',
-  3004008:'ribose_alpha_D_fura', 440997:'ribose_beta_D_fura',
-  439554:'fucose_alpha_L',    102007:'fucose_beta_L',
-  // disaccharides
-  5988:'sucrose', 84571:'lactose', 439341:'maltose', 10712:'cellobiose',
-  7427:'trehalose', 20056559:'gentiobiose',
-  // oligo
-  65533:'raffinose', 442813:'gentianose', 441374:'stachyose', 439586:'maltotriose',
+  // ── 代表性 D型 ───────────────────────────────────────────────────
+  5793:      'glucose_D',
+  2723872:   'fructose_D',
+  6036:      'galactose_D',
+  18950:     'mannose_D',
+  135191:    'xylose_D',
+  10975657:  'ribose_D',
+  17106:     'fucose_L',
+
+  // ── L型开链 ──────────────────────────────────────────────────────
+  2724488:   'glucose_L_open',
+  5460024:   'fructose_L_open',
+  84996:     'galactose_L_open',
+  82308:     'mannose_L_open',
+  95259:     'xylose_L_open',
+  90428:     'ribose_L_open',
+  94270:     'fucose_D_rare',
+
+  // ── D型环状异头体 ─────────────────────────────────────────────────
+  79025:     'glucose_alpha_D_pyra',
+  64689:     'glucose_beta_D_pyra',
+  11105942:  'fructose_alpha_D_fura',
+  439709:    'fructose_beta_D_fura',
+  440545:    'fructose_alpha_D_pyra',
+  439357:    'galactose_alpha_D_pyra',
+  439557:    'galactose_beta_D_pyra',
+  185698:    'mannose_alpha_D_pyra',
+  439680:    'mannose_beta_D_pyra',
+  6027:      'xylose_alpha_D_pyra',    // ✅ 修正(原16088714错)
+  125409:    'xylose_beta_D_pyra',     // ✅ 修正(原24894893错)
+  445894:    'ribose_alpha_D_fura',    // ✅ 修正(原3004008错)
+  447347:    'ribose_beta_D_fura',     // ✅ 修正(原440997错)
+  439554:    'fucose_alpha_L_pyra',
+  444863:    'fucose_beta_L_pyra',
+
+  // ── L型环状异头体 ─────────────────────────────────────────────────
+  6971003:   'glucose_alpha_L_pyra',
+  6992084:   'glucose_beta_L_pyra',
+  15942891:  'fructose_alpha_L_fura',
+  439553:    'fructose_beta_L_fura',
+  10154314:  'fructose_alpha_L_pyra',
+  439583:    'galactose_alpha_L_pyra',
+  6971007:   'galactose_beta_L_pyra',
+  6971016:   'mannose_alpha_L_pyra',
+  1549080:   'mannose_beta_L_pyra',
+  444344:    'xylose_alpha_L_pyra',
+  445916:    'xylose_beta_L_pyra',
+  6971005:   'ribose_alpha_L_fura',
+  6971004:   'ribose_beta_L_fura',
+
+  // ── 二糖 ─────────────────────────────────────────────────────────
+  5988:      'sucrose',
+  84571:     'lactose',
+  439341:    'maltose',
+  10712:     'cellobiose',
+  7427:      'trehalose',
+  20056559:  'gentiobiose',
+
+  // ── 寡糖 ─────────────────────────────────────────────────────────
+  439242:    'raffinose',     // ✅ 修正(原65533错)
+  117678:    'gentianose',    // ✅ 修正(原442813错)
+  439531:    'stachyose',     // ✅ 修正(原441374错)
+  92146:     'maltotriose',   // ✅ 修正(原439586错)
 };
 const LOCAL_BASE = '../assets/img/molecules';
 const url2d = (cid, slugOverride) => {
@@ -332,63 +376,69 @@ const MONO=[
    etym:[{flag:F.PIE,text:'PIE <em>*dlku-</em>/<em>*gluku-</em> "甜"（同根：拉丁语 <em>dulcis</em>）'},{flag:F.grc,text:'→ 希腊语 <em>glykys</em>（γλυκύς）"甜"；同根词：glycerin、glycol'},{flag:F.fr,text:'→ 化学家 Dumas（1838）命名 <em>glucose</em>，<em>-ose</em> 为糖类后缀'}],
    variants:[
      {title:'D/L 手性分子',note:'D-葡萄糖（右旋，血糖形式）与 L-葡萄糖（左旋，生物不可利用）互为对映体，C5 的 CH₂OH 方向相反。',
-      panels:[{label:'D-Glucose（开链）',cid:5793},{label:'L-Glucose（开链）',cid:107689}]},
+      panels:[{label:'D-Glucose（开链）',cid:5793},{label:'L-Glucose（开链）',cid:2724488}]},
      {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下（轴向，36%）；<span class="be">β</span>-D：C1-OH 向上（赤道向，64%）。',
       panels:[{label:'α-D-Glucopyranose',cid:79025},{label:'β-D-Glucopyranose',cid:64689}]},
    ],
    units:[{label:'Glc',color:C.glucose}],wiki:'https://zh.wikipedia.org/wiki/葡萄糖'},
+
   {zh:'果糖',en:'Fructose',formula:'C6H12O6',cid:2723872,color:C.fructose,ring:'furanose',ringLabel:'呋喃糖',
    etym:[{flag:F.PIE,text:'PIE <em>*bhrug-</em> "享用、消耗"'},{flag:F.la,text:'→ 拉丁语 <em>fructus</em> "果实"（cf. frugal 节俭）'},{flag:F.en,text:'→ 英语 <em>fructose</em>（1864），大量存在于水果和蜂蜜中'}],
    variants:[
      {title:'D/L 手性分子',note:'自然界几乎只存在 D-果糖；L-果糖极罕见，甜度低。',
-      panels:[{label:'D-Fructose（开链）',cid:2723872},{label:'L-Fructose（开链）',cid:159034}]},
+      panels:[{label:'D-Fructose（开链）',cid:2723872},{label:'L-Fructose（开链）',cid:5460024}]},
      {title:'α / β 异头体',note:'游离态：<span class="be">β</span>-D-吡喃果糖为主（~73%）。蔗糖中固定为 <span class="be">β</span>-D-呋喃果糖（C2 为异头碳）。',
-      panels:[{label:'β-D-Fructopyranose',cid:2723872},{label:'β-D-Fructofuranose',cid:2723877}]},
+      panels:[{label:'α-D-Fructopyranose',cid:11105942},{label:'β-D-Fructofuranose',cid:439709}]},
    ],
    units:[{label:'Fru',color:C.fructose}],wiki:'https://zh.wikipedia.org/wiki/果糖'},
+
   {zh:'半乳糖',en:'Galactose',formula:'C6H12O6',cid:6036,color:C.galactose,ring:'pyranose',ringLabel:'吡喃糖',
    etym:[{flag:F.PIE,text:'PIE <em>*g(a)lag-</em> "乳汁"（部分学者认为源自赫梯语 <em>galaktar</em>）'},{flag:F.grc,text:'→ 希腊语 <em>gala</em>（γάλα，属格 galaktos）"乳汁"；同根词：galaxy（银河）'},{flag:F.fr,text:'→ 法语 <em>galactose</em>（1855），乳糖的水解产物；与葡萄糖仅 C4-OH 方向不同（差向异构）'}],
    variants:[
      {title:'D/L 手性分子',note:'D-半乳糖是乳糖组分，L-半乳糖存在于某些植物多糖中（如 L-半乳聚糖）。',
-      panels:[{label:'D-Galactose（开链）',cid:6036},{label:'L-Galactose（开链）',cid:91666}]},
+      panels:[{label:'D-Galactose（开链）',cid:6036},{label:'L-Galactose（开链）',cid:84996}]},
      {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上；C4-OH 均向上（与葡萄糖的区别）。',
-      panels:[{label:'α-D-Galactopyranose',cid:439559},{label:'β-D-Galactopyranose',cid:439557}]},
+      panels:[{label:'α-D-Galactopyranose',cid:439357},{label:'β-D-Galactopyranose',cid:439557}]},
    ],
    units:[{label:'Gal',color:C.galactose}],wiki:'https://zh.wikipedia.org/wiki/半乳糖'},
+
   {zh:'甘露糖',en:'Mannose',formula:'C6H12O6',cid:18950,color:C.mannose,ring:'pyranose',ringLabel:'吡喃糖',
    etym:[{flag:F.he,text:'希伯来语 <em>mān</em>（מָן）"甘露"，《出埃及记》旷野食物'},{flag:F.ar,text:'→ 阿拉伯语 <em>mann</em>，植物含糖树脂（甘露树脂）'},{flag:F.de,text:'→ Emil Fischer（1888）从甘露醇氧化得到；与葡萄糖仅 C2-OH 方向不同（C2 差向异构）'}],
    variants:[
      {title:'D/L 手性分子',note:'D-甘露糖广泛存在于植物糖蛋白；L-甘露糖较罕见，见于某些细菌多糖。',
-      panels:[{label:'D-Mannose（开链）',cid:18950},{label:'L-Mannose（开链）',cid:122386}]},
+      panels:[{label:'D-Mannose（开链）',cid:18950},{label:'L-Mannose（开链）',cid:82308}]},
      {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上；C2-OH 均向上（与葡萄糖的区别）。',
-      panels:[{label:'α-D-Mannopyranose',cid:439530},{label:'β-D-Mannopyranose',cid:439531}]},
+      panels:[{label:'α-D-Mannopyranose',cid:185698},{label:'β-D-Mannopyranose',cid:439680}]},
    ],
    units:[{label:'Man',color:C.mannose}],wiki:'https://zh.wikipedia.org/wiki/甘露糖'},
+
   {zh:'木糖',en:'Xylose',formula:'C5H10O5',cid:135191,color:C.xylose,ring:'pyranose',ringLabel:'吡喃糖',
    etym:[{flag:F.PIE,text:'PIE <em>*ksulo-</em> "木材"'},{flag:F.grc,text:'→ 希腊语 <em>xylon</em>（ξύλον）"木材"；同根词：xylophone、xylem（木质部）'},{flag:F.en,text:'→ 英语 <em>xylose</em>（1891），首次从玉米秆和木材水解物中分离；半纤维素（木聚糖）的主要单元'}],
    variants:[
      {title:'D/L 手性分子',note:'D-木糖是半纤维素的组成单元；L-木糖存在于某些植物糖苷中。',
-      panels:[{label:'D-Xylose（开链）',cid:135191},{label:'L-Xylose（开链）',cid:61495}]},
+      panels:[{label:'D-Xylose（开链）',cid:135191},{label:'L-Xylose（开链）',cid:95259}]},
      {title:'α / β 异头体（吡喃糖）',note:'<span class="al">α</span>-D-木吡喃糖：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上。五碳糖戊糖，无 C6。',
-      panels:[{label:'α-D-Xylopyranose',cid:16088714},{label:'β-D-Xylopyranose',cid:24894893}]},
+      panels:[{label:'α-D-Xylopyranose',cid:6027},{label:'β-D-Xylopyranose',cid:125409}]},
    ],
    units:[{label:'Xyl',color:C.xylose}],wiki:'https://zh.wikipedia.org/wiki/木糖'},
+
   {zh:'核糖',en:'Ribose',formula:'C5H10O5',cid:10975657,color:C.ribose,ring:'furanose',ringLabel:'呋喃糖',
    etym:[{flag:F.ar,text:'阿拉伯语 <em>ʻarab</em> → 阿拉伯糖（<em>arabinose</em>），首次从阿拉伯树胶中分离'},{flag:F.de,text:'→ Emil Fischer（1891）将 arabinose 字母重排（arab→rib）造词 <em>Ribose</em>；RNA 中以 β-D-呋喃核糖形式存在'}],
    variants:[
      {title:'D/L 手性分子',note:'D-核糖是 RNA 和多种辅酶（NAD⁺、FAD）的组成成分；L-核糖极为罕见。',
-      panels:[{label:'D-Ribose（开链）',cid:10975657},{label:'L-Ribose（开链）',cid:68327}]},
+      panels:[{label:'D-Ribose（开链）',cid:10975657},{label:'L-Ribose（开链）',cid:90428}]},
      {title:'α / β 异头体（呋喃糖）',note:'在核苷酸中固定为 <span class="be">β</span>-D-呋喃核糖；<span class="al">α</span>-D：C1-OH 向下；<span class="be">β</span>-D：C1-OH 向上。',
-      panels:[{label:'α-D-Ribofuranose',cid:3004008},{label:'β-D-Ribofuranose',cid:440997}]},
+      panels:[{label:'α-D-Ribofuranose',cid:445894},{label:'β-D-Ribofuranose',cid:447347}]},
    ],
    units:[{label:'Rib',color:C.ribose}],wiki:'https://zh.wikipedia.org/wiki/核糖'},
+
   {zh:'岩藻糖',en:'Fucose',formula:'C6H12O5',cid:17106,color:C.fucose,ring:'pyranose',ringLabel:'吡喃糖（脱氧）',
    etym:[{flag:F.grc,text:'希腊语 <em>phykos</em>（φῦκος）"海藻、紫红色颜料"'},{flag:F.la,text:'→ 新拉丁语 <em>Fucus</em>（墨角藻属），由 Linnaeus 命名'},{flag:F.de,text:'→ Hoffman（1913）从墨角藻分离 6-脱氧-L-半乳糖，命名 <em>Fucose</em>；ABO 血型抗原关键组分'}],
    variants:[
      {title:'D/L 手性分子',note:'自然界以 <strong>L-岩藻糖</strong>为主（与大多数单糖相反）；D-岩藻糖少见，见于细菌脂多糖。',
-      panels:[{label:'L-Fucose（主要形式）',cid:17106},{label:'D-Fucose（稀有）',cid:439553}]},
+      panels:[{label:'L-Fucose（主要形式）',cid:17106},{label:'D-Fucose（稀有）',cid:94270}]},
      {title:'α / β 异头体（L-吡喃糖）',note:'L 型规则与 D 型相反：<span class="al">α</span>-L：C1-OH 向上；<span class="be">β</span>-L：C1-OH 向下。6 位为甲基（脱氧，无 OH）。',
-      panels:[{label:'α-L-Fucopyranose',cid:439554},{label:'β-L-Fucopyranose',cid:102007}]},
+      panels:[{label:'α-L-Fucopyranose',cid:439554},{label:'β-L-Fucopyranose',cid:444863}]},
    ],
    units:[{label:'Fuc',color:C.fucose}],wiki:'https://zh.wikipedia.org/wiki/岩藻糖'},
 ];

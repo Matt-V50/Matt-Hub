@@ -40,71 +40,80 @@ os.makedirs(args.out, exist_ok=True)
 # (true polymers have no single PubChem CID with 3D coordinates).
 
 MOLECULES = [
-    # ── Monosaccharides — main (open-chain or dominant form) ──────────────────
-    ("glucose",                 5793),
-    ("fructose",                2723872),
-    ("galactose",               6036),
-    ("mannose",                 18950),
-    ("xylose",                  135191),
-    ("ribose",                  10975657),   # corrected from 5311110
-    ("fucose",                  17106),      # corrected from 18950321
+    # ── 代表性 D型
+    ("glucose_D",              5793),
+    ("fructose_D",             2723872),
+    ("galactose_D",            6036),
+    ("mannose_D",              18950),
+    ("xylose_D",               135191),
+    ("ribose_D",               10975657),
+    ("fucose_L",               17106),
 
-    # ── Monosaccharides — D / L chirality open-chain ──────────────────────────
-    ("glucose_D_open",          5793),
-    ("glucose_L_open",          107689),
-    ("fructose_D_open",         2723872),
-    ("fructose_L_open",         159034),
-    ("galactose_D_open",        6036),
-    ("galactose_L_open",        91666),
-    ("mannose_D_open",          18950),
-    ("mannose_L_open",          122386),
-    ("xylose_D_open",           135191),
-    ("xylose_L_open",           61495),
-    ("ribose_D_open",           10975657),
-    ("ribose_L_open",           68327),
-    ("fucose_L_main",           17106),
-    ("fucose_D_rare",           439553),
+    # ── L型开链
+    ("glucose_L_open",         2724488),
+    ("fructose_L_open",        5460024),
+    ("galactose_L_open",       84996),
+    ("mannose_L_open",         82308),
+    ("xylose_L_open",          95259),
+    ("ribose_L_open",          90428),
+    ("fucose_D_rare",          94270),
 
-    # ── Monosaccharides — α / β anomers ──────────────────────────────────────
-    ("glucose_alpha_D_pyra",    79025),
-    ("glucose_beta_D_pyra",     64689),
-    ("fructose_beta_D_pyra",    2723872),
-    ("fructose_beta_D_fura",    2723877),
-    ("galactose_alpha_D",       439559),
-    ("galactose_beta_D",        439557),
-    ("mannose_alpha_D",         439530),
-    ("mannose_beta_D",          439531),
-    ("xylose_alpha_D",          16088714),
-    ("xylose_beta_D",           24894893),
-    ("ribose_alpha_D_fura",     3004008),
-    ("ribose_beta_D_fura",      440997),
-    ("fucose_alpha_L",          439554),
-    ("fucose_beta_L",           102007),
+    # ── D型环状异头体
+    ("glucose_alpha_D_pyra",   79025),
+    ("glucose_beta_D_pyra",    64689),
+    ("fructose_alpha_D_fura",  11105942),
+    ("fructose_beta_D_fura",   439709),
+    ("fructose_alpha_D_pyra",  440545),
+    ("galactose_alpha_D_pyra", 439357),
+    ("galactose_beta_D_pyra",  439557),
+    ("mannose_alpha_D_pyra",   185698),
+    ("mannose_beta_D_pyra",    439680),
+    ("xylose_alpha_D_pyra",    6027),
+    ("xylose_beta_D_pyra",     125409),
+    ("ribose_alpha_D_fura",    445894),
+    ("ribose_beta_D_fura",     447347),
+    ("fucose_alpha_L_pyra",    439554),
+    ("fucose_beta_L_pyra",     444863),
 
-    # ── Disaccharides ─────────────────────────────────────────────────────────
-    ("sucrose",                 5988),
-    ("lactose",                 84571),
-    ("maltose",                 439341),
-    ("cellobiose",              10712),
-    ("trehalose",               7427),
-    ("gentiobiose",             20056559),   # corrected from 91502565
+    # ── L型环状异头体
+    ("glucose_alpha_L_pyra",   6971003),
+    ("glucose_beta_L_pyra",    6992084),
+    ("fructose_alpha_L_fura",  15942891),
+    ("fructose_beta_L_fura",   439553),
+    ("fructose_alpha_L_pyra",  10154314),
+    ("galactose_alpha_L_pyra", 439583),
+    ("galactose_beta_L_pyra",  6971007),
+    ("mannose_alpha_L_pyra",   6971016),
+    ("mannose_beta_L_pyra",    1549080),
+    ("xylose_alpha_L_pyra",    444344),
+    ("xylose_beta_L_pyra",     445916),
+    ("ribose_alpha_L_fura",    6971005),
+    ("ribose_beta_L_fura",     6971004),
 
-    # ── Tri- & tetrasaccharides ───────────────────────────────────────────────
-    ("raffinose",               65533),
-    ("gentianose",              442813),
-    ("stachyose",               441374),
-    ("maltotriose",             439586),
+    # ── 二糖
+    ("sucrose",                5988),
+    ("lactose",                84571),
+    ("maltose",                439341),
+    ("cellobiose",             10712),
+    ("trehalose",              7427),
+    ("gentiobiose",            20056559),
 
-    # ── Polysaccharides (oligosaccharide fragments as proxy) ──────────────────
-    ("amylose_fragment",        439341),   # maltose       — α-1,4 repeat unit
-    ("amylopectin_fragment",    439586),   # maltotriose   — α-1,4 backbone
-    ("cellulose_fragment",      10712),    # cellobiose    — β-1,4 repeat unit
-    ("glycogen_fragment",       439341),   # maltose       — α-1,4 backbone
+    # ── 寡糖
+    ("raffinose",              439242),
+    ("gentianose",             117678),
+    ("stachyose",              439531),
+    ("maltotriose",            92146),
+
+    # ── Polysaccharides (fragments as proxy)
+    ("amylose_fragment",       439341),   # maltose     — α-1,4 repeat unit
+    ("amylopectin_fragment",   92146),    # maltotriose — α-1,4 backbone
+    ("cellulose_fragment",     10712),    # cellobiose  — β-1,4 repeat unit
+    ("glycogen_fragment",      439341),   # maltose     — α-1,4 backbone
 ]
 
 # ── PubChem ───────────────────────────────────────────────────────────────────
 BASE    = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid"
-HEADERS = {"User-Agent": "carbohydrate-encyclopedia/2.0 (educational)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"}
 DELAY   = 0.22   # ≈ 4.5 req/s  (limit is 5/s)
 
 
