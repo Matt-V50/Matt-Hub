@@ -9,7 +9,7 @@
 <meta property="og:title" content="糖类分子百科 · Carbohydrate Encyclopedia"/>
 <meta property="og:description" content="20余种糖类的 SMILES-based 2D/3D 分子结构、D/L 手性、α/β 异头体与完整词源 — Interactive SMILES-rendered carbohydrate structures with etymology from PIE roots."/>
 <meta property="og:type" content="website"/>
-<meta name="description" content="糖类分子百科 — 基于 SMILES 前端渲染的糖化学参考。每种糖附 SmilesDrawer 2D 结构图、可旋转 3D Ball-and-Stick 模型、D/L 手性对映体、α/β 异头体对比,以及从原始印欧语根追溯至现代命名的完整词源。"/>
+<meta name="description" content="糖类分子百科 — 基于 SMILES 前端渲染的糖化学参考。每种糖附 RDKit 2D 结构图(带碳序号标注)、可旋转 3D Ball-and-Stick 模型、D/L 手性对映体、α/β 异头体对比,以及从原始印欧语根追溯至现代命名的完整词源。"/>
 <meta name="icon"   content="🍬"/>
 <meta name="tag"    content="参考"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -117,7 +117,13 @@ body { font-family: 'IBM Plex Sans', sans-serif; }
   border-right: 1px solid var(--border);
   position: relative; padding: 8px;
 }
-.pane-2d canvas, .pane-2d svg { max-width: 180px; max-height: 170px; }
+.pane-2d .mol-2d-svg {
+  display: flex; align-items: center; justify-content: center;
+  width: 184px; height: 170px;
+}
+.pane-2d .mol-2d-svg svg { max-width: 184px; max-height: 170px; width: auto; height: auto; display: block; }
+.pane-2d .mol-2d-svg .mol-skel { width: 150px; height: 140px; border-radius: 4px; }
+.pane-2d .mol-2d-svg .mol-err { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #c05; }
 .pane-label-2d {
   position: absolute; top: 5px; left: 7px;
   font-size: 9px; color: var(--text-dim); opacity: .5;
@@ -276,8 +282,8 @@ body { font-family: 'IBM Plex Sans', sans-serif; }
 
 </div><!-- /.container -->
 
-<!-- SmilesDrawer for 2D rendering directly from SMILES -->
-<script src="https://unpkg.com/smiles-drawer@2.1.7/dist/smiles-drawer.min.js"></script>
+<!-- RDKit.js for 2D rendering (SMILES → SVG with atom-level control) -->
+<script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
 <!-- 3Dmol.js for 3D rendering from SDF files (still sourced locally/PubChem) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.1.0/3Dmol-min.js"></script>
 <script>
@@ -610,31 +616,214 @@ const POLY = [
    source:'动物肝脏(~10% 湿重)和骨骼肌(~2%)',sourceIcon:'🥩',wiki:'https://zh.wikipedia.org/wiki/糖原'},
 ];
 
-// ═══ 2D Rendering (SmilesDrawer) ═════════════════════════════════════════════
-const smilesDrawer = new SmiDrawer({
-  width: 180, height: 170, bondThickness: 1.0,
-  atomVisualization: 'default', explicitHydrogens: false,
-});
-const smilesDrawerDark = new SmiDrawer({
-  width: 180, height: 170, bondThickness: 1.0,
-  atomVisualization: 'default', explicitHydrogens: false,
-});
+// ═══ 2D Rendering (RDKit.js) ═════════════════════════════════════════════════
+// RDKit 异步加载; 通过 onRDKitReady 排队渲染请求
+let RDKit = null;
+const _rdkitQueue = [];
+if (window.initRDKitModule) {
+  window.initRDKitModule().then(mod => {
+    RDKit = mod;
+    _rdkitQueue.splice(0).forEach(fn => { try { fn(); } catch(e) { console.warn(e); } });
+  }).catch(err => { console.error('RDKit failed to load:', err); });
+}
+function onRDKitReady(fn) { RDKit ? fn() : _rdkitQueue.push(fn); }
 
-function draw2d(smiles, canvas) {
-  if (!smiles) {
-    canvas.style.display = 'none';
-    return;
+// ─── 单糖识别 ──────────────────────────────────────────────────────────────
+function isMono(slug) {
+  return /^(glucose|galactose|mannose|fructose|xylose|ribose|fucose)_/.test(slug);
+}
+
+// ─── 单糖 IUPAC 碳序号映射 ────────────────────────────────────────────────
+// 策略: 对每种糖形式预定义一个 SMARTS + [SMARTS 位置索引 → 碳号] 映射
+// 运行时用 mol.get_substruct_match(SMARTS) 得到实际分子里的原子索引
+// 再把 "RDKit 原子索引 → 'Cn'" 通过 atomLabels 选项交给 RDKit 绘图
+//
+// SMARTS 位置索引 = SMARTS 字符串中每个原子在解析顺序下的下标 (同 SMILES)
+// 例如 SMARTS 'OCC1OC(O)C(O)C(O)C1O' (醛己糖吡喃糖) 的位置:
+//   0:O(C6-OH) 1:C6 2:C5 3:O(环) 4:C1 5:O(异头) 6:C2 7:O 8:C3 9:O 10:C4 11:O
+const SUGAR_LABELS = {
+  // 开链 醛己糖 (葡/半乳/甘露)
+  hexose_open:    { smarts: 'O=CC(O)C(O)C(O)C(O)CO',    map: {1:'C1', 2:'C2', 4:'C3', 6:'C4', 8:'C5', 10:'C6'} },
+  // 开链 醛戊糖 (木/核)
+  pentose_open:   { smarts: 'O=CC(O)C(O)C(O)CO',        map: {1:'C1', 2:'C2', 4:'C3', 6:'C4', 8:'C5'} },
+  // 开链 果糖 (酮己糖, 从 C6 往 C1 书写)
+  fructose_open:  { smarts: 'OCC(O)C(O)C(O)C(=O)CO',    map: {1:'C6', 2:'C5', 4:'C4', 6:'C3', 8:'C2', 10:'C1'} },
+  // 开链 岩藻糖 (6-脱氧醛己糖, 末端 CH3)
+  fucose_open:    { smarts: 'O=CC(O)C(O)C(O)C(O)C',     map: {1:'C1', 2:'C2', 4:'C3', 6:'C4', 8:'C5', 10:'C6'} },
+  // 吡喃糖 醛己糖 (葡/半乳/甘露)
+  hexopyranose:   { smarts: 'OCC1OC(O)C(O)C(O)C1O',     map: {1:'C6', 2:'C5', 4:'C1', 6:'C2', 8:'C3', 10:'C4'} },
+  // 吡喃糖 果糖 (环含 O-C2-C3-C4-C5-C6, C1 为 C2 的 CH2OH 支链)
+  fructopyranose: { smarts: 'OCC1(O)OCC(O)C(O)C1O',     map: {1:'C1', 2:'C2', 5:'C6', 6:'C5', 8:'C4', 10:'C3'} },
+  // 吡喃糖 醛戊糖 (木糖, 环含 O-C1-C2-C3-C4-C5, 无 CH2OH 支链)
+  xylopyranose:   { smarts: 'OC1COC(O)C(O)C1O',         map: {1:'C4', 2:'C5', 4:'C1', 6:'C2', 8:'C3'} },
+  // 吡喃糖 岩藻糖 (6-脱氧, C6 是环外 CH3)
+  fucopyranose:   { smarts: 'CC1OC(O)C(O)C(O)C1O',      map: {0:'C6', 1:'C5', 3:'C1', 5:'C2', 7:'C3', 9:'C4'} },
+  // 呋喃糖 醛戊糖 (核糖, 环含 O-C1-C2-C3-C4, C5 是 C4 的 CH2OH 支链)
+  ribofuranose:   { smarts: 'OCC1OC(O)C(O)C1O',         map: {1:'C5', 2:'C4', 4:'C1', 6:'C2', 8:'C3'} },
+  // 呋喃糖 果糖 (环含 O-C2-C3-C4-C5, C1/C6 分别为 C2/C5 的 CH2OH 支链)
+  fructofuranose: { smarts: 'OCC1(O)OC(CO)C(O)C1O',     map: {1:'C1', 2:'C2', 5:'C5', 6:'C6', 8:'C4', 10:'C3'} },
+};
+
+function getSugarLabelKey(slug) {
+  const sugar = slug.split('_')[0];
+  if (slug.includes('_open')) {
+    if (sugar === 'fructose') return 'fructose_open';
+    if (sugar === 'fucose') return 'fucose_open';
+    if (sugar === 'xylose' || sugar === 'ribose') return 'pentose_open';
+    return 'hexose_open';                                       // glucose/galactose/mannose
   }
-  const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-  const drawer = theme === 'dark' ? smilesDrawerDark : smilesDrawer;
-  SmiDrawer.parse(smiles, tree => {
-    drawer.draw(tree, canvas, theme);
-  }, err => {
-    console.warn('SMILES parse error:', smiles, err);
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#999';
-    ctx.font = '11px monospace';
-    ctx.fillText('SMILES 解析失败', 20, 50);
+  if (slug.includes('_pyra')) {
+    if (sugar === 'fructose') return 'fructopyranose';
+    if (sugar === 'fucose')   return 'fucopyranose';
+    if (sugar === 'xylose')   return 'xylopyranose';
+    return 'hexopyranose';                                      // glucose/galactose/mannose
+  }
+  if (slug.includes('_fura')) {
+    if (sugar === 'fructose') return 'fructofuranose';
+    if (sugar === 'ribose' || sugar === 'xylose') return 'ribofuranose';  // xylose-fura 罕见,若有则沿用
+    return null;
+  }
+  return null;
+}
+
+// 返回 { RDKit 原子索引 → 'Cn' 字符串 } 供 RDKit 绘图选项使用
+function computeCarbonLabels(slug, mol) {
+  const key = getSugarLabelKey(slug);
+  if (!key || !SUGAR_LABELS[key]) return {};
+  const { smarts, map } = SUGAR_LABELS[key];
+  try {
+    const q = RDKit.get_qmol(smarts);
+    const m = JSON.parse(mol.get_substruct_match(q) || '{}');
+    q.delete();
+    if (!m.atoms || !m.atoms.length) {
+      console.warn(`[carbon-label] SMARTS "${smarts}" 未匹配到 ${slug}`);
+      return {};
+    }
+    const labels = {};
+    for (const [posStr, carbonNum] of Object.entries(map)) {
+      const idx = m.atoms[+posStr];
+      if (idx !== undefined) labels[idx] = carbonNum;
+    }
+    return labels;
+  } catch (e) {
+    console.warn(`[carbon-label] ${slug}:`, e);
+    return {};
+  }
+}
+
+// ─── 计算旋转角度: 使糖环 O 原子位于最上方 ─────────────────────────────
+function computeRingORotation(mol) {
+  try {
+    // 找出所有环中的氧原子
+    const qRingO = RDKit.get_qmol('[#8;R]');
+    const oMatch = JSON.parse(mol.get_substruct_match(qRingO) || '{}');
+    qRingO.delete();
+    if (!oMatch.atoms || !oMatch.atoms.length) return 0;
+    const oIdx = oMatch.atoms[0];
+
+    // 找到包含此氧的环 (6- 或 5- 元)
+    const qR6 = RDKit.get_qmol('[#8;R]1~*~*~*~*~*~1');
+    const qR5 = RDKit.get_qmol('[#8;R]1~*~*~*~*~1');
+    let rm = JSON.parse(mol.get_substruct_match(qR6) || '{}');
+    if (!rm.atoms || !rm.atoms.length) rm = JSON.parse(mol.get_substruct_match(qR5) || '{}');
+    qR6.delete(); qR5.delete();
+    if (!rm.atoms || !rm.atoms.length) return 0;
+    const ringAtoms = rm.atoms;
+
+    // 从 molblock 读取坐标
+    const molblock = mol.get_molblock();
+    const lines = molblock.split('\n');
+    const nA = parseInt(lines[3].substring(0, 3));
+    const coords = [];
+    for (let i = 0; i < nA; i++) {
+      const L = lines[4 + i];
+      coords.push([parseFloat(L.substring(0, 10)), parseFloat(L.substring(10, 20))]);
+    }
+
+    // 计算环中心 → 向量角 → 使其指向 90° (屏幕上方)
+    const cx = ringAtoms.reduce((s, i) => s + coords[i][0], 0) / ringAtoms.length;
+    const cy = ringAtoms.reduce((s, i) => s + coords[i][1], 0) / ringAtoms.length;
+    const dx = coords[oIdx][0] - cx;
+    const dy = coords[oIdx][1] - cy;
+    const deg = Math.atan2(dy, dx) * 180 / Math.PI;
+    // RDKit `rotate` 为逆时针角度; 为使 O 到顶 (90°), 需补上 (90 - deg)
+    // 但 SVG y 轴翻转, 所以实际需要 -(90 - deg) = deg - 90
+    return deg - 90;
+  } catch (e) {
+    console.warn('ring-O rotation calc failed', e);
+    return 0;
+  }
+}
+
+// ─── 主绘制函数 ───────────────────────────────────────────────────────────
+function draw2d(slug, containerEl) {
+  if (!containerEl) return;
+  // 初始骨架
+  if (!containerEl.innerHTML) containerEl.innerHTML = '<div class="skeleton mol-skel"></div>';
+
+  onRDKitReady(() => {
+    const smiles = SMILES[slug];
+    if (!smiles) { containerEl.innerHTML = '<div class="mol-err">SMILES 未定义</div>'; return; }
+
+    let mol;
+    try {
+      mol = RDKit.get_mol(smiles);
+      if (!mol || !mol.is_valid()) {
+        if (mol) mol.delete();
+        containerEl.innerHTML = '<div class="mol-err">SMILES 解析失败</div>';
+        return;
+      }
+    } catch (e) {
+      containerEl.innerHTML = '<div class="mol-err">SMILES 解析失败</div>';
+      return;
+    }
+
+    // 单糖 (环状) 旋转使糖环 O 置顶
+    const rotation = (isMono(slug) && !slug.endsWith('_open')) ? computeRingORotation(mol) : 0;
+    // 单糖: 计算 IUPAC 碳序号标签 (RDKit 原子索引 → 'Cn')
+    const atomLabels = isMono(slug) ? computeCarbonLabels(slug, mol) : {};
+    const isDark = document.documentElement.dataset.theme === 'dark';
+
+    const opts = {
+      width: 184,
+      height: 170,
+      rotate: rotation,
+      clearBackground: false,
+      backgroundColour: [0, 0, 0, 0],           // 透明背景
+      bondLineWidth: 1.4,
+      minFontSize: 10,
+      maxFontSize: 16,
+      fixedFontSize: 13,
+      annotationFontScale: 0.65,
+      addStereoAnnotation: false,
+      useMolBlockWedging: false,
+      includeChiralFlagLabel: false,
+      atomLabels: atomLabels,           // 单糖: RDKit 原子索引 → 'Cn' IUPAC 碳号
+      atoms: [], bonds: []
+    };
+    if (isDark) {
+      // 深色模式: 原子配色调亮
+      opts.atomColourPalette = {
+        0:  [0.92, 0.92, 0.92],   // 默认/碳
+        1:  [0.92, 0.92, 0.92],   // H
+        6:  [0.92, 0.92, 0.92],   // C
+        7:  [0.50, 0.70, 1.00],   // N
+        8:  [1.00, 0.55, 0.55],   // O
+        9:  [0.55, 1.00, 0.55],   // F
+        15: [1.00, 0.65, 0.30],   // P
+        16: [1.00, 0.85, 0.35],   // S
+        17: [0.40, 1.00, 0.40]    // Cl
+      };
+    }
+
+    try {
+      const svg = mol.get_svg_with_highlights(JSON.stringify(opts));
+      containerEl.innerHTML = svg;
+    } catch (e) {
+      containerEl.innerHTML = '<div class="mol-err">渲染失败</div>';
+    } finally {
+      mol.delete();
+    }
   });
 }
 
@@ -716,7 +905,7 @@ function buildMolRow(slug, vkey) {
     <div class="mol-row">
       <div class="pane-2d">
         <span class="pane-label-2d">2D</span>
-        <canvas id="${cnvId}" width="180" height="170"></canvas>
+        <div class="mol-2d-svg" id="${cnvId}" data-slug="${slug}"></div>
       </div>
       <div class="pane-3d" data-vkey="${vkey}" data-slug="${slug}">
         <span class="pane-label-3d">3D</span>
@@ -819,8 +1008,8 @@ function buildCard(m, gridId) {
 
   // Render main 2D + observe main 3D
   requestAnimationFrame(() => {
-    const mainCnv = card.querySelector('#c2d-' + key);
-    if (mainCnv) draw2d(SMILES[m.mainSlug], mainCnv);
+    const mainEl = card.querySelector('#c2d-' + key);
+    if (mainEl) draw2d(m.mainSlug, mainEl);
   });
   const p3d = card.querySelector('[data-vkey="' + key + '"]');
   if (p3d) io.observe(p3d);
@@ -838,15 +1027,10 @@ function openAccord(btn, id) {
   if (!open) return;
   // Wait one rAF so display:block is painted
   requestAnimationFrame(() => {
-    // render pending 2D canvases inside this accordion
-    body.querySelectorAll('canvas[id^="c2d-"]').forEach(cnv => {
-      const vkey = cnv.id.replace('c2d-', '');
-      const pane3d = body.querySelector(`[data-vkey="${vkey}"]`);
-      if (!pane3d) return;
-      const slug = pane3d.dataset.slug;
-      // check if already drawn (SmilesDrawer puts a "data-smilesdrawer" flag via modifying canvas)
-      // Simpler: just re-render. It's idempotent and cheap.
-      draw2d(SMILES[slug], cnv);
+    // render pending 2D containers inside this accordion
+    body.querySelectorAll('.mol-2d-svg[id^="c2d-"]').forEach(el => {
+      const slug = el.dataset.slug;
+      if (slug) draw2d(slug, el);
     });
     // init / resize 3D viewers
     body.querySelectorAll('[data-vkey]').forEach(el => {
@@ -879,12 +1063,9 @@ function showTab(n) {
 // ═══ Re-render all 2D canvases when theme changes ═════════════════════════════
 // Watch for [data-theme] change on <html>
 new MutationObserver(() => {
-  document.querySelectorAll('canvas[id^="c2d-"]').forEach(cnv => {
-    const vkey = cnv.id.replace('c2d-', '');
-    const pane3d = document.querySelector(`[data-vkey="${vkey}"]`);
-    if (!pane3d) return;
-    const slug = pane3d.dataset.slug;
-    if (slug && SMILES[slug]) draw2d(SMILES[slug], cnv);
+  document.querySelectorAll('.mol-2d-svg[id^="c2d-"]').forEach(el => {
+    const slug = el.dataset.slug;
+    if (slug && SMILES[slug]) draw2d(slug, el);
   });
   // also re-color 3D background
   Object.values(V).forEach(({viewer}) => {
