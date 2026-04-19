@@ -35,7 +35,7 @@
     "name": "糖类分子百科 · Carbohydrate Encyclopedia",
     "url": "pages/sugars.html",
     "icon": "🍬",
-    "desc": "糖类分子百科 — 基于 SMILES 前端渲染的糖化学参考。每种糖附 SmilesDrawer 2D 结构图、可旋转 3D Ball-and-Stick 模型、D/L 手性对映体、α/β 异头体对比,以及从原始印欧语根追溯至现代命名的完整词源。",
+    "desc": "糖类分子百科 — 基于 SMILES 前端渲染的糖化学参考。每种糖附 RDKit 2D 结构图(带碳序号标注)、可旋转 3D Ball-and-Stick 模型、D/L 手性对映体、α/β 异头体对比,以及从原始印欧语根追溯至现代命名的完整词源。",
     "tag": "参考",
     "pinned": false
   }
