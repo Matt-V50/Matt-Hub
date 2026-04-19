@@ -65,7 +65,7 @@ MOLECULES = [
     ("fructose_beta_D_fura",   439709),
     ("fructose_alpha_D_pyra",  440545),
     ("galactose_alpha_D_pyra", 439357),
-    ("galactose_beta_D_pyra",  439557),
+    ("galactose_beta_D_pyra",  439353),
     ("mannose_alpha_D_pyra",   185698),
     ("mannose_beta_D_pyra",    439680),
     ("xylose_alpha_D_pyra",    6027),
