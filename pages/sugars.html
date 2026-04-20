@@ -942,8 +942,12 @@ async function initV(divEl, loadEl, slug, key) {
       try {
         const res = await fetch(u);
         if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
-        if (!V[key]) return;            // fetch 期间被淘汰/离场
-        viewer.addModel(await res.text(), 'sdf');
+        // 身份检查: 不仅是 V[key] 存在, 还必须是我们这次创建的 viewer
+        // (await 期间可能被 destroy + 重建, 此时 V[key].viewer 是别的 viewer, 我们的已成孤儿 + context lost)
+        if (V[key]?.viewer !== viewer) return;
+        const sdfText = await res.text();
+        if (V[key]?.viewer !== viewer) return;    // text() 也是异步, 同样检查
+        viewer.addModel(sdfText, 'sdf');
         viewer.resize();
         applyV(key);
         viewer.zoomTo(); viewer.zoom(0.82);
