@@ -828,10 +828,16 @@ function draw2d(slug, containerEl) {
 }
 
 // ═══ 3D Rendering (3Dmol.js) ═════════════════════════════════════════════════
-// WebGL context 浏览器上限一般 16; 用 LRU + 视口离场两种机制控制活跃 viewer 数
+// WebGL context 浏览器上限约 16; 三层机制:
+//   1) 激活 IO (rootMargin 800px): 进场创建, 离场销毁 — 主要调度器
+//   2) 视口 IO (rootMargin 0px):   追踪"是否真的可见", 保护它不被淘汰
+//   3) 活跃区集合 inActiveZone:    供 drainPending 扫描"该有 viewer 但还没创建"的元素
+// 关键不变式: 永不淘汰视口内的 viewer — 腾不出空位时新请求排队
 const V = {};
-const MAX_ACTIVE_VIEWERS = 8;          // 保守值, 给其他 WebGL 用户 (KaTeX 不用, 留余量)
-const viewerLRU = [];                  // 最近访问顺序, 尾 = 最新, 头 = 最老
+const MAX_ACTIVE_VIEWERS = 8;
+const viewerLRU = [];                  // 仅作淘汰时同级候选的 tie-breaker
+const inViewport = new Set();          // 严格视口可见: 禁止淘汰
+const inActiveZone = new Set();        // 800px 激活区: 应有 viewer
 
 function touchLRU(key) {
   const i = viewerLRU.indexOf(key);
@@ -851,24 +857,31 @@ function destroyViewer(key) {
       const loseExt = gl && gl.getExtension('WEBGL_lose_context');
       if (loseExt) loseExt.loseContext();
     }
-    divEl.innerHTML = '';             // 让 3Dmol 的 DOM 与事件彻底脱离
-  } catch (e) { /* 吞掉, 重建时会覆盖 */ }
+    divEl.innerHTML = '';
+  } catch (e) { /* 吞掉 */ }
   delete V[key];
   const i = viewerLRU.indexOf(key);
   if (i >= 0) viewerLRU.splice(i, 1);
-  // 复位加载指示, 下次重建时复用
   if (loadEl) {
     loadEl.textContent = '加载 3D…';
     loadEl.style.color = '';
     loadEl.style.display = '';
   }
+  // 腾出空位后, 扫一遍等待队列 (任何在 activeZone 中但还没 viewer 的元素)
+  drainPending();
 }
 
-function evictIfOverCap(protectedKey) {
-  while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
-    const victim = viewerLRU.find(k => k !== protectedKey);
-    if (!victim) break;
-    destroyViewer(victim);
+// 扫描活跃区里缺 viewer 的元素, 补上 (直到容量打满)
+function drainPending() {
+  for (const key of inActiveZone) {
+    if (viewerLRU.length >= MAX_ACTIVE_VIEWERS) break;
+    if (V[key]) continue;
+    const el = document.querySelector(`[data-vkey="${CSS.escape(key)}"]`);
+    if (!el) continue;
+    const slug = el.dataset.slug;
+    const divEl = el.querySelector('.viewer-el');
+    const loadEl = el.querySelector('.v-loading');
+    if (slug && divEl) initV(divEl, loadEl, slug, key);
   }
 }
 
@@ -883,15 +896,25 @@ async function initV(divEl, loadEl, slug, key) {
     })();
   });
 
-  // 双保险: IO 的 '离场 destroy' + 容量触发 LRU 淘汰
-  evictIfOverCap(key);
+  // 腾空位: 仅淘汰"不在视口里"的 viewer, 绝不动用户正在看的
+  while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
+    const victim = viewerLRU.find(k => k !== key && !inViewport.has(k));
+    if (!victim) {
+      // 所有活跃 viewer 都在视口内 — 只能延后, 等有 viewer 自然退场
+      if (loadEl) {
+        loadEl.textContent = '3D 等待资源释放…';
+        loadEl.style.display = '';
+      }
+      return;                          // drainPending 会在某个 viewer 销毁时重试
+    }
+    destroyViewer(victim);             // 会递归触发 drainPending, 但循环自我收敛
+  }
 
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
   const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
   V[key] = { viewer, surfOn: true, divEl, loadEl };
   touchLRU(key);
 
-  // 优先本地 SDF, 退路到 PubChem
   const urls = [url3d(slug)];
   const fb = url3dFallback(slug);
   if (fb) urls.push(fb);
@@ -901,8 +924,7 @@ async function initV(divEl, loadEl, slug, key) {
     try {
       const res = await fetch(u);
       if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
-      // fetch 期间可能被淘汰 (用户快速滚动), 放弃
-      if (!V[key]) return;
+      if (!V[key]) return;             // fetch 期间被淘汰/离场, 放弃
       viewer.addModel(await res.text(), 'sdf');
       viewer.resize();
       applyV(key);
@@ -932,24 +954,40 @@ function toggleSurf(key, btn) {
   if (!V[key]) return;
   V[key].surfOn = !V[key].surfOn;
   btn.classList.toggle('on', V[key].surfOn);
-  touchLRU(key);                       // 用户主动交互 → 算最近使用
+  touchLRU(key);
   applyV(key);
 }
 
-// ═══ IntersectionObserver: 进场创建 / 离场销毁 ═══════════════════════════════
-// rootMargin 800px: 滚动到离视口 800px 内预载; 离开则释放
+// ═══ IO 1: 800px 激活区 — 进场创建 / 离场销毁 (同时维护 inActiveZone) ═══════
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
     const el = e.target;
     const key = el.dataset.vkey, slug = el.dataset.slug;
     if (!key || !slug) return;
     if (e.isIntersecting) {
+      inActiveZone.add(key);
       initV(el.querySelector('.viewer-el'), el.querySelector('.v-loading'), slug, key);
-    } else if (V[key]) {
-      destroyViewer(key);
+    } else {
+      inActiveZone.delete(key);
+      if (V[key]) destroyViewer(key);
     }
   });
 }, { rootMargin: '800px' });
+
+// ═══ IO 2: 严格视口 — 维护 inViewport, 保护"正在看"的 viewer 不被淘汰 ═══════
+const vpIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    const key = e.target.dataset.vkey;
+    if (!key) return;
+    if (e.isIntersecting) inViewport.add(key);
+    else inViewport.delete(key);
+  });
+}, { rootMargin: '0px' });
+
+function observeV3d(el) {
+  io.observe(el);
+  vpIO.observe(el);
+}
 
 // ═══ Build mol-row (2D | 3D | SMILES strip) ═══════════════════════════════════
 let seq = 0;
@@ -1067,7 +1105,7 @@ function buildCard(m, gridId) {
     if (mainEl) draw2d(m.mainSlug, mainEl);
   });
   const p3d = card.querySelector('[data-vkey="' + key + '"]');
-  if (p3d) io.observe(p3d);
+  if (p3d) observeV3d(p3d);
 
   // Variant 2D rendering will happen when accordion opens (lazy)
   // — store the mapping in a data attribute for openAccord to consume
@@ -1095,7 +1133,7 @@ function openAccord(btn, id) {
         V[key].viewer.render();
         touchLRU(key);                 // 手风琴被主动展开 → 算最近使用
       } else {
-        io.observe(el);                // 新行交给 IO 懒加载 (observe 已观察元素为 no-op)
+        observeV3d(el);                // 新行交给 IO 懒加载 (observe 已观察元素为 no-op)
       }
     });
   });
