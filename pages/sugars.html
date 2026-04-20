@@ -828,48 +828,142 @@ function draw2d(slug, containerEl) {
 }
 
 // ═══ 3D Rendering (3Dmol.js) ═════════════════════════════════════════════════
+// 三个核心状态:
+//   V              — { key: {viewer, surfOn, divEl, loadEl} }, 已创建的 viewer
+//   inActiveZone   — 800px 激活区集合, 由 io 维护
+//   initInProgress — 正在执行 initV 的 key 集合, 防并发重复 init
+// 可见性检查用实时 getBoundingClientRect, 避免 IntersectionObserver 的帧延迟导致
+// "刚创建的 viewer 还没被标记为可见就被当作淘汰候选"的竞态
 const V = {};
-async function initV(divEl, loadEl, slug, key) {
-  if (V[key]) return;
+const MAX_ACTIVE_VIEWERS = 8;
+const viewerLRU = [];                  // 非视口候选间的 tie-breaker
+const inActiveZone = new Set();        // 800px 激活区: 应有 viewer
+const initInProgress = new Set();      // 正在 init 的 key, 屏蔽重复调用
 
-  // wait for the container to have real dimensions
-  await new Promise(resolve => {
-    (function check() {
-      if (divEl.offsetWidth > 0 && divEl.offsetHeight > 0) { resolve(); return; }
-      requestAnimationFrame(check);
-    })();
-  });
+function touchLRU(key) {
+  const i = viewerLRU.indexOf(key);
+  if (i >= 0) viewerLRU.splice(i, 1);
+  viewerLRU.push(key);
+}
 
-  const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
-  const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
-  V[key] = { viewer, surfOn: true };
+// 实时查元素是否在视口内 (不依赖 IO 的异步回调, 始终准确)
+function isKeyInViewport(key) {
+  const el = document.querySelector(`[data-vkey="${CSS.escape(key)}"]`);
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0 && r.height === 0) return false;   // display:none 或 0 尺寸
+  return r.bottom > 0 && r.top < window.innerHeight
+      && r.right > 0 && r.left < window.innerWidth;
+}
 
-  // try local SDF first, fall back to PubChem
-  const urls = [url3d(slug)];
-  const fb = url3dFallback(slug);
-  if (fb) urls.push(fb);
-
-  let lastErr;
-  for (const u of urls) {
-    try {
-      const res = await fetch(u);
-      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
-      viewer.addModel(await res.text(), 'sdf');
-      viewer.resize();
-      applyV(key);
-      viewer.zoomTo(); viewer.zoom(0.82);
-      if (loadEl) loadEl.style.display = 'none';
-      return;
-    } catch (e) { lastErr = e; }
-  }
+function destroyViewer(key) {
+  const entry = V[key];
+  if (!entry) return;
+  const { divEl, loadEl } = entry;
+  try {
+    const canvas = divEl.querySelector('canvas');
+    if (canvas) {
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      const loseExt = gl && gl.getExtension('WEBGL_lose_context');
+      if (loseExt) loseExt.loseContext();
+    }
+    divEl.innerHTML = '';
+  } catch (e) { /* 吞掉 */ }
+  delete V[key];
+  const i = viewerLRU.indexOf(key);
+  if (i >= 0) viewerLRU.splice(i, 1);
   if (loadEl) {
-    loadEl.textContent = '3D 加载失败 (' + (lastErr ? lastErr.message : 'no source') + ')';
-    loadEl.style.color = '#c05';
+    loadEl.textContent = '加载 3D…';
+    loadEl.style.color = '';
+    loadEl.style.display = '';
+  }
+  drainPending();
+}
+
+// 扫描活跃区里缺 viewer 且不在 init 中的元素, 补上 (直到容量打满)
+function drainPending() {
+  for (const key of inActiveZone) {
+    if (viewerLRU.length >= MAX_ACTIVE_VIEWERS) break;
+    if (V[key]) continue;
+    if (initInProgress.has(key)) continue;  // 避免和进行中的 init 撞车
+    const el = document.querySelector(`[data-vkey="${CSS.escape(key)}"]`);
+    if (!el) continue;
+    const slug = el.dataset.slug;
+    const divEl = el.querySelector('.viewer-el');
+    const loadEl = el.querySelector('.v-loading');
+    if (slug && divEl) initV(divEl, loadEl, slug, key);
+  }
+}
+
+async function initV(divEl, loadEl, slug, key) {
+  if (V[key]) { touchLRU(key); return; }
+  if (initInProgress.has(key)) return;   // 并发去重: 同 key 的其它 init 已在跑
+
+  initInProgress.add(key);
+  try {
+    // 等容器拿到真实尺寸 (accordion 刚展开时是 0×0)
+    await new Promise(resolve => {
+      (function check() {
+        if (divEl.offsetWidth > 0 && divEl.offsetHeight > 0) { resolve(); return; }
+        requestAnimationFrame(check);
+      })();
+    });
+
+    // 等待期间可能已被其它路径创建
+    if (V[key]) return;
+    // 等待期间可能已离开激活区 (用户快速滚动)
+    if (!inActiveZone.has(key)) return;
+
+    // 腾空位: 只淘汰不在视口里的 viewer (实时 bbox 检查, 不用 IO 缓存)
+    while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
+      const victim = viewerLRU.find(k => k !== key && !isKeyInViewport(k));
+      if (!victim) {
+        // 所有活跃 viewer 都在视口里 — 排队, 等 viewer 自然离场
+        if (loadEl) {
+          loadEl.textContent = '3D 等待资源释放…';
+          loadEl.style.display = '';
+        }
+        return;
+      }
+      destroyViewer(victim);
+    }
+
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
+    const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
+    V[key] = { viewer, surfOn: true, divEl, loadEl };
+    touchLRU(key);
+
+    const urls = [url3d(slug)];
+    const fb = url3dFallback(slug);
+    if (fb) urls.push(fb);
+
+    let lastErr;
+    for (const u of urls) {
+      try {
+        const res = await fetch(u);
+        if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+        if (!V[key]) return;            // fetch 期间被淘汰/离场
+        viewer.addModel(await res.text(), 'sdf');
+        viewer.resize();
+        applyV(key);
+        viewer.zoomTo(); viewer.zoom(0.82);
+        if (loadEl) loadEl.style.display = 'none';
+        return;
+      } catch (e) { lastErr = e; }
+    }
+    if (loadEl) {
+      loadEl.textContent = '3D 加载失败 (' + (lastErr ? lastErr.message : 'no source') + ')';
+      loadEl.style.color = '#c05';
+    }
+  } finally {
+    initInProgress.delete(key);
   }
 }
 
 function applyV(key) {
-  const { viewer, surfOn } = V[key];
+  const entry = V[key];
+  if (!entry) return;
+  const { viewer, surfOn } = entry;
   viewer.setStyle({}, { stick:{colorscheme:'Jmol', radius:.12}, sphere:{colorscheme:'Jmol', scale:.28} });
   viewer.setStyle({elem:'H'}, { stick:{colorscheme:'Jmol', radius:.07}, sphere:{colorscheme:'Jmol', scale:.17} });
   viewer.removeAllSurfaces();
@@ -881,20 +975,27 @@ function toggleSurf(key, btn) {
   if (!V[key]) return;
   V[key].surfOn = !V[key].surfOn;
   btn.classList.toggle('on', V[key].surfOn);
+  touchLRU(key);
   applyV(key);
 }
 
-// ═══ IntersectionObserver for lazy 3D load ════════════════════════════════════
+// ═══ IntersectionObserver: 进出 800px 激活区 → 创建/销毁 ═════════════════════
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    io.unobserve(e.target);
     const el = e.target;
     const key = el.dataset.vkey, slug = el.dataset.slug;
     if (!key || !slug) return;
-    initV(el.querySelector('.viewer-el'), el.querySelector('.v-loading'), slug, key);
+    if (e.isIntersecting) {
+      inActiveZone.add(key);
+      initV(el.querySelector('.viewer-el'), el.querySelector('.v-loading'), slug, key);
+    } else {
+      inActiveZone.delete(key);
+      if (V[key]) destroyViewer(key);
+    }
   });
-}, { rootMargin: '300px' });
+}, { rootMargin: '800px' });
+
+function observeV3d(el) { io.observe(el); }
 
 // ═══ Build mol-row (2D | 3D | SMILES strip) ═══════════════════════════════════
 let seq = 0;
@@ -1012,7 +1113,7 @@ function buildCard(m, gridId) {
     if (mainEl) draw2d(m.mainSlug, mainEl);
   });
   const p3d = card.querySelector('[data-vkey="' + key + '"]');
-  if (p3d) io.observe(p3d);
+  if (p3d) observeV3d(p3d);
 
   // Variant 2D rendering will happen when accordion opens (lazy)
   // — store the mapping in a data attribute for openAccord to consume
@@ -1038,8 +1139,9 @@ function openAccord(btn, id) {
       if (V[key]) {
         V[key].viewer.resize();
         V[key].viewer.render();
+        touchLRU(key);                 // 手风琴被主动展开 → 算最近使用
       } else {
-        io.observe(el);
+        observeV3d(el);                // 新行交给 IO 懒加载 (observe 已观察元素为 no-op)
       }
     });
   });
