@@ -828,11 +828,54 @@ function draw2d(slug, containerEl) {
 }
 
 // ═══ 3D Rendering (3Dmol.js) ═════════════════════════════════════════════════
+// WebGL context 浏览器上限一般 16; 用 LRU + 视口离场两种机制控制活跃 viewer 数
 const V = {};
-async function initV(divEl, loadEl, slug, key) {
-  if (V[key]) return;
+const MAX_ACTIVE_VIEWERS = 8;          // 保守值, 给其他 WebGL 用户 (KaTeX 不用, 留余量)
+const viewerLRU = [];                  // 最近访问顺序, 尾 = 最新, 头 = 最老
 
-  // wait for the container to have real dimensions
+function touchLRU(key) {
+  const i = viewerLRU.indexOf(key);
+  if (i >= 0) viewerLRU.splice(i, 1);
+  viewerLRU.push(key);
+}
+
+function destroyViewer(key) {
+  const entry = V[key];
+  if (!entry) return;
+  const { divEl, loadEl } = entry;
+  try {
+    // 主动释放 WebGL context, 否则浏览器只在 GC 时回收
+    const canvas = divEl.querySelector('canvas');
+    if (canvas) {
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      const loseExt = gl && gl.getExtension('WEBGL_lose_context');
+      if (loseExt) loseExt.loseContext();
+    }
+    divEl.innerHTML = '';             // 让 3Dmol 的 DOM 与事件彻底脱离
+  } catch (e) { /* 吞掉, 重建时会覆盖 */ }
+  delete V[key];
+  const i = viewerLRU.indexOf(key);
+  if (i >= 0) viewerLRU.splice(i, 1);
+  // 复位加载指示, 下次重建时复用
+  if (loadEl) {
+    loadEl.textContent = '加载 3D…';
+    loadEl.style.color = '';
+    loadEl.style.display = '';
+  }
+}
+
+function evictIfOverCap(protectedKey) {
+  while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
+    const victim = viewerLRU.find(k => k !== protectedKey);
+    if (!victim) break;
+    destroyViewer(victim);
+  }
+}
+
+async function initV(divEl, loadEl, slug, key) {
+  if (V[key]) { touchLRU(key); return; }
+
+  // 等容器拿到真实尺寸 (accordion 刚展开时是 0×0)
   await new Promise(resolve => {
     (function check() {
       if (divEl.offsetWidth > 0 && divEl.offsetHeight > 0) { resolve(); return; }
@@ -840,11 +883,15 @@ async function initV(divEl, loadEl, slug, key) {
     })();
   });
 
+  // 双保险: IO 的 '离场 destroy' + 容量触发 LRU 淘汰
+  evictIfOverCap(key);
+
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
   const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
-  V[key] = { viewer, surfOn: true };
+  V[key] = { viewer, surfOn: true, divEl, loadEl };
+  touchLRU(key);
 
-  // try local SDF first, fall back to PubChem
+  // 优先本地 SDF, 退路到 PubChem
   const urls = [url3d(slug)];
   const fb = url3dFallback(slug);
   if (fb) urls.push(fb);
@@ -854,6 +901,8 @@ async function initV(divEl, loadEl, slug, key) {
     try {
       const res = await fetch(u);
       if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+      // fetch 期间可能被淘汰 (用户快速滚动), 放弃
+      if (!V[key]) return;
       viewer.addModel(await res.text(), 'sdf');
       viewer.resize();
       applyV(key);
@@ -869,7 +918,9 @@ async function initV(divEl, loadEl, slug, key) {
 }
 
 function applyV(key) {
-  const { viewer, surfOn } = V[key];
+  const entry = V[key];
+  if (!entry) return;
+  const { viewer, surfOn } = entry;
   viewer.setStyle({}, { stick:{colorscheme:'Jmol', radius:.12}, sphere:{colorscheme:'Jmol', scale:.28} });
   viewer.setStyle({elem:'H'}, { stick:{colorscheme:'Jmol', radius:.07}, sphere:{colorscheme:'Jmol', scale:.17} });
   viewer.removeAllSurfaces();
@@ -881,20 +932,24 @@ function toggleSurf(key, btn) {
   if (!V[key]) return;
   V[key].surfOn = !V[key].surfOn;
   btn.classList.toggle('on', V[key].surfOn);
+  touchLRU(key);                       // 用户主动交互 → 算最近使用
   applyV(key);
 }
 
-// ═══ IntersectionObserver for lazy 3D load ════════════════════════════════════
+// ═══ IntersectionObserver: 进场创建 / 离场销毁 ═══════════════════════════════
+// rootMargin 800px: 滚动到离视口 800px 内预载; 离开则释放
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    io.unobserve(e.target);
     const el = e.target;
     const key = el.dataset.vkey, slug = el.dataset.slug;
     if (!key || !slug) return;
-    initV(el.querySelector('.viewer-el'), el.querySelector('.v-loading'), slug, key);
+    if (e.isIntersecting) {
+      initV(el.querySelector('.viewer-el'), el.querySelector('.v-loading'), slug, key);
+    } else if (V[key]) {
+      destroyViewer(key);
+    }
   });
-}, { rootMargin: '300px' });
+}, { rootMargin: '800px' });
 
 // ═══ Build mol-row (2D | 3D | SMILES strip) ═══════════════════════════════════
 let seq = 0;
@@ -1038,8 +1093,9 @@ function openAccord(btn, id) {
       if (V[key]) {
         V[key].viewer.resize();
         V[key].viewer.render();
+        touchLRU(key);                 // 手风琴被主动展开 → 算最近使用
       } else {
-        io.observe(el);
+        io.observe(el);                // 新行交给 IO 懒加载 (observe 已观察元素为 no-op)
       }
     });
   });
