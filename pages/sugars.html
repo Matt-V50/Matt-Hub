@@ -828,16 +828,17 @@ function draw2d(slug, containerEl) {
 }
 
 // ═══ 3D Rendering (3Dmol.js) ═════════════════════════════════════════════════
-// WebGL context 浏览器上限约 16; 三层机制:
-//   1) 激活 IO (rootMargin 800px): 进场创建, 离场销毁 — 主要调度器
-//   2) 视口 IO (rootMargin 0px):   追踪"是否真的可见", 保护它不被淘汰
-//   3) 活跃区集合 inActiveZone:    供 drainPending 扫描"该有 viewer 但还没创建"的元素
-// 关键不变式: 永不淘汰视口内的 viewer — 腾不出空位时新请求排队
+// 三个核心状态:
+//   V              — { key: {viewer, surfOn, divEl, loadEl} }, 已创建的 viewer
+//   inActiveZone   — 800px 激活区集合, 由 io 维护
+//   initInProgress — 正在执行 initV 的 key 集合, 防并发重复 init
+// 可见性检查用实时 getBoundingClientRect, 避免 IntersectionObserver 的帧延迟导致
+// "刚创建的 viewer 还没被标记为可见就被当作淘汰候选"的竞态
 const V = {};
 const MAX_ACTIVE_VIEWERS = 8;
-const viewerLRU = [];                  // 仅作淘汰时同级候选的 tie-breaker
-const inViewport = new Set();          // 严格视口可见: 禁止淘汰
+const viewerLRU = [];                  // 非视口候选间的 tie-breaker
 const inActiveZone = new Set();        // 800px 激活区: 应有 viewer
+const initInProgress = new Set();      // 正在 init 的 key, 屏蔽重复调用
 
 function touchLRU(key) {
   const i = viewerLRU.indexOf(key);
@@ -845,12 +846,21 @@ function touchLRU(key) {
   viewerLRU.push(key);
 }
 
+// 实时查元素是否在视口内 (不依赖 IO 的异步回调, 始终准确)
+function isKeyInViewport(key) {
+  const el = document.querySelector(`[data-vkey="${CSS.escape(key)}"]`);
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width === 0 && r.height === 0) return false;   // display:none 或 0 尺寸
+  return r.bottom > 0 && r.top < window.innerHeight
+      && r.right > 0 && r.left < window.innerWidth;
+}
+
 function destroyViewer(key) {
   const entry = V[key];
   if (!entry) return;
   const { divEl, loadEl } = entry;
   try {
-    // 主动释放 WebGL context, 否则浏览器只在 GC 时回收
     const canvas = divEl.querySelector('canvas');
     if (canvas) {
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
@@ -867,15 +877,15 @@ function destroyViewer(key) {
     loadEl.style.color = '';
     loadEl.style.display = '';
   }
-  // 腾出空位后, 扫一遍等待队列 (任何在 activeZone 中但还没 viewer 的元素)
   drainPending();
 }
 
-// 扫描活跃区里缺 viewer 的元素, 补上 (直到容量打满)
+// 扫描活跃区里缺 viewer 且不在 init 中的元素, 补上 (直到容量打满)
 function drainPending() {
   for (const key of inActiveZone) {
     if (viewerLRU.length >= MAX_ACTIVE_VIEWERS) break;
     if (V[key]) continue;
+    if (initInProgress.has(key)) continue;  // 避免和进行中的 init 撞车
     const el = document.querySelector(`[data-vkey="${CSS.escape(key)}"]`);
     if (!el) continue;
     const slug = el.dataset.slug;
@@ -887,55 +897,66 @@ function drainPending() {
 
 async function initV(divEl, loadEl, slug, key) {
   if (V[key]) { touchLRU(key); return; }
+  if (initInProgress.has(key)) return;   // 并发去重: 同 key 的其它 init 已在跑
 
-  // 等容器拿到真实尺寸 (accordion 刚展开时是 0×0)
-  await new Promise(resolve => {
-    (function check() {
-      if (divEl.offsetWidth > 0 && divEl.offsetHeight > 0) { resolve(); return; }
-      requestAnimationFrame(check);
-    })();
-  });
+  initInProgress.add(key);
+  try {
+    // 等容器拿到真实尺寸 (accordion 刚展开时是 0×0)
+    await new Promise(resolve => {
+      (function check() {
+        if (divEl.offsetWidth > 0 && divEl.offsetHeight > 0) { resolve(); return; }
+        requestAnimationFrame(check);
+      })();
+    });
 
-  // 腾空位: 仅淘汰"不在视口里"的 viewer, 绝不动用户正在看的
-  while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
-    const victim = viewerLRU.find(k => k !== key && !inViewport.has(k));
-    if (!victim) {
-      // 所有活跃 viewer 都在视口内 — 只能延后, 等有 viewer 自然退场
-      if (loadEl) {
-        loadEl.textContent = '3D 等待资源释放…';
-        loadEl.style.display = '';
+    // 等待期间可能已被其它路径创建
+    if (V[key]) return;
+    // 等待期间可能已离开激活区 (用户快速滚动)
+    if (!inActiveZone.has(key)) return;
+
+    // 腾空位: 只淘汰不在视口里的 viewer (实时 bbox 检查, 不用 IO 缓存)
+    while (viewerLRU.length >= MAX_ACTIVE_VIEWERS) {
+      const victim = viewerLRU.find(k => k !== key && !isKeyInViewport(k));
+      if (!victim) {
+        // 所有活跃 viewer 都在视口里 — 排队, 等 viewer 自然离场
+        if (loadEl) {
+          loadEl.textContent = '3D 等待资源释放…';
+          loadEl.style.display = '';
+        }
+        return;
       }
-      return;                          // drainPending 会在某个 viewer 销毁时重试
+      destroyViewer(victim);
     }
-    destroyViewer(victim);             // 会递归触发 drainPending, 但循环自我收敛
-  }
 
-  const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
-  const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
-  V[key] = { viewer, surfOn: true, divEl, loadEl };
-  touchLRU(key);
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
+    const viewer = $3Dmol.createViewer(divEl, { backgroundColor: bg, antialias: true });
+    V[key] = { viewer, surfOn: true, divEl, loadEl };
+    touchLRU(key);
 
-  const urls = [url3d(slug)];
-  const fb = url3dFallback(slug);
-  if (fb) urls.push(fb);
+    const urls = [url3d(slug)];
+    const fb = url3dFallback(slug);
+    if (fb) urls.push(fb);
 
-  let lastErr;
-  for (const u of urls) {
-    try {
-      const res = await fetch(u);
-      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
-      if (!V[key]) return;             // fetch 期间被淘汰/离场, 放弃
-      viewer.addModel(await res.text(), 'sdf');
-      viewer.resize();
-      applyV(key);
-      viewer.zoomTo(); viewer.zoom(0.82);
-      if (loadEl) loadEl.style.display = 'none';
-      return;
-    } catch (e) { lastErr = e; }
-  }
-  if (loadEl) {
-    loadEl.textContent = '3D 加载失败 (' + (lastErr ? lastErr.message : 'no source') + ')';
-    loadEl.style.color = '#c05';
+    let lastErr;
+    for (const u of urls) {
+      try {
+        const res = await fetch(u);
+        if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+        if (!V[key]) return;            // fetch 期间被淘汰/离场
+        viewer.addModel(await res.text(), 'sdf');
+        viewer.resize();
+        applyV(key);
+        viewer.zoomTo(); viewer.zoom(0.82);
+        if (loadEl) loadEl.style.display = 'none';
+        return;
+      } catch (e) { lastErr = e; }
+    }
+    if (loadEl) {
+      loadEl.textContent = '3D 加载失败 (' + (lastErr ? lastErr.message : 'no source') + ')';
+      loadEl.style.color = '#c05';
+    }
+  } finally {
+    initInProgress.delete(key);
   }
 }
 
@@ -958,7 +979,7 @@ function toggleSurf(key, btn) {
   applyV(key);
 }
 
-// ═══ IO 1: 800px 激活区 — 进场创建 / 离场销毁 (同时维护 inActiveZone) ═══════
+// ═══ IntersectionObserver: 进出 800px 激活区 → 创建/销毁 ═════════════════════
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
     const el = e.target;
@@ -974,20 +995,7 @@ const io = new IntersectionObserver(entries => {
   });
 }, { rootMargin: '800px' });
 
-// ═══ IO 2: 严格视口 — 维护 inViewport, 保护"正在看"的 viewer 不被淘汰 ═══════
-const vpIO = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    const key = e.target.dataset.vkey;
-    if (!key) return;
-    if (e.isIntersecting) inViewport.add(key);
-    else inViewport.delete(key);
-  });
-}, { rootMargin: '0px' });
-
-function observeV3d(el) {
-  io.observe(el);
-  vpIO.observe(el);
-}
+function observeV3d(el) { io.observe(el); }
 
 // ═══ Build mol-row (2D | 3D | SMILES strip) ═══════════════════════════════════
 let seq = 0;
