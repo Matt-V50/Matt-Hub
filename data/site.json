@@ -24,6 +24,14 @@
     "pinned": false
   },
   {
+    "name": "PhD Tech Tree · 3D Scene Understanding via Gaussian Splatting",
+    "url": "pages/phd_tech_tree.html",
+    "icon": "🌲",
+    "desc": "PhD Tech Tree — 3D Scene Understanding via Gaussian Splatting research roadmap with interactive dependency graph.",
+    "tag": "研究",
+    "pinned": false
+  },
+  {
     "name": "孕期营养配比指南",
     "url": "pages/pregnancy.html",
     "icon": "🤰",
