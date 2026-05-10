@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PhD Tech Tree · 3D Scene Understanding via Gaussian Splatting</title>
+<meta name="description" content="PhD Tech Tree — 3D Scene Understanding via Gaussian Splatting research roadmap with interactive dependency graph."/>
+<meta name="icon" content="🌲"/>
+<meta name="tag" content="研究"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+/* ── Page-specific overrides ── */
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* Status colors */
+:root {
+  --done: #2a9d6a;
+  --wip: #d4940a;
+  --plan: #5b5fc7;
+  --trend: #0e8fa0;
+  --edg: rgba(0,0,0,.06);
+  --ehi: rgba(91,95,199,.7);
+  --node-bg: var(--surface);
+  --node-border: var(--border);
+  --tip-bg: #fff;
+  --tip-border: var(--border);
+  --tip-shadow: rgba(0,0,0,.08);
+}
+[data-theme="dark"] {
+  --done: #10b981;
+  --wip: #f59e0b;
+  --plan: #818cf8;
+  --trend: #06b6d4;
+  --edg: rgba(100,116,139,.15);
+  --ehi: rgba(129,140,248,.8);
+  --node-bg: var(--tag-bg);
+  --node-border: var(--border);
+  --tip-bg: #1e2130;
+  --tip-border: rgba(100,116,139,.25);
+  --tip-shadow: rgba(0,0,0,.45);
+}
+
+/* Legend */
+.legend {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.legend span {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-dim); letter-spacing: .03em;
+}
+.legend i {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+}
+
+/* Canvas */
+.canvas { position: relative; padding-bottom: 40px; }
+svg.edge-layer {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+svg#edges-bg { z-index: -1; }
+svg#edges-fg { z-index: 10; }
+svg.edge-layer path {
+  fill: none; stroke: var(--edg); stroke-width: 1.5;
+  transition: stroke .25s, stroke-width .25s, opacity .25s;
+}
+svg#edges-bg path.dim { opacity: .03; }
+svg#edges-fg path {
+  stroke: var(--ehi); stroke-width: 2.5;
+}
+
+/* Layer groups */
+.lg { position: relative; z-index: 1; }
+.lt {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim); opacity: .5;
+  padding: 0 4px 10px;
+}
+.layer {
+  display: flex; justify-content: center;
+  gap: 14px; flex-wrap: wrap; padding-bottom: 8px;
+}
+.spacer { height: 80px; }
+.lline {
+  width: 85%; margin: 0 auto;
+  border: none; border-top: 1px solid var(--border);
+}
+
+/* Nodes */
+.node {
+  position: relative;
+  background: var(--node-bg);
+  border: 1.5px solid var(--node-border);
+  border-radius: 8px;
+  padding: 12px 14px 10px;
+  text-align: center;
+  min-width: 130px; max-width: 170px;
+  cursor: pointer;
+  transition: transform .2s, opacity .25s, box-shadow .25s, border-color .15s;
+  z-index: 2;
+}
+.node:hover { transform: translateY(-2px); }
+.node.hi { transform: translateY(-3px) scale(1.04); z-index: 10; }
+.node.conn { border-color: var(--ehi); opacity: .88; }
+.node.dim { opacity: .12; }
+.node.s-done { border-color: var(--done); box-shadow: 0 0 14px rgba(42,157,106,.15); }
+.node.s-wip  { border-color: var(--wip);  box-shadow: 0 0 14px rgba(212,148,10,.15); }
+.node.s-plan { border-color: var(--plan); box-shadow: 0 0 14px rgba(91,95,199,.15); }
+.node.s-trend{ border-color: var(--trend); box-shadow: 0 0 14px rgba(14,143,160,.15); }
+[data-theme="dark"] .node.s-done { box-shadow: 0 0 18px rgba(16,185,129,.2); }
+[data-theme="dark"] .node.s-wip  { box-shadow: 0 0 18px rgba(245,158,11,.2); }
+[data-theme="dark"] .node.s-plan { box-shadow: 0 0 18px rgba(99,102,241,.2); }
+[data-theme="dark"] .node.s-trend{ box-shadow: 0 0 18px rgba(6,182,212,.2); }
+
+/* Node connector dots */
+.node::before, .node::after {
+  content: ''; position: absolute;
+  left: 50%; transform: translateX(-50%);
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border);
+  transition: background .2s;
+}
+.node::before { top: -3px; }
+.node::after  { bottom: -3px; }
+.node.hi::before, .node.hi::after, .node.conn::before, .node.conn::after { background: var(--ehi); }
+
+.ni { font-size: 1.1rem; margin-bottom: 3px; }
+.nt {
+  font-size: 12px; font-weight: 500;
+  line-height: 1.35; white-space: pre-line;
+  color: var(--text-hi);
+}
+.nb {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 500;
+  padding: 1px 7px; border-radius: 3px;
+  margin-top: 6px; letter-spacing: .04em;
+}
+.b-done  { background: rgba(42,157,106,.1);  color: var(--done); }
+.b-wip   { background: rgba(212,148,10,.1);  color: var(--wip); }
+.b-plan  { background: rgba(91,95,199,.1);   color: var(--plan); }
+.b-trend { background: rgba(14,143,160,.1);  color: var(--trend); }
+[data-theme="dark"] .b-done  { background: rgba(16,185,129,.12); }
+[data-theme="dark"] .b-wip   { background: rgba(245,158,11,.12); }
+[data-theme="dark"] .b-plan  { background: rgba(99,102,241,.12); }
+[data-theme="dark"] .b-trend { background: rgba(6,182,212,.12); }
+
+/* Tooltip */
+#tip {
+  display: none; position: fixed;
+  background: var(--tip-bg);
+  border: 1px solid var(--tip-border);
+  border-radius: 8px;
+  padding: 14px 18px; max-width: 330px;
+  z-index: 200;
+  box-shadow: 0 8px 30px var(--tip-shadow);
+  pointer-events: none;
+}
+#tip.show { display: block; }
+#tip h3 {
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 5px; color: var(--text-hi);
+}
+#tip p {
+  font-size: 11px; color: var(--text);
+  line-height: 1.6;
+}
+#tip .cn {
+  margin-top: 8px; padding-top: 7px;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+  white-space: pre-line; line-height: 1.6;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .node { min-width: 100px; max-width: 140px; padding: 10px 10px 8px; }
+  .nt { font-size: 11px; }
+  .spacer { height: 60px; }
+  .layer { gap: 10px; }
+}
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">PhD Tech Tree</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:4px;">
+  3D Scene <span style="color:var(--accent)">Understanding</span> via Gaussian Splatting
+</h1>
+<p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:24px;">
+  INTERACTIVE RESEARCH ROADMAP
+</p>
+
+<div class="legend">
+  <span><i style="background:var(--done)"></i>Done</span>
+  <span><i style="background:var(--wip)"></i>WIP</span>
+  <span><i style="background:var(--plan)"></i>Planned</span>
+  <span><i style="background:var(--trend)"></i>Field Trend</span>
+</div>
+
+<div class="canvas" id="C">
+  <svg id="edges-bg" class="edge-layer"></svg>
+  <svg id="edges-fg" class="edge-layer"></svg>
+  <div class="lg"><div class="lt">Foundation — completed & in-progress work</div><div class="layer" id="L0"></div></div>
+  <div class="spacer"></div><hr class="lline">
+  <div class="lg"><div class="lt">Current — near-term projects</div><div class="layer" id="L1"></div></div>
+  <div class="spacer"></div><hr class="lline">
+  <div class="lg"><div class="lt">Capability — emergent abilities</div><div class="layer" id="L2"></div></div>
+  <div class="spacer"></div><hr class="lline">
+  <div class="lg"><div class="lt">Direction — future paths (all viable from understanding)</div><div class="layer" id="L3"></div></div>
+</div>
+
+</div><!-- /.container -->
+
+<div id="tip"><h3 id="tT"></h3><p id="tN"></p><div class="cn" id="tC"></div></div>
+
+<script>
+const N={
+dk:{l:0,t:'Deformation\nKernel GS',s:'done',i:'⚙️',n:'High-frequency detail via deformable activation functions → geometric precision. Published.'},
+fr:{l:0,t:'Floater\nRemoval',s:'wip',i:'🧹',n:'Suppresses floating artifacts for cleaner 3D models. CVPR rejected — revising for resubmission.'},
+h3d:{l:0,t:'Hierarchical\n3DGS (Scale)',s:'done',i:'🏗️',n:'LOD management for large-scale scenes. Tested on campus data.'},
+ctgs:{l:0,t:'CT-GS\nSegmentation',s:'done',i:'🔬',n:'R2-Gaussian + nnU-Net + voxelized contrastive learning. Method validated on medical CT.'},
+obb:{l:0,t:'OBB\nExtraction',s:'wip',i:'📦',n:'2DGS surface points + KMeans + OBB. Key insight: surface > internal points. NeurIPS/AAAI rejected — needs stronger contribution.'},
+
+conc:{l:1,t:'Concrete CT\n(AiC Paper)',s:'plan',i:'🧱',n:'VoroCrack3d dataset, density-based segmentation.\n2-3 week sprint → Automation in Construction (IF≈10).'},
+camp:{l:1,t:'Campus Scene\nReconstruction',s:'plan',i:'🏫',n:'UWaterloo campus, H3DGS scale-up + semantic labeling. Thesis application chapter.'},
+reg:{l:1,t:'Registration\n& Alignment',s:'plan',i:'🔗',n:'Multi-session 3DGS alignment. Can embed into campus project for temporal comparison.'},
+ffw:{l:1,t:'Feed-Forward\nReconstruction',s:'trend',i:'⚡',n:'VGGT (CVPR 2025 Best Paper), PixelSplat, MVSplat.\nSingle forward pass replaces per-scene optimization.'},
+
+und:{l:2,t:'3D Scene\nUnderstanding',s:'plan',i:'🧠',n:'Semantic segmentation + object recognition + spatial reasoning.\nCore thesis capability — all directions branch from here.'},
+edit:{l:2,t:'Scene Editing\n& Manipulation',s:'trend',i:'✂️',n:'Cut, merge, stylize 3DGS scenes. OBB enables object-level operations.'},
+inter:{l:2,t:'Object-Level\nInteraction',s:'trend',i:'👆',n:'Select, move, grasp objects in 3DGS scenes. Bridge from understanding to embodied manipulation.'},
+
+retr:{l:3,t:'Asset / Object\nRetrieval',s:'plan',i:'🔍',n:'Text/image → retrieve 3D objects in scene. Language-grounded 3DGS. Digital twin asset management.'},
+gen:{l:3,t:'Scene Generation\nfor Simulation',s:'trend',i:'🌍',n:'Generate realistic 3D environments for robot training.\nWorld Labs ($1B), Apple SHARP.'},
+wm:{l:3,t:'World Models\n& Embodied AI',s:'trend',i:'🤖',n:'CVPR 2026 top trends: VLM (+5.7pp), World Models (+5.0pp). 3D understanding is the perception foundation.'},
+dt:{l:3,t:'Digital Twin',s:'trend',i:'🏭',n:'$21B→$150B market (48% CAGR). 3DGS as real-time interactive digital twin representation.'},
+gnd:{l:3,t:'3D Grounding\n& VLA',s:'trend',i:'📍',n:'CVPR 2026 theme: visual features → physical 3D coordinates. Vision-Language-Action models.'},
+};
+
+const E=[
+['ctgs','conc'],['h3d','camp'],['obb','camp'],
+['ctgs','und'],['obb','und'],['obb','edit'],['obb','inter'],
+['dk','und'],['fr','und'],['h3d','und'],
+['conc','und'],['camp','und'],['reg','und'],['reg','edit'],
+['ffw','und'],['ffw','edit'],
+['und','retr'],['und','gen'],['und','wm'],['und','gnd'],['und','dt'],
+['edit','gen'],['edit','dt'],['edit','retr'],
+['inter','wm'],['inter','gnd'],['inter','gen'],
+];
+
+const SL={done:'Done',wip:'WIP',plan:'Planned',trend:'Trend'};
+Object.entries(N).forEach(([id,n])=>{
+  const d=document.createElement('div');
+  d.className='node s-'+n.s;d.id='n-'+id;d.dataset.id=id;
+  d.innerHTML=`<div class="ni">${n.i}</div><div class="nt">${n.t}</div><div class="nb b-${n.s}">${SL[n.s]}</div>`;
+  document.getElementById('L'+n.l).appendChild(d);
+});
+
+function draw(){
+  const bg=document.getElementById('edges-bg'),fg=document.getElementById('edges-fg');
+  const c=document.getElementById('C'),cr=c.getBoundingClientRect();
+  [bg,fg].forEach(svg=>{svg.setAttribute('width',c.scrollWidth);svg.setAttribute('height',c.scrollHeight);svg.innerHTML=''});
+  E.forEach(([fi,ti])=>{
+    const fe=document.getElementById('n-'+fi),te=document.getElementById('n-'+ti);
+    if(!fe||!te)return;
+    const fr2=fe.getBoundingClientRect(),tr=te.getBoundingClientRect();
+    const x1=fr2.left+fr2.width/2-cr.left, y1=fr2.bottom-cr.top+3;
+    const x2=tr.left+tr.width/2-cr.left, y2=tr.top-cr.top-3;
+    const dy=y2-y1;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',`M${x1},${y1} C${x1},${y1+dy*.4} ${x2},${y2-dy*.4} ${x2},${y2}`);
+    p.dataset.f=fi;p.dataset.t=ti;bg.appendChild(p);
+  });
+}
+
+// Directed BFS: upstream ancestors + downstream descendants
+function conn(id){
+  const up=new Set([id]),dn=new Set([id]);
+  // BFS upstream: follow edges backward (edge [a,b] → if b in set, add a)
+  let q=[id];
+  while(q.length){
+    const cur=q.shift();
+    E.forEach(([f,t])=>{ if(t===cur&&!up.has(f)){up.add(f);q.push(f)} });
+  }
+  // BFS downstream: follow edges forward (edge [a,b] → if a in set, add b)
+  q=[id];
+  while(q.length){
+    const cur=q.shift();
+    E.forEach(([f,t])=>{ if(f===cur&&!dn.has(t)){dn.add(t);q.push(t)} });
+  }
+  return {up, dn};
+}
+
+function hi(id,ev){
+  const {up,dn}=conn(id);
+  const all=new Set([...up,...dn]);
+  // Highlight nodes
+  document.querySelectorAll('.node').forEach(el=>{
+    const nid=el.dataset.id;
+    el.classList.toggle('dim',!all.has(nid));
+    el.classList.toggle('hi',nid===id);
+    el.classList.toggle('conn',all.has(nid)&&nid!==id);
+  });
+  // Dim bg edges, copy highlighted edges to fg SVG
+  const fg=document.getElementById('edges-fg');
+  fg.innerHTML='';
+  document.querySelectorAll('#edges-bg path').forEach(p=>{
+    const f=p.dataset.f, t=p.dataset.t;
+    // Edge is highlighted if both ends in upstream set OR both ends in downstream set
+    const on=(up.has(f)&&up.has(t))||(dn.has(f)&&dn.has(t));
+    p.classList.toggle('dim',true);
+    if(on){
+      const clone=p.cloneNode();
+      fg.appendChild(clone);
+    }
+  });
+  // Tooltip
+  const n=N[id],tip=document.getElementById('tip');
+  document.getElementById('tT').textContent=n.t.replace(/\n/g,' ');
+  document.getElementById('tN').textContent=n.n;
+  const upList=E.filter(([f,t])=>t===id).map(([f])=>N[f].t.replace(/\n/g,' '));
+  const dnList=E.filter(([f,t])=>f===id).map(([_,t])=>N[t].t.replace(/\n/g,' '));
+  let ct='';if(upList.length)ct+='← '+upList.join(', ')+'\n';if(dnList.length)ct+='→ '+dnList.join(', ');
+  document.getElementById('tC').textContent=ct;
+  tip.classList.add('show');
+  let left=ev.clientX+16,top=ev.clientY-10;
+  tip.style.left=left+'px';tip.style.top=top+'px';
+  requestAnimationFrame(()=>{const r=tip.getBoundingClientRect();if(left+r.width>window.innerWidth)tip.style.left=(ev.clientX-r.width-16)+'px';if(top+r.height>window.innerHeight)tip.style.top=(window.innerHeight-r.height-10)+'px'});
+}
+
+function clr(){
+  document.querySelectorAll('.node').forEach(el=>{el.classList.remove('dim','hi','conn')});
+  document.querySelectorAll('#edges-bg path').forEach(p=>{p.classList.remove('dim')});
+  document.getElementById('edges-fg').innerHTML='';
+  document.getElementById('tip').classList.remove('show');
+}
+
+requestAnimationFrame(()=>{
+  draw();
+  document.querySelectorAll('.node').forEach(el=>{
+    el.addEventListener('mouseenter',e=>hi(el.dataset.id,e));
+    el.addEventListener('mousemove',e=>{const tip=document.getElementById('tip');tip.style.left=(e.clientX+16)+'px';tip.style.top=(e.clientY-10)+'px'});
+    el.addEventListener('mouseleave',clr);
+  });
+});
+window.addEventListener('resize',draw);
+</script>
+</body>
+</html>
