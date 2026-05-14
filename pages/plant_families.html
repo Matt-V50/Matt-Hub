@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>植物科速查 · Plant Family Field Guide</title>
+<meta name="description" content="常见植物科速查 — 中文名源、拉丁词源、模式属、野外形态特征与常见物种。"/>
+<meta name="icon" content="🌿"/>
+<meta name="tag" content="参考"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* Tabs — same as sugars.html */
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  overflow-x: auto; overflow-y: hidden;
+  margin: 0 -48px 24px; padding: 0 48px;
+}
+.tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 10px 16px; border: none;
+  background: transparent; cursor: pointer;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  letter-spacing: .04em;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-hi); }
+
+/* Search */
+.search-wrap { margin-bottom: 20px; position: relative; }
+.search-input {
+  width: 100%; padding: 8px 12px 8px 30px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text);
+  outline: none; transition: border-color .15s;
+  letter-spacing: .02em;
+}
+.search-input::placeholder { color: var(--text-dim); }
+.search-input:focus { border-color: var(--accent); }
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; color: var(--text-dim); pointer-events: none;
+}
+
+/* Panel */
+.panel { display: none; }
+.panel.active { display: block; }
+.sec-intro {
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'IBM Plex Sans', sans-serif;
+  margin-bottom: 20px; line-height: 1.75; max-width: 820px;
+}
+
+/* Masonry grid — reuse sugars.html pattern */
+.fam-grid { position: relative; }
+.fam-grid .card { position: absolute; width: calc(50% - 9px); transition: top .25s ease, left .25s ease; }
+@media(max-width:640px){ .fam-grid .card { width: 100%; } }
+
+/* Card — reuse sugars.html pattern */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; transition: border-color .15s;
+}
+.card:hover { border-color: var(--border-hi); }
+.stripe { height: 4px; }
+.card-top { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+.name-zh { font-size: 16px; font-weight: 500; color: var(--text-hi); }
+.name-en {
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace; margin-left: 6px;
+  letter-spacing: .02em; font-style: italic;
+}
+.alt-latin {
+  font-size: 10px; color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-left: 4px; font-style: italic; opacity: .7;
+}
+
+/* Category pill */
+.cat-pill {
+  float: right; margin-left: 8px;
+  font-size: 9px; font-family: 'IBM Plex Mono', monospace; font-weight: 500;
+  padding: 2px 8px; border-radius: 3px;
+  color: #fff; letter-spacing: .04em; white-space: nowrap;
+}
+
+/* Etymology block — reuse sugars.html pattern */
+.etym-block {
+  margin-top: 9px; font-size: 11px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text-dim); line-height: 1.65;
+}
+.etym-block em {
+  font-style: italic; color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* Info rows */
+.info-row {
+  font-size: 11px; font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text-dim); line-height: 1.65; margin-top: 6px;
+}
+.info-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: var(--text-dim); letter-spacing: .08em;
+  text-transform: uppercase; opacity: .6;
+  display: block; margin-bottom: 2px;
+}
+
+/* Genus badge */
+.genus-badge {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  font-style: italic; color: var(--accent);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 1px 6px; margin-top: 6px; letter-spacing: .02em;
+}
+
+/* Members row */
+.members-row {
+  font-size: 11px; color: var(--text); line-height: 1.65;
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* Accordion — reuse sugars.html pattern */
+.accord-section { border-top: 1px solid var(--border); }
+.accord-btn {
+  width: 100%; border: none; background: var(--tag-bg);
+  padding: 7px 14px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--text-dim); cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 6px;
+  transition: background .12s, color .12s; letter-spacing: .04em;
+}
+.accord-btn:hover { background: var(--border); color: var(--text-hi); }
+.accord-btn .arr {
+  font-size: 9px; display: inline-block; transition: transform .2s;
+}
+.accord-btn.open .arr { transform: rotate(90deg); }
+.accord-body { display: none; }
+.accord-body.open { display: block; }
+.morph-block {
+  font-size: 11px; font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text); line-height: 1.75;
+  padding: 10px 14px; background: var(--tag-bg);
+  border-left: 3px solid var(--accent);
+}
+
+/* No results */
+.no-results {
+  text-align: center; color: var(--text-dim);
+  font-size: 12px; padding: 40px 0;
+  font-family: 'IBM Plex Mono', monospace;
+}
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">Plant Family Field Guide</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:6px;">
+  植物科<span style="color:var(--accent)">速查</span>
+</h1>
+<p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:28px;">
+  中文名源 · 拉丁词源 · 模式属 · 野外形态 · 常见物种
+</p>
+
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" id="search" type="text"
+    placeholder="搜一下：科名、拉丁名、物种、形态……" oninput="doFilter()"/>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="showTab('all')">🌍 全部</button>
+  <button class="tab" onclick="showTab('core')">⭐ 主要大科</button>
+  <button class="tab" onclick="showTab('food')">🍎 吃货相关</button>
+  <button class="tab" onclick="showTab('garden')">🌸 花园常见</button>
+  <button class="tab" onclick="showTab('tree')">🌳 乔木为主</button>
+  <button class="tab" onclick="showTab('trail')">🥾 徒步常见</button>
+</div>
+
+<div class="fam-grid" id="grid"></div>
+<div class="no-results" id="no-results" style="display:none">没找到，换个词试试</div>
+
+</div><!-- /.container -->
+
+<script>
+// ═══ Category colors ═══
+const CAT_COLORS = {
+  core:   '#d97706',
+  food:   '#16a34a',
+  garden: '#db2777',
+  tree:   '#4f46e5',
+  trail:  '#059669',
+};
+
+// ═══ Data ═══
+const DATA = [
+  {
+    zh:'菊科', en:'Asteraceae', alt:'Compositae', cat:'core', color:'#d97706',
+    zhOrigin:'菊＝菊花，中国人最熟的代表',
+    genus:'Aster 紫菀属',
+    etym:'Greek <em>aster</em>＝星，花头像星形放射',
+    altEtym:'Compositae＝Latin <em>compositus</em>（复合的），指头状花序由多小花组合',
+    morph:'头状花序是招牌：看似一朵花其实由几十上百朵小花挤在一个盘上。外圈舌状花像花瓣，中间管状花像小喇叭。果实顶端常有冠毛（蒲公英的降落伞）。叶常互生。',
+    members:'菊花、向日葵、蒲公英、生菜、艾草',
+  },
+  {
+    zh:'兰科', en:'Orchidaceae', cat:'core', color:'#d97706',
+    zhOrigin:'兰＝兰花，中国文化里的雅花',
+    genus:'Orchis 红门兰属',
+    etym:'Greek <em>orchis</em>＝睾丸，块茎形状像',
+    morph:'花两侧对称，有一片特化的唇瓣（最大最骚的那片）。雄蕊和雌蕊合生成蕊柱。花粉结成花粉块。种子极细小如粉尘，需真菌共生才能萌发。',
+    members:'蝴蝶兰、石斛、香草（vanilla）',
+  },
+  {
+    zh:'豆科', en:'Fabaceae', alt:'Leguminosae', cat:'core', color:'#d97706',
+    zhOrigin:'豆＝豆子，形态命名，都结豆荚',
+    genus:'Faba 蚕豆属',
+    etym:'Latin <em>faba</em>＝蚕豆',
+    altEtym:'Leguminosae＝Latin <em>legumen</em>（豆荚），指果实类型',
+    morph:'果实是荚果（豆荚），沿两条缝开裂。蝶形花亚科：上面旗瓣、两侧翼瓣、下面龙骨瓣，像一只蝴蝶。叶常为复叶。根有根瘤（固氮共生）。',
+    members:'大豆、花生、豌豆、槐树、合欢、紫荆',
+  },
+  {
+    zh:'蔷薇科', en:'Rosaceae', cat:'core', color:'#d97706',
+    zhOrigin:'蔷薇＝蔷薇花，与拉丁模式属对应',
+    genus:'Rosa 蔷薇属',
+    etym:'Latin <em>rosa</em>＝玫瑰/蔷薇',
+    morph:'花通常5瓣，辐射对称，雄蕊很多（一圈圈的），花托杯状或壶状。叶互生，常有托叶。果实极多样：核果（桃）、梨果（苹果）、聚合瘦果（草莓）。',
+    members:'苹果、梨、桃、杏、樱桃、草莓、梅、月季',
+  },
+  {
+    zh:'禾本科', en:'Poaceae', alt:'Gramineae', cat:'core', color:'#d97706',
+    zhOrigin:'禾＝谷物通称，本＝体态',
+    genus:'Poa 早熟禾属',
+    etym:'Greek <em>poa</em>＝草/牧草',
+    altEtym:'Gramineae＝Latin <em>gramen</em>（草）',
+    morph:'茎圆柱中空有节（秆）。叶窄长平行脉，基部有叶舌和叶耳。花极度简化，无花瓣，由颖片和稃片包裹。果实为颖果（一粒米就是一个果实）。',
+    members:'水稻、小麦、玉米、竹子、甘蔗、草坪草',
+  },
+  {
+    zh:'十字花科', en:'Brassicaceae', alt:'Cruciferae', cat:'core', color:'#d97706',
+    zhOrigin:'形态命名：四片花瓣排成十字',
+    genus:'Brassica 芸薹属',
+    etym:'Latin <em>brassica</em>＝甘蓝/卷心菜',
+    altEtym:'Cruciferae＝Latin <em>crux</em>（十字）+ <em>ferre</em>（承载）',
+    morph:'四瓣花呈十字排列，6枚雄蕊（4长2短，四强雄蕊）。长角果或短角果。总状花序。搓叶子常有辛辣芥末味。',
+    members:'白菜、萝卜、油菜、芥末、花椰菜、荠菜',
+  },
+  {
+    zh:'唇形科', en:'Lamiaceae', alt:'Labiatae', cat:'core', color:'#d97706',
+    zhOrigin:'形态命名：花冠像上下两片嘴唇',
+    genus:'Lamium 野芝麻属',
+    etym:'Greek <em>laimos</em>＝喉咙，花冠筒似喉',
+    altEtym:'Labiatae＝Latin <em>labium</em>（唇）',
+    morph:'三件套一起出现就锁定：①方茎（捏一下有棱角）；②叶对生；③花冠二唇形。全株常有腺体，搓一下有浓烈香味。果实裂成4个小坚果。',
+    members:'薄荷、罗勒、薰衣草、紫苏、迷迭香、鼠尾草',
+  },
+  {
+    zh:'伞形科', en:'Apiaceae', alt:'Umbelliferae', cat:'core', color:'#d97706',
+    zhOrigin:'形态命名：花序像撑开的伞',
+    genus:'Apium 芹属',
+    etym:'Latin <em>apium</em>＝芹菜',
+    altEtym:'Umbelliferae＝Latin <em>umbella</em>（小伞）+ <em>ferre</em>（承载）',
+    morph:'复伞形花序：大伞上每根伞骨再撑小伞。小花5瓣，白或黄色。茎常中空，叶多羽状深裂。果实双悬果。有剧毒种（毒芹），野外别乱吃。',
+    members:'芹菜、香菜、胡萝卜、茴香、当归、川芎',
+  },
+  {
+    zh:'茄科', en:'Solanaceae', cat:'core', color:'#d97706',
+    zhOrigin:'茄＝茄子，中国人最熟的代表',
+    genus:'Solanum 茄属',
+    etym:'Latin <em>solanum</em>，可能源自 <em>sol</em>＝太阳，或 <em>solari</em>＝安抚',
+    morph:'花5瓣合生，辐射对称，常漏斗形或轮形。5枚雄蕊常聚拢成锥形。浆果（番茄）或蒴果（烟草）。很多种含生物碱，有毒。',
+    members:'番茄、土豆、辣椒、烟草、枸杞、曼陀罗',
+  },
+  {
+    zh:'茜草科', en:'Rubiaceae', cat:'core', color:'#d97706',
+    zhOrigin:'茜草＝茜草，根可提取红色染料',
+    genus:'Rubia 茜草属',
+    etym:'Latin <em>ruber</em>＝红色，指根部的红色素',
+    morph:'叶对生，有托叶（托叶有时大到像叶子，形成假轮生——猪殃殃就是这样）。花4-5瓣合生，辐射对称。子房下位。',
+    members:'咖啡、栀子、猪殃殃、金鸡纳（奎宁来源）',
+  },
+  {
+    zh:'葫芦科', en:'Cucurbitaceae', cat:'food', color:'#16a34a',
+    zhOrigin:'葫芦＝葫芦，东亚原产的代表',
+    genus:'Cucurbita 南瓜属',
+    etym:'Latin <em>cucurbita</em>＝葫芦/瓜',
+    morph:'草质藤本，靠卷须攀爬。单性花，花5瓣合生，黄色居多。果实为瓠果，通常很大。叶掌状脉，常有粗糙毛。',
+    members:'黄瓜、西瓜、南瓜、冬瓜、丝瓜、苦瓜',
+  },
+  {
+    zh:'锦葵科', en:'Malvaceae', cat:'food', color:'#16a34a',
+    zhOrigin:'锦葵＝锦葵花，花色艳丽如锦',
+    genus:'Malva 锦葵属',
+    etym:'Greek <em>malache</em>＝锦葵，可能关联 <em>malakos</em>＝柔软',
+    morph:'花5瓣，常有副萼。雄蕊多数，花丝合生成管状包裹雌蕊（单体雄蕊管）。茎皮纤维发达（棉花、黄麻）。APG扩容后含原椴树科、梧桐科。',
+    members:'棉花、可可、木槿、秋葵、榴莲',
+  },
+  {
+    zh:'芸香科', en:'Rutaceae', cat:'food', color:'#16a34a',
+    zhOrigin:'芸香＝一种有强烈气味的香草',
+    genus:'Ruta 芸香属',
+    etym:'Greek <em>rhyte</em>＝芸香，古老植物名',
+    morph:'叶片有透明油点（对光看有小亮点），搓一下有强烈香气。柑橘亚科的果实为柑果。花椒属则是蓇葖果。',
+    members:'橘、橙、柠檬、柚、花椒、黄柏',
+  },
+  {
+    zh:'葡萄科', en:'Vitaceae', cat:'food', color:'#16a34a',
+    zhOrigin:'葡萄＝大宛语借词，汉代经西域传入',
+    genus:'Vitis 葡萄属',
+    etym:'Latin <em>vitis</em>＝葡萄藤，关联 <em>viere</em>＝编织',
+    morph:'木质藤本，靠与叶对生的卷须攀爬。花小，4-5瓣，花瓣常顶端连合成帽状整体脱落。浆果。叶常掌状脉。',
+    members:'葡萄、爬山虎',
+  },
+  {
+    zh:'山茶科', en:'Theaceae', cat:'food', color:'#16a34a',
+    zhOrigin:'山茶＝山茶花，也包括茶叶那个茶',
+    genus:'Thea 茶属（现并入 Camellia 山茶属）',
+    etym:'<em>Thea</em> 源自闽南语 <em>tê</em>（茶）的拉丁化',
+    morph:'常绿灌木或小乔木。叶互生，革质有光泽，边缘有锯齿。花5瓣，雄蕊多数。蒴果。',
+    members:'茶、山茶花、油茶',
+  },
+  {
+    zh:'百合科', en:'Liliaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'百合＝百合花，鳞茎由百片合成',
+    genus:'Lilium 百合属',
+    etym:'Latin <em>lilium</em>＝百合',
+    morph:'多年生草本，地下有鳞茎。花被片6（3萼3瓣长一样），辐射对称，大而艳丽。雄蕊6。叶平行脉。APG大幅缩小了范围。',
+    members:'百合、郁金香',
+  },
+  {
+    zh:'毛茛科', en:'Ranunculaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'毛茛＝一种有毒小草，茎叶有毛',
+    genus:'Ranunculus 毛茛属',
+    etym:'Latin <em>rana</em>＝青蛙 + <em>-unculus</em>（小），多生于蛙类出没的湿地',
+    morph:'原始特征合集：花各部分常不定数，螺旋排列。花瓣萼片数目变化大，有些种萼片花瓣化（铁线莲就没花瓣）。多有毒。',
+    members:'银莲花、铁线莲、飞燕草、乌头、芍药',
+  },
+  {
+    zh:'杜鹃花科', en:'Ericaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'杜鹃花＝映山红，传说杜鹃鸟啼血染红',
+    genus:'Erica 欧石楠属',
+    etym:'Greek <em>ereike</em>＝石楠/荒地灌木',
+    morph:'多为灌木。花合瓣，常钟形或壶形。雄蕊常为花冠裂片的2倍，花药顶端开孔散粉。叶革质常绿。喜酸性土。',
+    members:'杜鹃花、蓝莓、越橘、熊果',
+  },
+  {
+    zh:'石竹科', en:'Caryophyllaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'石竹＝一种小花，生于石缝，花似竹节',
+    genus:'据拉丁词干 Caryophyllus',
+    etym:'Greek <em>karyon</em>＝坚果 + <em>phyllon</em>＝叶',
+    morph:'茎节膨大，叶对生，全缘，常线形。花5瓣，瓣端常有缺刻或深裂。萼片合生成筒。蒴果顶端开裂。',
+    members:'康乃馨、满天星、石竹',
+  },
+  {
+    zh:'报春花科', en:'Primulaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'报春花＝报告春天来了，早春开放',
+    genus:'Primula 报春花属',
+    etym:'Latin <em>primus</em>＝第一/最早',
+    morph:'多年生草本，常有基生叶丛。花5瓣合生，高脚碟状。雄蕊与花冠裂片对生。常有异型花柱（长/短花柱两种花型）。',
+    members:'报春花、仙客来、点地梅',
+  },
+  {
+    zh:'景天科', en:'Crassulaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'景天＝八宝景天，传统药用/观赏植物',
+    genus:'Crassula 青锁龙属',
+    etym:'Latin <em>crassus</em>＝厚/肥，指肉质叶片',
+    morph:'叶厚多汁储水。花各部4-5基数。多为CAM光合作用（夜间固碳），所以耐旱。莲座状叶丛常见。',
+    members:'多肉植物大本营：景天、石莲花、长寿花、佛甲草',
+  },
+  {
+    zh:'睡莲科', en:'Nymphaeaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'睡莲＝花朝开夜合，像在睡觉',
+    genus:'Nymphaea 睡莲属',
+    etym:'Greek <em>nymphe</em>＝仙女/水泽精灵',
+    morph:'水生草本，根茎沉于泥中。叶圆形浮于水面。花大美丽，花被片多数，从外到内渐变。原始被子植物类群。',
+    members:'睡莲、王莲',
+  },
+  {
+    zh:'仙人掌科', en:'Cactaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'仙人掌＝像仙人张开的手掌',
+    genus:'Cactus 仙人掌属',
+    etym:'Greek <em>kaktos</em>＝多刺植物',
+    morph:'茎肉质绿色承担光合。叶退化为刺，着生在刺座（areole）上——刺座是本科独有结构。花大而艳，浆果。几乎全产美洲。',
+    members:'仙人掌、仙人球、昙花、火龙果',
+  },
+  {
+    zh:'秋海棠科', en:'Begoniaceae', cat:'garden', color:'#db2777',
+    zhOrigin:'秋海棠＝秋天开的海棠（借名，非真海棠）',
+    genus:'Begonia 秋海棠属',
+    etym:'纪念法国总督 Michel Bégon（1638–1710），植物采集赞助者',
+    morph:'叶片左右不对称（一边大一边小）是最强识别特征。肉质草本。雌雄同株异花。子房下位有3翅状棱。蒴果有翅。',
+    members:'各种秋海棠盆栽',
+  },
+  {
+    zh:'壳斗科', en:'Fagaceae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'壳斗＝橡子外面的碗状总苞（帽子）',
+    genus:'Fagus 水青冈属',
+    etym:'Greek <em>phagein</em>＝吃（果实可食），或 Latin <em>fagus</em>＝山毛榉',
+    morph:'乔木。壳斗是招牌：果实外包碗状或刺状总苞（橡子小帽子、栗子刺球）。雄花柔荑花序下垂，风媒。',
+    members:'橡树、栗子、栎树、水青冈',
+  },
+  {
+    zh:'桑科', en:'Moraceae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'桑＝桑树，养蚕的那个桑',
+    genus:'Morus 桑属',
+    etym:'Greek <em>moron</em>＝桑葚',
+    morph:'木本，折断有白色乳汁。花极小单性密集排列：桑葚是聚花果，无花果是隐头花序（花开在里面）。',
+    members:'桑树、无花果、菠萝蜜、榕树',
+  },
+  {
+    zh:'木兰科', en:'Magnoliaceae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'木兰＝玉兰花，中国传统名木',
+    genus:'Magnolia 木兰属',
+    etym:'纪念法国植物学家 Pierre Magnol（1638–1715），"科"的概念提出者',
+    morph:'最古老的被子植物之一。花大，花被片不分化（萼瓣长一样），螺旋排列。雄蕊心皮都多。有大型毛茸茸芽鳞。',
+    members:'玉兰、含笑、鹅掌楸（马褂木）',
+  },
+  {
+    zh:'松科', en:'Pinaceae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'松＝松树，中国文化经典树种',
+    genus:'Pinus 松属',
+    etym:'Latin <em>pinus</em>＝松树，可能关联 PIE <em>*peie-</em>＝树脂',
+    morph:'裸子植物。叶针形或线形，常绿。雌球果木质化，鳞片螺旋排列，每鳞2粒种子。有树脂道。松属叶2-5针一束。',
+    members:'松、云杉、冷杉、落叶松、雪松',
+  },
+  {
+    zh:'棕榈科', en:'Arecaceae', alt:'Palmae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'棕榈＝棕榈树，叶鞘纤维称棕',
+    genus:'Areca 槟榔属',
+    etym:'<em>Areca</em> 源自马来语 <em>adakka</em>＝槟榔',
+    altEtym:'Palmae＝Latin <em>palma</em>＝手掌，叶似张开的手',
+    morph:'单子叶中少有的木本外观。不分枝，一根直杆顶上一簇巨叶。叶掌状或羽状复叶。花小密集成肉穗花序。',
+    members:'椰子、槟榔、棕榈、油棕、枣椰',
+  },
+  {
+    zh:'桃金娘科', en:'Myrtaceae', cat:'tree', color:'#4f46e5',
+    zhOrigin:'桃金娘＝岭南野果，果形似小桃',
+    genus:'Myrtus 香桃木属',
+    etym:'Greek <em>myrtos</em>＝香桃木',
+    morph:'叶对生革质，有透明油腺点。花雄蕊极多且长，比花瓣抢眼（桉树花就是一团雄蕊炸开）。子房下位。全株芳香。',
+    members:'桉树、丁香（调料）、番石榴、莲雾',
+  },
+  // ── 🥾 徒步常见 ──
+  {
+    zh:'忍冬科', en:'Caprifoliaceae', cat:'trail', color:'#059669',
+    zhOrigin:'忍冬＝金银花，半常绿能忍过冬天',
+    genus:'Caprifolium（现并入 Lonicera 忍冬属）',
+    etym:'Latin <em>capra</em>＝山羊 + <em>folium</em>＝叶，山羊爱吃的叶子',
+    morph:'灌木或木质藤本。叶对生。花合瓣常5裂，有的二唇形（金银花），有的辐射对称（荚蒾）。浆果或核果。APG大扩容后含原川续断科、败酱科。',
+    members:'金银花、接骨木、荚蒾、锦带花',
+  },
+  {
+    zh:'无患子科', en:'Sapindaceae', cat:'trail', color:'#059669',
+    zhOrigin:'无患子＝果实可做天然洗涤剂的树',
+    genus:'Sapindus 无患子属',
+    etym:'Latin <em>sapo</em>＝肥皂 + <em>indicus</em>＝印度的',
+    morph:'APG扩容后含槭树科和七叶树科。枫树最好认：叶对生掌状裂，翅果成对像直升机螺旋桨。安大略秋天红黄色的就是。',
+    members:'枫树（槭属）、七叶树、荔枝、龙眼',
+  },
+  {
+    zh:'桦木科', en:'Betulaceae', cat:'trail', color:'#059669',
+    zhOrigin:'桦木＝白桦树，树皮白色可剥',
+    genus:'Betula 桦木属',
+    etym:'Latin <em>betula</em>＝桦树，可能源自凯尔特语 <em>betu</em>',
+    morph:'落叶乔木。叶互生有锯齿。雄花柔荑花序下垂，风媒。桦树最好认：树皮薄纸状白色或黄色，可一层层剥。Paper birch 和 yellow birch 在 Ontario 极常见。',
+    members:'白桦、桤木、鹅耳枥、榛子',
+  },
+  {
+    zh:'柳科', en:'Salicaceae', cat:'trail', color:'#059669',
+    zhOrigin:'柳＝柳树，河边最常见的树',
+    genus:'Salix 柳属',
+    etym:'Latin <em>salix</em>＝柳树，可能关联凯尔特语 <em>sal</em>＝近 + <em>lis</em>＝水',
+    morph:'落叶乔木或灌木。叶互生。花单性，柔荑花序。Trembling aspen 的叶柄扁平，微风就哗哗响。',
+    members:'柳树、杨树、山杨（trembling aspen）',
+  },
+  {
+    zh:'堇菜科', en:'Violaceae', cat:'trail', color:'#059669',
+    zhOrigin:'堇菜＝紫花地丁一类的小草',
+    genus:'Viola 堇菜属',
+    etym:'Latin <em>viola</em>＝紫罗兰',
+    morph:'草本。花两侧对称，5瓣，下面一瓣有距（向后伸管状突起装蜜）。春天林地蓝紫色小花叶心形，大概率就是堇菜。Ontario 春天最早出现的野花之一。',
+    members:'紫花地丁、三色堇、加拿大堇菜',
+  },
+  {
+    zh:'山茱萸科', en:'Cornaceae', cat:'trail', color:'#059669',
+    zhOrigin:'山茱萸＝一种红果药用植物',
+    genus:'Cornus 山茱萸属',
+    etym:'Latin <em>cornu</em>＝角，木材坚硬如角',
+    morph:'叶对生，侧脉弧形向叶尖收拢（很有辨识度）。花小4瓣，有些种有大白色苞片假装花瓣。核果常红色。Bunchberry 铺满 Ontario 林地地面。',
+    members:'四照花、红瑞木、bunchberry',
+  },
+  {
+    zh:'蓼科', en:'Polygonaceae', cat:'trail', color:'#059669',
+    zhOrigin:'蓼＝水蓼，辣味野草',
+    genus:'Polygonum 蓼属',
+    etym:'Greek <em>poly</em>＝多 + <em>gonu</em>＝膝/节，茎节多而膨大',
+    morph:'最大特征：托叶鞘（ochrea）——叶基部有膜质筒状鞘包着茎节。茎节膨大。花小，萼片花瓣状。瘦果三棱形。',
+    members:'荞麦、大黄、酸模、虎杖',
+  },
+  {
+    zh:'木犀科', en:'Oleaceae', cat:'trail', color:'#059669',
+    zhOrigin:'木犀＝桂花（桂花旧称木犀）',
+    genus:'Olea 橄榄属',
+    etym:'Latin <em>olea</em>＝橄榄树',
+    morph:'木本。叶对生。花4瓣合生或离生，花冠管明显。果实类型多样。Lilac 和 ash tree 在 Ontario 居民区和 trail 边都极常见。',
+    members:'橄榄、丁香花（lilac）、白蜡树（ash）、连翘、茉莉',
+  },
+  {
+    zh:'天南星科', en:'Araceae', cat:'trail', color:'#059669',
+    zhOrigin:'天南星＝一种有毒块茎植物',
+    genus:'Arum 疆南星属',
+    etym:'Greek <em>aron</em>＝一种根茎植物的古名',
+    morph:'肉穗花序（棒状）＋佛焰苞（大型苞片包裹）是标志组合。叶常大，网状脉。很多种有草酸钙针晶，生吃扎嘴。Ontario 林地春天的 Jack-in-the-pulpit 很好认。',
+    members:'马蹄莲、龟背竹、绿萝、芋头、Jack-in-the-pulpit',
+  },
+  {
+    zh:'凤仙花科', en:'Balsaminaceae', cat:'trail', color:'#059669',
+    zhOrigin:'凤仙花＝指甲花，花形似凤',
+    genus:'Impatiens 凤仙花属',
+    etym:'Latin <em>impatiens</em>＝不耐烦的，果实一碰就炸裂弹射种子',
+    morph:'肉质草本，茎半透明多汁。花左右对称有距。果实一碰就弹射（touch-me-not）。Jewelweed 在 Ontario 溪边极常见，橙黄色小花。叶疏水。民间用来缓解 poison ivy。',
+    members:'凤仙花、非洲凤仙、jewelweed',
+  },
+];
+
+// ═══ State ═══
+let currentTab = 'all';
+let currentSearch = '';
+
+// ═══ Filter logic ═══
+function getFiltered() {
+  return DATA.filter(f => {
+    if (currentTab !== 'all' && f.cat !== currentTab) return false;
+    if (!currentSearch) return true;
+    const s = currentSearch.toLowerCase();
+    const haystack = [f.zh, f.en, f.alt||'', f.genus, f.zhOrigin, f.etym, f.altEtym||'', f.morph, f.members].join(' ').toLowerCase();
+    return haystack.includes(s);
+  });
+}
+
+// ═══ Card builder ═══
+function buildCard(f, idx) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.cat = f.cat;
+
+  const catColor = CAT_COLORS[f.cat] || '#888';
+  const catLabels = {core:'主要大科', food:'吃货相关', garden:'花园常见', tree:'乔木为主', trail:'徒步常见'};
+
+  let altH = f.alt ? `<span class="alt-latin">(${f.alt})</span>` : '';
+  let altEtymH = f.altEtym ? `<div class="info-row" style="margin-top:4px;opacity:.8">↳ 保留名: ${f.altEtym}</div>` : '';
+
+  card.innerHTML = `
+    <div class="stripe" style="background:${catColor}"></div>
+    <div class="card-top">
+      <span class="cat-pill" style="background:${catColor}">${catLabels[f.cat]}</span>
+      <span class="name-zh">${f.zh}</span>
+      <span class="name-en">${f.en}</span>${altH}
+      <div class="etym-block">
+        <span class="info-label">中文名源</span>
+        ${f.zhOrigin}
+      </div>
+      <div style="margin-top:8px">
+        <span class="info-label">模式属</span>
+        <span class="genus-badge">${f.genus}</span>
+      </div>
+      <div class="info-row" style="margin-top:8px">
+        <span class="info-label">拉丁词源</span>
+        ${f.etym}
+      </div>
+      ${altEtymH}
+      <div class="members-row">
+        <span class="info-label">你认识的成员</span>
+        ${f.members}
+      </div>
+    </div>
+    <div class="accord-section">
+      <button class="accord-btn" onclick="toggleAccord(this, 'morph-${idx}')">
+        <span class="arr">▶</span>🔍 野外怎么认
+      </button>
+      <div class="accord-body" id="morph-${idx}">
+        <div class="morph-block">${f.morph}</div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function toggleAccord(btn, id) {
+  const body = document.getElementById(id);
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  // relayout after opening
+  setTimeout(() => relayout(), 30);
+  setTimeout(() => relayout(), 300);
+}
+
+// ═══ Render ═══
+const grid = document.getElementById('grid');
+const noResults = document.getElementById('no-results');
+
+function render() {
+  const items = getFiltered();
+  grid.innerHTML = '';
+  noResults.style.display = items.length ? 'none' : 'block';
+  items.forEach((f, i) => {
+    const card = buildCard(f, i);
+    grid.appendChild(card);
+  });
+  // staggered layout
+  requestAnimationFrame(() => relayout());
+}
+
+// ═══ Masonry layout (same logic as sugars.html) ═══
+let _laying = false;
+function relayout() {
+  if (_laying) return;
+  _laying = true;
+  const cards = [...grid.querySelectorAll(':scope > .card')];
+  if (!cards.length) { grid.style.height = '0px'; _laying = false; return; }
+  const isMobile = window.innerWidth <= 640;
+  const cols = isMobile ? 1 : 2;
+  const gap = 18;
+  const colW = (grid.offsetWidth - (cols - 1) * gap) / cols;
+  const colH = Array(cols).fill(0);
+
+  cards.forEach(card => {
+    card.style.width = colW + 'px';
+    const col = colH[0] <= (colH[1] ?? Infinity) ? 0 : 1;
+    card.style.left = col * (colW + gap) + 'px';
+    card.style.top = colH[col] + 'px';
+    colH[col] += card.offsetHeight + gap;
+  });
+  grid.style.height = Math.max(...colH) + 'px';
+  _laying = false;
+}
+
+// ═══ Tab switching ═══
+function showTab(cat) {
+  currentTab = cat;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.includes(
+      {all:'全部',core:'主要',food:'吃货',garden:'花园',tree:'乔木',trail:'徒步'}[cat]
+    ));
+  });
+  render();
+}
+
+// ═══ Search ═══
+function doFilter() {
+  currentSearch = document.getElementById('search').value.trim();
+  render();
+}
+
+// ═══ Resize ═══
+window.addEventListener('resize', relayout);
+
+// ═══ ResizeObserver for accordion open/close (debounced to avoid loop) ═══
+let _roTimer = null;
+const ro = new ResizeObserver(() => {
+  if (_roTimer) cancelAnimationFrame(_roTimer);
+  _roTimer = requestAnimationFrame(() => { _roTimer = null; relayout(); });
+});
+new MutationObserver(mutations => {
+  mutations.forEach(m => m.addedNodes.forEach(n => {
+    if (n.classList && n.classList.contains('card')) ro.observe(n);
+  }));
+}).observe(grid, { childList: true });
+
+// ═══ Init ═══
+render();
+</script>
+</body>
+</html>
