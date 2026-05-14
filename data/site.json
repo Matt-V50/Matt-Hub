@@ -32,6 +32,14 @@
     "pinned": false
   },
   {
+    "name": "植物科速查 · Plant Family Field Guide",
+    "url": "pages/plant_families.html",
+    "icon": "🌿",
+    "desc": "常见植物科速查 — 中文名源、拉丁词源、模式属、野外形态特征与常见物种。",
+    "tag": "参考",
+    "pinned": false
+  },
+  {
     "name": "孕期营养配比指南",
     "url": "pages/pregnancy.html",
     "icon": "🤰",
