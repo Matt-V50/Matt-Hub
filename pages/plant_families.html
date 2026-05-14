@@ -4,7 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>植物科速查 · Plant Family Field Guide</title>
-<meta name="description" content="常见植物科速查 — 中文名源、拉丁词源、模式属、野外形态特征与常见物种。"/>
+<meta name="keywords" content="植物科,植物分类,模式属,词源,形态学,蔷薇科,菊科,豆科,禾本科,唇形科,伞形科,茄科,十字花科,茜草科,壳斗科,忍冬科,桦木科,枫树,plant family,taxonomy,type genus,etymology,morphology,Rosaceae,Asteraceae,Fabaceae,Poaceae,Lamiaceae,Apiaceae,Solanaceae,Brassicaceae,Rubiaceae,Fagaceae,Caprifoliaceae,Betulaceae,Sapindaceae,field guide,Ontario hiking"/>
+<meta name="author" content="MattHub"/>
+<meta property="og:title" content="植物科速查 · Plant Family Field Guide"/>
+<meta property="og:description" content="40科植物的中文名源、拉丁词源、模式属、野外形态特征与常见物种 — Bilingual plant family reference with Chinese name origins, Latin etymology, type genera, field morphology."/>
+<meta property="og:type" content="website"/>
+<meta name="description" content="常见植物科速查 — 中文名源、拉丁词源、模式属、野外形态特征与常见物种。Plant family field guide — Chinese name origins, Latin etymology, type genera, field morphology and common species. Covers Asteraceae, Rosaceae, Fabaceae, Poaceae, Lamiaceae, Apiaceae, Solanaceae, Rubiaceae, Cucurbitaceae, Malvaceae, Ericaceae, Rutaceae, Fagaceae, Pinaceae, Betulaceae, Salicaceae, Sapindaceae, Caprifoliaceae, Cornaceae, Violaceae, Polygonaceae, Oleaceae, Araceae, Balsaminaceae and more."/>
 <meta name="icon" content="🌿"/>
 <meta name="tag" content="参考"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -131,27 +136,11 @@ body { font-family: 'IBM Plex Sans', sans-serif; }
   border-top: 1px solid var(--border);
 }
 
-/* Accordion — reuse sugars.html pattern */
-.accord-section { border-top: 1px solid var(--border); }
-.accord-btn {
-  width: 100%; border: none; background: var(--tag-bg);
-  padding: 7px 14px;
-  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
-  color: var(--text-dim); cursor: pointer; text-align: left;
-  display: flex; align-items: center; gap: 6px;
-  transition: background .12s, color .12s; letter-spacing: .04em;
-}
-.accord-btn:hover { background: var(--border); color: var(--text-hi); }
-.accord-btn .arr {
-  font-size: 9px; display: inline-block; transition: transform .2s;
-}
-.accord-btn.open .arr { transform: rotate(90deg); }
-.accord-body { display: none; }
-.accord-body.open { display: block; }
-.morph-block {
-  font-size: 11px; font-family: 'IBM Plex Sans', sans-serif;
-  color: var(--text); line-height: 1.75;
-  padding: 10px 14px; background: var(--tag-bg);
+/* Morph inline */
+.morph-inline {
+  font-size: 11px; color: var(--text); line-height: 1.75;
+  margin-top: 4px; padding: 8px 10px;
+  background: var(--tag-bg); border-radius: 4px;
   border-left: 3px solid var(--accent);
 }
 
@@ -590,30 +579,17 @@ function buildCard(f, idx) {
         ${f.etym}
       </div>
       ${altEtymH}
+      <div class="info-row" style="margin-top:8px">
+        <span class="info-label">🔍 野外怎么认</span>
+        <div class="morph-inline">${f.morph}</div>
+      </div>
       <div class="members-row">
         <span class="info-label">你认识的成员</span>
         ${f.members}
       </div>
     </div>
-    <div class="accord-section">
-      <button class="accord-btn" onclick="toggleAccord(this, 'morph-${idx}')">
-        <span class="arr">▶</span>🔍 野外怎么认
-      </button>
-      <div class="accord-body" id="morph-${idx}">
-        <div class="morph-block">${f.morph}</div>
-      </div>
-    </div>
   `;
   return card;
-}
-
-function toggleAccord(btn, id) {
-  const body = document.getElementById(id);
-  const open = body.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  // relayout after opening
-  setTimeout(() => relayout(), 30);
-  setTimeout(() => relayout(), 300);
 }
 
 // ═══ Render ═══
