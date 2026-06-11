@@ -450,7 +450,7 @@ function createCanvas(tabIdx){
   cvs.height = CANVAS_H * dpr;
   cvs.style.width  = CANVAS_W + 'px';
   cvs.style.height = CANVAS_H + 'px';
-  cvs.getContext('2d').scale(dpr, dpr);
+  // DPR scaling applied per-draw in drawTabCanvas/drawMetaCanvas
   cvs.className='skin-canvas';
   wrap.appendChild(cvs);
   const note=document.createElement('div');
@@ -486,9 +486,11 @@ function drawTabCanvas(tabIdx){
   if(tabIdx===3){ drawMetaCanvas(); return; }
   const cvs=canvases[tabIdx]; if(!cvs) return;
   const ctx=cvs.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
   const cfg=TAB_CANVAS[tabIdx];
   const d=dark();
-  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
 
   LZONES.forEach(lz=>{
     const layer=LAYER_DEFS.find(l=>l.id===lz.id);
@@ -654,6 +656,8 @@ function redrawAllCanvases(){
 function drawMetaCanvas(){
   const mc=canvases[3]; if(!mc) return;
   const W=CANVAS_W, mx=mc.getContext('2d'), d=dark();
+  const dpr=window.devicePixelRatio||1;
+  mx.setTransform(dpr,0,0,dpr,0,0);
   mx.clearRect(0,0,W,CANVAS_H);
 
   const cTextDim=getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim()||(d?'#555':'#aaa');
