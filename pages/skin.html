@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>皮肤百科 · Skin Encyclopedia</title>
+<meta name="description" content="皮肤各层结构与护肤成分机制参考 — 角质层砖墙模型、真皮层胶原蛋白与弹性蛋白、皮下脂肪体积支撑、视黄醇A醇渗透路径、防晒UVA/UVB穿透深度、细胞代谢更新周期、疤痕生长纹形成机制、毛周角化症鸡皮肤干预方案、屏障损伤循环、光老化机制。Skin anatomy cross-section — stratum corneum brick-and-mortar model, dermis collagen and elastin network, retinol penetration pathway, UVA vs UVB depth, cell turnover rates, stretch marks, keratosis pilaris treatment, barrier disruption cycle, photoaging."/>
+<meta name="keywords" content="皮肤结构,角质层,表皮层,真皮层,皮下脂肪,肌肉,胶原蛋白,弹性蛋白,透明质酸,神经酰胺,视黄醇,A醇,Retinol,维A酸,RAR,MMP,防晒,UVA,UVB,SPF,PA,物理防晒,化学防晒,尿囊素,烟酰胺,果酸,AHA,甘油,泛醇,细胞更新,代谢周期,疤痕,生长纹,妊娠纹,毛周角化症,鸡皮肤,乳酸,尿素,屏障损伤,TEWL,光老化,Solar Elastosis,skin structure,stratum corneum,epidermis,dermis,hypodermis,collagen,elastin,hyaluronic acid,ceramide,retinol,retinoic acid,sunscreen,keratosis pilaris,stretch marks,photoaging,barrier,cell turnover"/>
+<meta name="icon" content="🧬"/>
+<meta name="tag" content="参考"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin: 0 -48px 28px; padding: 0 48px;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: .05em;
+  padding: 9px 14px; border: none; background: transparent;
+  cursor: pointer; color: var(--text-dim);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  white-space: nowrap; transition: color .15s, border-color .15s;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-hi); }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Two-col layout ── */
+.two-col {
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 24px; align-items: start;
+}
+@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Canvas ── */
+.canvas-wrap {
+  position: sticky; top: 20px;
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.skin-canvas { display: block; width: 100%; }
+.canvas-note {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: var(--text-dim); letter-spacing: .06em; text-align: center;
+  padding: 5px 12px 7px; border-top: 1px solid var(--border);
+}
+.canvas-legend {
+  display: flex; flex-wrap: wrap; gap: 5px 10px;
+  padding: 8px 12px; border-top: 1px solid var(--border);
+  background: var(--tag-bg);
+}
+.legend-item {
+  display: flex; align-items: center; gap: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 8px;
+  color: var(--text-dim); letter-spacing: .04em;
+}
+.legend-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.legend-line-uv { width: 14px; height: 2px; background: #e05030; flex-shrink: 0; }
+.legend-line-ret { width: 14px; height: 0; border-top: 2px dashed #7c50c8; flex-shrink: 0; }
+
+/* ── Layer nav pills ── */
+.layer-nav-h { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.layer-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; transition: all .12s;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px; color: var(--text-dim);
+}
+.layer-pill:hover { border-color: var(--border-hi); color: var(--text-hi); }
+.layer-pill.active { border-color: var(--accent); color: var(--text-hi); background: var(--tag-bg); }
+.layer-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Detail / info card ── */
+.detail-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.detail-stripe { height: 3px; }
+.detail-body { padding: 16px 18px 20px; }
+.detail-title { font-size: 16px; font-weight: 500; color: var(--text-hi); margin-bottom: 2px; }
+.detail-en { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: .04em; margin-bottom: 10px; }
+.detail-desc { font-size: 12px; color: var(--text); line-height: 1.8; margin-bottom: 12px; }
+
+/* ── Etymology ── */
+.etym-block {
+  background: var(--tag-bg); border-radius: 5px;
+  padding: 10px 12px; margin-bottom: 12px;
+  border-left: 2px solid var(--border);
+}
+.etym-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .12em; color: var(--text-dim); margin-bottom: 7px; text-transform: uppercase; }
+.etym-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 4px; font-size: 11px; line-height: 1.6; }
+.etym-flag { flex-shrink: 0; font-size: 12px; margin-top: 1px; }
+.etym-text { color: var(--text); }
+.etym-text em { font-style: italic; color: var(--text-hi); }
+
+/* ── Mechanism ── */
+.mech-section { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.mech-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.mech-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 9px; }
+.mech-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.mech-inner-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: .05em; margin-bottom: 2px; }
+.mech-text { font-size: 11px; color: var(--text); line-height: 1.65; }
+.mech-text strong { color: var(--text-hi); font-weight: 500; }
+.mech-text em { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent); background: var(--tag-bg); padding: 1px 5px; border-radius: 3px; }
+.tags-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+
+/* ── Ingredient cards ── */
+.ingr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.ingr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color .15s; }
+.ingr-card:hover { border-color: var(--border-hi); }
+.ingr-stripe { height: 3px; }
+.ingr-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+.ingr-zh { font-size: 14px; font-weight: 500; color: var(--text-hi); }
+.ingr-en { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-left: 6px; letter-spacing: .03em; }
+.ingr-body { padding: 12px 14px 14px; }
+.ingr-desc { font-size: 11px; color: var(--text); line-height: 1.7; margin-bottom: 10px; }
+.target-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.target-pill { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 500; padding: 2px 7px; border-radius: 3px; color: #fff; letter-spacing: .03em; }
+
+/* ── UV ── */
+.uv-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 640px) { .uv-layout { grid-template-columns: 1fr; } }
+.uv-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.uv-card-head { padding: 9px 14px; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .06em; color: var(--text-dim); background: var(--tag-bg); }
+.uv-card-body { padding: 12px 14px 14px; }
+.uv-title { font-size: 14px; font-weight: 500; color: var(--text-hi); margin-bottom: 3px; }
+.uv-en { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: .04em; margin-bottom: 9px; }
+.uv-desc { font-size: 11px; color: var(--text); line-height: 1.7; }
+.uv-full { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin-bottom: 16px; }
+.uv-spf-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+.uv-spf-table th { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .08em; color: var(--text-dim); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); font-weight: 500; }
+.uv-spf-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+.uv-spf-table tr:last-child td { border-bottom: none; }
+
+/* ── Meta timeline ── */
+.meta-timeline { position: relative; padding-left: 24px; }
+.meta-timeline::before { content: ''; position: absolute; left: 6px; top: 6px; width: 1px; bottom: 0; background: var(--border); }
+.meta-item { position: relative; margin-bottom: 22px; }
+.meta-dot { position: absolute; left: -20px; top: 4px; width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); }
+.meta-layer-name { font-size: 13px; font-weight: 500; color: var(--text-hi); margin-bottom: 2px; }
+.meta-period { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: .04em; margin-bottom: 6px; }
+.meta-desc { font-size: 11px; color: var(--text); line-height: 1.7; margin-bottom: 7px; }
+
+/* ── Scar / KP shared ── */
+.info-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.info-block-head { padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--tag-bg); font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .1em; color: var(--text-dim); text-transform: uppercase; }
+.info-block-body { padding: 14px 16px; }
+
+/* ── Caution box ── */
+.caution-box { font-size: 10px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; line-height: 1.6; padding: 7px 10px; background: var(--tag-bg); border-radius: 4px; border-left: 2px solid var(--border); }
+
+.sec-intro { font-size: 12px; color: var(--text-dim); line-height: 1.8; margin-bottom: 20px; max-width: 700px; }
+
+/* ── Highlight pulse on canvas ── */
+@keyframes layer-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">Skin Encyclopedia</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:6px;">
+  皮肤<span style="color:var(--accent)">百科</span>
+</h1>
+<p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:28px;">
+  STRUCTURE · INGREDIENTS · UV · TURNOVER · SCARS · KERATOSIS PILARIS · AGING · BARRIER
+</p>
+
+<div class="tabs" id="tabs-bar">
+  <button class="tab active"  onclick="showTab(0)">🧬 皮肤结构</button>
+  <button class="tab"         onclick="showTab(1)">🧴 护肤成分</button>
+  <button class="tab"         onclick="showTab(2)">☀️ 防晒原理</button>
+  <button class="tab"         onclick="showTab(3)">🔄 代谢周期</button>
+  <button class="tab"         onclick="showTab(4)">🩹 疤痕 & 生长纹</button>
+  <button class="tab"         onclick="showTab(5)">🐔 毛周角化症</button>
+  <button class="tab"         onclick="showTab(6)">⏳ 光老化</button>
+  <button class="tab"         onclick="showTab(7)">🛡️ 屏障损伤循环</button>
+</div>
+
+<!-- ══ Tab 0: Structure ══ -->
+<div class="panel active" id="panel-0">
+  <p class="sec-intro">点击截面图或标签切换层，查看结构组成、词源与作用机制。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-0"></div></div>
+    <div>
+      <div class="layer-nav-h" id="layer-nav"></div>
+      <div class="detail-card"><div class="detail-stripe" id="detail-stripe"></div><div class="detail-body" id="detail-body"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Tab 1: Ingredients ══ -->
+<div class="panel" id="panel-1">
+  <p class="sec-intro">护肤成分按作用靶层分类。截面图高亮该成分能到达的层。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-1"></div></div>
+    <div><div class="ingr-grid" id="ingr-grid"></div></div>
+  </div>
+</div>
+
+<!-- ══ Tab 2: UV ══ -->
+<div class="panel" id="panel-2">
+  <p class="sec-intro">UVB 灼伤表皮，UVA 穿透至真皮层导致光老化。截面图显示两者的穿透深度差异。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-2"></div></div>
+    <div><div id="uv-content"></div></div>
+  </div>
+</div>
+
+<!-- ══ Tab 3: Turnover ══ -->
+<div class="panel" id="panel-3">
+  <p class="sec-intro">各层细胞更新速度差异巨大。越深的层更新越慢，干预窗口越窄。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-3"></div></div>
+    <div id="meta-content"></div>
+  </div>
+</div>
+
+<!-- ══ Tab 4: Scars ══ -->
+<div class="panel" id="panel-4">
+  <p class="sec-intro">疤痕和生长纹都是真皮层损伤的结果，但类型和干预方案不同。截面图高亮真皮层为主要受损区域。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-4"></div></div>
+    <div><div id="scar-content"></div></div>
+  </div>
+</div>
+
+<!-- ══ Tab 5: KP ══ -->
+<div class="panel" id="panel-5">
+  <p class="sec-intro">毛周角化症（鸡皮肤）是角质层和表皮层的问题，与真皮无关。截面图高亮角质层和表皮层。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-5"></div></div>
+    <div><div id="kp-content"></div></div>
+  </div>
+</div>
+
+<!-- ══ Tab 6: Photoaging ══ -->
+<div class="panel" id="panel-6">
+  <p class="sec-intro">光老化是长年累积的 UVA 真皮损伤，与自然老化叠加，是皮肤松弛、皱纹、色斑的主要成因之一。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-6"></div></div>
+    <div><div id="photoaging-content"></div></div>
+  </div>
+</div>
+
+<!-- ══ Tab 7: Barrier ══ -->
+<div class="panel" id="panel-7">
+  <p class="sec-intro">屏障损伤形成正反馈循环：损伤 → 水分流失 → 炎症 → 进一步损伤。截面图高亮角质层和表皮层。</p>
+  <div class="two-col">
+    <div><div class="canvas-wrap" id="cw-7"></div></div>
+    <div><div id="barrier-content"></div></div>
+  </div>
+</div>
+
+</div><!-- /.container -->
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// CONSTANTS & DATA
+// ══════════════════════════════════════════════════════════════════════════════
+const F={PIE:'🌍',grc:'🇬🇷',la:'🇮🇹',ar:'🇸🇦',fr:'🇫🇷',de:'🇩🇪',en:'🇬🇧'};
+
+const LAYER_DEFS=[
+  {id:'stratum',  zh:'角质层', en:'Stratum Corneum', color:'#c8882a', lightFill:'rgba(200,136,42,0.15)',
+   etym:[{flag:F.la,text:'<em>stratum</em> "铺开的层"（< <em>sternere</em> 铺展）'},{flag:F.la,text:'+ <em>corneum</em> "角质的"（< <em>cornu</em> 角；同根词：cornea 角膜、unicorn、corn 鸡眼）'}],
+   desc:'15–20 层扁平死亡角质细胞堆叠，细胞间充填神经酰胺/胆固醇/脂肪酸"砂浆"，形成砖墙模型。是身体乳与绝大多数外用成分的最终作用位置。',
+   mechs:[{icon:'🧱',label:'砖墙结构',text:'<strong>砖块</strong>（角质细胞）+ <strong>砂浆</strong>（细胞间脂质）阻挡 TEWL 与外来物质。'},{icon:'💧',label:'三类保湿剂',text:'<em>封闭剂</em>表面成膜；<em>吸湿剂</em>吸引水分；<em>润肤剂</em>填充脂质间隙。'},{icon:'⚠️',label:'A醇使其变薄',text:'A醇加速角质脱落，角质层变薄 → 光敏性↑ → 白天必须防晒。'}],
+   tags:['TEWL','砖墙模型','神经酰胺','封闭剂','吸湿剂']},
+  {id:'epidermis', zh:'表皮层', en:'Epidermis', color:'#b05030', lightFill:'rgba(176,80,48,0.13)',
+   etym:[{flag:F.PIE,text:'PIE <em>*h₁epi</em> "在…上面"（cf. epitaph, episode）'},{flag:F.grc,text:'+ <em>derma</em>（δέρμα）"皮肤"（< <em>derein</em> 剥皮；同根词：taxidermy 标本术）'}],
+   desc:'有核活细胞层，0.05–1.5 mm。基底层角质形成细胞分裂后向上迁移约28天，逐步分化为角质细胞。含黑色素细胞和朗格汉斯细胞。',
+   mechs:[{icon:'🔄',label:'细胞更新',text:'基底层 → 角质层约 <strong>28 天</strong>一周期，随年龄延长至 45–60 天。'},{icon:'🌑',label:'色素屏障',text:'UV 刺激黑色素细胞产生<strong>黑色素</strong>，转运给角质形成细胞形成"核伞"保护 DNA。'},{icon:'🚫',label:'渗透屏障',text:'大多数成分在此被阻截。A醇（脂溶性，~286 Da）是少数能穿越至真皮的外用成分。'}],
+   tags:['角质形成细胞','黑色素细胞','28天周期','朗格汉斯细胞']},
+  {id:'dermis', zh:'真皮层', en:'Dermis', color:'#b03050', lightFill:'rgba(176,48,80,0.12)',
+   etym:[{flag:F.grc,text:'<em>derma</em>（δέρμα）"皮肤"；词根见于 dermatology、hypodermic（皮下注射）'},{flag:F.PIE,text:'< PIE <em>*der-</em> "剥、撕裂"；同源词：tear、turd'}],
+   desc:'1–4 mm，皮肤紧致度的核心。成纤维细胞合成I型+III型胶原和弹性蛋白网络，透明质酸提供水合支撑。血管、淋巴管、神经末梢穿行其中。',
+   mechs:[{icon:'🕸️',label:'胶原蛋白',text:'占真皮干重 ~70%。<strong>I型</strong>抗拉强度，<strong>III型</strong>弹性。减脂松弛 = 皮下支撑消失 + 胶原网络松弛重组。'},{icon:'🔀',label:'弹性蛋白',text:'占 2–4%，决定<strong>回弹能力</strong>。快速牵拉导致断裂 → 疤痕组织 = 生长纹，几乎不可逆。'},{icon:'✨',label:'A醇靶点',text:'A醇 → 维A酸 → 结合 <em>RAR/RXR</em> → <strong>上调胶原基因</strong> + 抑制 <em>MMP</em>。唯一有大量临床证据的外用真皮改善成分。'}],
+   tags:['I型胶原','III型胶原','弹性蛋白','成纤维细胞','RAR/RXR','MMP']},
+  {id:'fat', zh:'皮下脂肪层', en:'Hypodermis', color:'#a07820', lightFill:'rgba(160,120,32,0.13)',
+   etym:[{flag:F.grc,text:'<em>hypo-</em>（ὑπο）"在…下方" + <em>derma</em> "皮肤"'},{flag:F.la,text:'别称 <em>tela subcutanea</em>（sub- 下方 + <em>cutis</em> 皮；同根词：cuticle、subcutaneous）'}],
+   desc:'脂肪细胞聚集成脂肪小叶，被纤维间隔分隔。功能：隔热、储能、缓冲，以及为真皮提供体积支撑。这层减少是减脂松弛最直接的机械原因。',
+   mechs:[{icon:'📦',label:'体积支撑',text:'脂肪减少 → 皮下体积缩小 → 真皮失去支撑 → 皮肤相对多余 → 松弛。与真皮损伤<strong>叠加</strong>。'},{icon:'💪',label:'肌肉补偿',text:'肌肉在更深处，但增大体积可<strong>重新撑起皮下空间</strong>。效果受限于增肌速度远慢于减脂。'}],
+   tags:['脂肪细胞','体积支撑','减脂速度','体成分']},
+  {id:'muscle', zh:'肌肉层', en:'Muscle', color:'#3a7a3a', lightFill:'rgba(58,122,58,0.12)',
+   etym:[{flag:F.la,text:'<em>musculus</em> "小老鼠" — 肌肉收缩时皮下轮廓像小鼠移动'},{flag:F.PIE,text:'< PIE <em>*mūs</em> "老鼠/肌肉"；同源词：mouse、Maus（德）、mussel（贻贝）'}],
+   desc:'骨骼肌由肌纤维束组成。在皮肤松弛语境中，价值是提供底层体积支撑。力量训练引发肌肥大可从底层向上撑起整体轮廓。',
+   mechs:[{icon:'🏋️',label:'肌肥大',text:'抗阻训练 → 微损伤 → 卫星细胞修复 → 横截面积增大。需：<strong>≥1.6 g/kg/天</strong>蛋白质 + 渐进超负荷 + 充分恢复。'},{icon:'🎾',label:'羽毛球局限',text:'有氧为主，机械张力不足触发显著肌肥大。主要<strong>维持</strong>现有肌肉量，无法增加体积补偿。'}],
+   tags:['肌肥大','卫星细胞','渐进超负荷','蛋白质']},
+];
+
+// Per-tab canvas config: which layers are highlighted, and what overlays to show
+// highlightIds: layers with full opacity; others are dimmed
+// overlays: 'retinol','uv','scar','kp','photoaging','barrier'
+const TAB_CANVAS=[
+  {highlightIds:null,            overlays:['retinol','uv'],           note:'CLICK ANY LAYER TO INSPECT'},
+  {highlightIds:null,            overlays:['retinol'],                note:'INGREDIENT PENETRATION DEPTH'},
+  {highlightIds:['stratum','epidermis','dermis'], overlays:['uv'],   note:'UV PENETRATION DEPTH'},
+  {highlightIds:null,            overlays:[],                         note:'CELL TURNOVER BY LAYER — HOVER TO EXPLORE'},
+  {highlightIds:['dermis','fat'],overlays:['scar'],                   note:'SCAR FORMATION ZONE'},
+  {highlightIds:['stratum','epidermis'], overlays:['kp'],             note:'KERATOSIS PILARIS ZONE'},
+  {highlightIds:['dermis','epidermis','stratum'], overlays:['uv','photoaging'], note:'PHOTOAGING TARGET LAYERS'},
+  {highlightIds:['stratum','epidermis'], overlays:['barrier'],        note:'BARRIER DISRUPTION CYCLE'},
+];
+
+// ══ Ingredients ══
+const INGR_CATEGORIES={
+  moisturizer:{label:'角质层保湿',color:'#c8882a'},
+  dermis:{label:'真皮层修复',color:'#b03050'},
+  scar:{label:'疤痕/色沉',color:'#6050b0'},
+  barrier:{label:'屏障修复',color:'#3a7a3a'},
+};
+const INGREDIENTS=[
+  {zh:'视黄醇 / A醇',en:'Retinol',category:'dermis',
+   etym:[{flag:F.la,text:'<em>rete</em> "网" — 最初在视网膜（retina）中发现'},{flag:F.la,text:'+ <em>-ol</em>（醇，< <em>oleum</em> 油）'},{flag:F.de,text:'McCollum（1913）发现维生素 A；视黄醇需在皮肤内氧化为<em>视黄酸</em>才有活性'}],
+   desc:'外用成分中证据最强的真皮修复成分。脂溶性，穿透表皮后被酶氧化为维A酸，结合成纤维细胞核受体，上调胶原合成并抑制胶原酶（MMP）。',
+   mechs:[{icon:'🔬',label:'转化链',text:'视黄醇 → <em>视黄醛</em> → <em>维A酸</em> → 结合 <strong>RAR/RXR</strong> → 激活胶原合成基因'},{icon:'⚡',label:'表皮效果',text:'加速角质层更新，改善暗沉、色沉，淡化细纹。初用 4–6 周出现脱皮/泛红（适应期），属正常。'},{icon:'🌙',label:'使用规则',text:'<strong>只在晚上用</strong>。白天防晒。从低浓度（0.1–0.3%）开始逐步适应。'}],
+   targets:['dermis','epidermis','stratum'],tags:['RAR/RXR','MMP抑制','胶原合成','光敏性']},
+  {zh:'神经酰胺',en:'Ceramide',category:'barrier',
+   etym:[{flag:F.la,text:'<em>cera</em> "蜡"（描述其蜡状脂质质地；同根词：cerumen 耳蜡）'},{flag:F.la,text:'+ <em>-amide</em>（酰胺）；1947 年命名，1980s 确认为皮肤屏障核心成分'}],
+   desc:'角质层细胞间脂质的核心，占脂质总量 ~50%。在角质细胞间形成多层板层结构（lamellar bodies），是皮肤屏障"砂浆"最关键成分。',
+   mechs:[{icon:'🧱',label:'屏障功能',text:'多层板层结构阻挡 TEWL。湿疹患者神经酰胺比例异常，屏障破坏是<strong>核心病因</strong>而非结果。'},{icon:'📊',label:'配比很重要',text:'神经酰胺：胆固醇：脂肪酸 = <strong>3:1:1</strong>（摩尔比）时屏障修复效率最佳。'}],
+   targets:['stratum'],tags:['板层结构','TEWL','湿疹','脂质双层','3:1:1']},
+  {zh:'透明质酸',en:'Hyaluronic Acid',category:'moisturizer',
+   etym:[{flag:F.grc,text:'<em>hyalos</em>（ὕαλος）"玻璃、透明" — 最初从眼球玻璃体中提取'},{flag:F.la,text:'+ <em>uronic acid</em>（糖醛酸）；Meyer & Palmer（1934）首次命名'}],
+   desc:'天然多糖，每个分子可结合约自身重量 6 倍的水分（常见"1000倍"说法是按水凝胶体积计算的夸大版本，实际按重量约为 6 倍）。外用作为吸湿剂，效果受分子量影响。医美玻尿酸填充即直接注射到真皮补充此成分。',
+   mechs:[{icon:'📏',label:'分子量效应',text:'<strong>大分子</strong>（>500 kDa）角质层表面成膜；<strong>小分子</strong>（<10 kDa）渗入表皮；低湿度下强吸湿剂可能从真皮抽水，须配合封闭剂。'}],
+   targets:['dermis','epidermis','stratum'],tags:['多糖','吸湿剂','分子量','玻尿酸']},
+  {zh:'尿囊素',en:'Allantoin',category:'scar',
+   etym:[{flag:F.grc,text:'<em>allantoeides</em>（ἀλλαντοειδής）"香肠状的" — 尿囊（allantois）是胚胎储存废物的囊状器官'},{flag:F.la,text:'Liebig（1837）从尿囊液中分离；大量存在于聚合草（comfrey）根部'}],
+   desc:'小分子嘌呤衍生物（MW 158 Da），水溶性。促进角质层桥粒（desmosome）水解加速死皮脱落，轻度刺激细胞增殖加速愈合。是果酸的温和替代。',
+   mechs:[{icon:'🔓',label:'角质溶解',text:'水解<strong>桥粒蛋白</strong>连接，死皮更易脱落。比果酸（AHA）温和得多，适合敏感肌和孕期。'},{icon:'🩹',label:'色沉',text:'加速含色素角质细胞脱落，对<strong>浅层色沉</strong>有效，无法渗透至真皮疤痕。'}],
+   targets:['stratum','epidermis'],tags:['桥粒蛋白','角质溶解','浅层色沉','聚合草']},
+  {zh:'烟酰胺',en:'Niacinamide',category:'scar',
+   etym:[{flag:F.en,text:'"niacin" 是 <em>ni</em>cotinic <em>ac</em>id + vit<em>amin</em> 的缩写 — 故意创造以区别于烟草碱（nicotine）'},{flag:F.la,text:'+ <em>-amide</em>（酰胺）；维生素 B3 的酰胺形式，1937 年命名'}],
+   desc:'维生素 B3 的酰胺形式，水溶性。抑制黑色素向角质细胞转运（美白）、增强神经酰胺合成（屏障）、缩小毛孔、改善皮脂。A醇适应期的最佳搭档。',
+   mechs:[{icon:'⚪',label:'美白机制',text:'抑制黑色素小体<strong>转运</strong>（而非抑制合成）。对预防新色沉效果好，对已有深层色沉有限。'},{icon:'🛡️',label:'屏障增强',text:'上调丝聚蛋白（filaggrin）和神经酰胺合成。最佳浓度 <strong>2–5%</strong>。'}],
+   targets:['stratum','epidermis'],tags:['NAD+','黑色素转运','丝聚蛋白','B3']},
+  {zh:'果酸（AHA）',en:'Alpha Hydroxy Acid',category:'scar',
+   etym:[{flag:F.grc,text:'<em>alpha</em>（α）指羟基在碳链的 α 位（距羧基最近）'},{flag:F.la,text:'代表成员：乳酸（<em>lactic</em>，乳 lac-）、甘醇酸（<em>glycolic</em>，甜 glyco-）、苹果酸（<em>malic</em>，苹果 malum）'}],
+   desc:'含 α-羟基的有机弱酸，降低皮肤 pH 后激活天然脱落酶（kallikrein），溶解角质细胞间桥粒连接。常用浓度 5–10%，使用后必须防晒。',
+   mechs:[{icon:'🧪',label:'酸性溶解',text:'AHA → 降低 pH → 激活 <strong>kallikrein</strong> → 水解桥粒 → 死皮脱落加速。甘醇酸（76 Da）渗透最深但刺激性最大。'},{icon:'🌡️',label:'真皮刺激',text:'高浓度（>15%，果酸换肤）可触发真皮轻度炎症激活胶原合成；日常浓度（5–10%）作用仍在角质层。'}],
+   targets:['stratum','epidermis'],tags:['桥粒溶解','kallikrein','甘醇酸','乳酸']},
+  {zh:'甘油（丙三醇）',en:'Glycerin',category:'moisturizer',
+   etym:[{flag:F.grc,text:'<em>glykys</em>（γλυκύς）"甜" — 同根词：glucose、glycogen、glycerol'},{flag:F.fr,text:'Scheele（1779）皂化橄榄油时发现，命名 <em>glycerine</em>；最常用、性价比最高的吸湿剂'}],
+   desc:'最经典的吸湿剂，含 3 个羟基可与水分子形成大量氢键。无刺激性，价格极低，几乎所有身体乳的基础成分。浓度 >30% 反而因渗透压差异脱水。',
+   mechs:[{icon:'🧲',label:'吸湿原理',text:'3 个羟基通过氢键结合水分子，使角质层<strong>含水量维持 10–30%</strong>（低于 10% 出现干裂）。'}],
+   targets:['stratum'],tags:['吸湿剂','氢键','渗透压','保水']},
+  {zh:'泛醇（维生素B5）',en:'Panthenol',category:'barrier',
+   etym:[{flag:F.grc,text:'<em>pantos</em>（παντός）"无处不在的" — 泛酸在自然界普遍存在，所有生物都需要它'},{flag:F.grc,text:'+ <em>-ol</em>（醇）：泛酸的醇式前体，进入皮肤后被氧化为泛酸，再合成辅酶A（CoA）'}],
+   desc:'维生素 B5 的醇式前体。促进表皮愈合、减少炎症、轻度保湿。刺激性最低的修复成分之一，A醇适应期 + 神经酰胺的搭档。',
+   mechs:[{icon:'🔧',label:'促修复',text:'增加角质形成细胞增殖，加速表皮<strong>创伤愈合</strong>。适合晒后、微针术后、A醇适应期修复。'}],
+   targets:['stratum','epidermis'],tags:['辅酶A','泛酸','促愈合','B5']},
+];
+
+const UV_TYPES=[
+  {type:'UVB',range:'280–315 nm',depth:'角质层 + 表皮层',color:'#e05030',
+   desc:'能量高，主要被角质层和表皮层吸收，造成 DNA 直接损伤（嘧啶二聚体），引发晒红（红斑反应）。是皮肤癌主要诱因之一。强度随纬度、季节、时间变化大。',
+   etym:'<em>B</em> = "Burning"（灼伤）— UVB 是晒伤的主因。SPF 专门衡量对 UVB 的防护。'},
+  {type:'UVA',range:'315–400 nm',depth:'穿透至真皮层',color:'#8060c0',
+   desc:'波长更长，穿透表皮直达真皮，破坏胶原蛋白和弹性蛋白，是光老化（皱纹、松弛）的主因。强度全年全天相对稳定，可穿透云层和玻璃，占到达地表紫外线约 95%。',
+   etym:'<em>A</em> = "Aging"（老化）— UVA 主导光老化过程。PA（+ 至 ++++）衡量对 UVA 的防护。'},
+];
+const SUNSCREEN_TYPES=[
+  {type:'物理防晒',en:'Mineral',ingredients:'氧化锌（ZnO）、二氧化钛（TiO₂）',color:'#3a7a3a',
+   mechanism:'表面形成矿物颗粒层，通过<strong>散射和反射</strong>偏转紫外线，不被皮肤吸收。',
+   pros:['起效即时，无需等待','孕妇、敏感肌首选','同时防 UVA 和 UVB 全谱'],
+   cons:['白色残留（白霜）','质地偏厚重'],
+   note:'纳米化处理可减少白霜，但关于纳米颗粒渗透性的安全讨论仍在进行中。'},
+  {type:'化学防晒',en:'Chemical',ingredients:'阿伏苯宗、奥克立林、甲氧基肉桂酸乙基己酯等',color:'#2060b0',
+   mechanism:'防晒剂分子<strong>吸收紫外线光子</strong>后转化为热能释放，自身逐渐降解。',
+   pros:['质地轻薄透明，肤感好','易于均匀涂抹'],
+   cons:['需涂后 15–20 分钟才起效','阿伏苯宗不稳定，需复配','少数人过敏'],
+   note:'阿伏苯宗（Avobenzone）是少数能防全谱 UVA 的化学成分，需与奥克立林等稳定剂复配。'},
+];
+const SPF_TABLE=[
+  {spf:'SPF 15',block_uvb:'93.3%',transmit:'6.7%',mins:'150 分钟'},
+  {spf:'SPF 30',block_uvb:'96.7%',transmit:'3.3%',mins:'300 分钟'},
+  {spf:'SPF 50',block_uvb:'98.0%',transmit:'2.0%',mins:'500 分钟'},
+  {spf:'SPF 50+',block_uvb:'>98%',transmit:'<2%',mins:'理论 >500 分钟'},
+];
+
+const META_LAYERS=[
+  {id:'stratum',period:'14–28 天（脱落更新）',bar:0.03,
+   desc:'最外层细胞通过摩擦和角质溶解酶（kallikrein）持续脱落。A醇、果酸加速此过程，但过度去角质会破坏屏障。',
+   accelerators:['A醇 Retinol','果酸 AHA','尿囊素 Allantoin','水杨酸 BHA'],
+   caution:'去角质频率：敏感肌 ≤1次/周，正常肌 2–3次/周。过频 → TEWL升高 → 皮肤泛红敏感。'},
+  {id:'epidermis',period:'约 28 天（完整周期）',bar:0.04,
+   desc:'基底层角质形成细胞分裂后，约 14 天迁移到颗粒层，再经 14 天分化为无核角质细胞。更新周期随年龄延长至 45–60 天。',
+   accelerators:['A醇（刺激分裂速度）','维A酸（处方级）','化学换肤'],
+   caution:'过快更新 = 新生角质层未成熟 = 屏障更脆弱。换肤后 3–5 天特别敏感是这个原因。'},
+  {id:'dermis',period:'1–2 年（胶原重塑）',bar:1.0,
+   desc:'胶原蛋白半衰期约 15 年，但持续被 MMP 降解再合成，从 25 岁起每年净减少约 1%。弹性蛋白几乎不可逆。',
+   accelerators:['A醇（↑胶原合成，↓MMP）','维生素C（胶原合成辅因子）','射频/微针','充足蛋白质摄入'],
+   caution:'真皮代谢极慢。减脂后松弛自然恢复需 12–24 个月，无法大幅加速（医美可缩短但不能跳过）。'},
+  {id:'fat',period:'数月（脂质代谢）',bar:0.17,
+   desc:'脂肪细胞寿命约 10 年（数量相对稳定），细胞内甘油三酯持续脂解/重合成。减脂时脂肪细胞萎缩而非消失。',
+   accelerators:['热量缺口（促进脂解）','有氧+抗阻训练（提升代谢率）'],
+   caution:'减脂速度 >1%体重/周时，皮肤回弹速度不足，松弛风险大幅上升。节奏越慢皮肤状态越好。'},
+  {id:'muscle',period:'1–2 周（蛋白质合成周期）',bar:0.014,
+   desc:'肌肉蛋白持续合成（MPS）与分解（MPB）动态平衡。一次力量训练后 MPS 升高持续 24–48 小时。真正可见的肌肥大需要数月一致训练。',
+   accelerators:['抗阻训练（渐进超负荷）','充足蛋白质 ≥1.6g/kg/天','充分恢复 48–72h','充足总热量'],
+   caution:'减脂期热量缺口 + 蛋白质不足 → 肌肉分解 → 体积补偿丧失。减脂期蛋白质 ≥1.6g/kg/天是底线。'},
+];
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CANVAS RENDERING
+// ══════════════════════════════════════════════════════════════════════════════
+const CANVAS_W=260, CANVAS_H=500;
+const LZONES=[
+  {id:'stratum',  y:0,   h:65 },
+  {id:'epidermis',y:65,  h:65 },
+  {id:'dermis',   y:130, h:160},
+  {id:'fat',      y:290, h:115},
+  {id:'muscle',   y:405, h:95 },
+];
+
+// tab0: which layer is selected for detail view
+let activeStructLayer='dermis';
+// per-tab canvases
+const canvases={};
+
+function dark(){return document.documentElement.getAttribute('data-theme')==='dark';}
+
+function createCanvas(tabIdx){
+  const wrap=document.getElementById('cw-'+tabIdx);
+  if(!wrap||canvases[tabIdx]) return;
+  wrap.innerHTML='';
+  const cvs=document.createElement('canvas');
+  // Tab 3: full-width, tall enough for all 5 overlay rows
+  cvs.width=CANVAS_W; cvs.height=CANVAS_H;
+  cvs.className='skin-canvas';
+  wrap.appendChild(cvs);
+  const note=document.createElement('div');
+  note.className='canvas-note';
+  note.textContent=TAB_CANVAS[tabIdx].note;
+  wrap.appendChild(note);
+  if(tabIdx===0||tabIdx===2||tabIdx===6){
+    const leg=document.createElement('div');
+    leg.className='canvas-legend';
+    leg.innerHTML=`
+      <div class="legend-item"><div class="legend-line-ret"></div>A醇渗透</div>
+      <div class="legend-item"><div class="legend-line-uv"></div>UV路径</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#b03050"></div>真皮层</div>
+    `;
+    wrap.appendChild(leg);
+  }
+  canvases[tabIdx]=cvs;
+  if(tabIdx===0){
+    cvs.addEventListener('click',e=>{
+      const r=cvs.getBoundingClientRect(),sy=CANVAS_H/r.height,y=(e.clientY-r.top)*sy;
+      const hit=LZONES.find(lz=>y>=lz.y&&y<lz.y+lz.h);
+      if(hit){activeStructLayer=hit.id;renderStructNav();renderStructDetail();drawTabCanvas(0);}
+    });
+    cvs.addEventListener('mousemove',e=>{
+      const r=cvs.getBoundingClientRect(),sy=CANVAS_H/r.height,y=(e.clientY-r.top)*sy;
+      cvs.style.cursor=LZONES.find(lz=>y>=lz.y&&y<lz.y+lz.h)?'pointer':'default';
+    });
+  }
+  drawTabCanvas(tabIdx);
+}
+
+function drawTabCanvas(tabIdx){
+  if(tabIdx===3){ drawMetaCanvas(); return; }
+  const cvs=canvases[tabIdx]; if(!cvs) return;
+  const ctx=cvs.getContext('2d');
+  const cfg=TAB_CANVAS[tabIdx];
+  const d=dark();
+  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+
+  LZONES.forEach(lz=>{
+    const layer=LAYER_DEFS.find(l=>l.id===lz.id);
+    // dimming: if highlightIds set and this layer not in it, dim it
+    const dimmed=cfg.highlightIds&&!cfg.highlightIds.includes(lz.id);
+    const isActive=tabIdx===0&&lz.id===activeStructLayer;
+    const alpha=dimmed?0.3:1.0;
+
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle=layer.lightFill; ctx.fillRect(0,lz.y,CANVAS_W,lz.h);
+    if(isActive){
+      ctx.fillStyle=d?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)'; ctx.fillRect(0,lz.y,CANVAS_W,lz.h);
+      ctx.strokeStyle=layer.color; ctx.lineWidth=1.5; ctx.strokeRect(0.75,lz.y+0.75,CANVAS_W-1.5,lz.h-1.5);
+    }
+    ctx.strokeStyle=d?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(0,lz.y+lz.h); ctx.lineTo(CANVAS_W,lz.y+lz.h); ctx.stroke();
+    if(lz.id==='stratum') drawStratum(ctx,lz,d);
+    if(lz.id==='epidermis') drawEpidermis(ctx,lz,d);
+    if(lz.id==='dermis') drawDermis(ctx,lz,d);
+    if(lz.id==='fat') drawFat(ctx,lz);
+    if(lz.id==='muscle') drawMuscle(ctx,lz);
+    const tc=isActive?layer.color:(d?'rgba(200,200,200,0.55)':'rgba(60,60,60,0.55)');
+    ctx.fillStyle=tc; ctx.font=`${isActive?'500':'400'} 11px 'IBM Plex Sans',sans-serif`;
+    ctx.fillText(layer.zh,8,lz.y+14);
+    ctx.fillStyle=d?'rgba(180,180,180,0.3)':'rgba(80,80,80,0.3)'; ctx.font='9px "IBM Plex Mono",monospace';
+    ctx.fillText(layer.en.split(/[\s/]/)[0],8,lz.y+26);
+    ctx.restore();
+  });
+
+  cfg.overlays.forEach(ov=>{
+    if(ov==='uv')         drawUVPath(ctx,d);
+    if(ov==='retinol')    drawRetinolPath(ctx,d);
+    if(ov==='scar')       drawScarMarker(ctx,d);
+    if(ov==='kp')         drawKPMarker(ctx,d);
+    if(ov==='photoaging') drawPhotoagingMarker(ctx,d);
+    if(ov==='barrier')    drawBarrierMarker(ctx,d);
+  });
+}
+
+function drawStratum(ctx,lz,d){
+  for(let r=0;r<4;r++){
+    const off=(r%2===0)?28:48,y=lz.y+8+r*14;
+    for(let x=off;x<CANVAS_W-2;x+=42){
+      ctx.beginPath(); ctx.roundRect(x,y,38,12,2);
+      ctx.fillStyle=d?'rgba(200,136,42,0.18)':'rgba(200,136,42,0.22)'; ctx.fill();
+      ctx.strokeStyle=d?'rgba(200,136,42,0.28)':'rgba(200,136,42,0.32)'; ctx.lineWidth=0.5; ctx.stroke();
+    }
+  }
+}
+function drawEpidermis(ctx,lz,d){
+  [[35,20],[75,28],[120,16],[160,27],[210,18],[35,48],[75,55],[120,44],[160,56],[210,47]].forEach(([cx,cy])=>{
+    ctx.beginPath(); ctx.ellipse(cx,lz.y+cy,7,4.5,0,0,Math.PI*2);
+    ctx.fillStyle=d?'rgba(176,80,48,0.15)':'rgba(176,80,48,0.18)'; ctx.fill();
+    ctx.strokeStyle=d?'rgba(176,80,48,0.3)':'rgba(176,80,48,0.35)'; ctx.lineWidth=0.5; ctx.stroke();
+  });
+}
+function drawDermis(ctx,lz,d){
+  [15,38,62,86,110,136,158].forEach(wy=>{
+    ctx.beginPath(); ctx.moveTo(30,lz.y+wy);
+    for(let x=30;x<=CANVAS_W;x+=2) ctx.lineTo(x,lz.y+wy+Math.sin((x-30)*0.055)*5);
+    ctx.strokeStyle=d?'rgba(190,100,50,0.22)':'rgba(190,100,50,0.32)'; ctx.lineWidth=0.7; ctx.stroke();
+  });
+  ctx.setLineDash([4,4]);
+  [75,140,205].forEach(ex=>{
+    ctx.beginPath(); ctx.moveTo(ex,lz.y+4); ctx.lineTo(ex,lz.y+lz.h-4);
+    ctx.strokeStyle=d?'rgba(150,50,30,0.28)':'rgba(150,50,30,0.38)'; ctx.lineWidth=0.7; ctx.stroke();
+  });
+  ctx.setLineDash([]);
+}
+function drawFat(ctx,lz){
+  [[28,22,12],[62,32,11],[96,20,12],[130,31,10],[164,22,12],[198,30,10],[232,20,11],
+   [30,57,11],[64,64,12],[98,52,10],[132,62,11],[166,54,12],[200,58,10],[234,54,11],
+   [28,89,11],[62,97,10],[96,84,12],[130,95,12],[164,87,10],[198,91,12],[232,83,11]].forEach(([cx,cy,r])=>{
+    ctx.beginPath(); ctx.arc(cx,lz.y+cy,r,0,Math.PI*2);
+    ctx.fillStyle='rgba(168,112,28,0.18)'; ctx.fill();
+    ctx.strokeStyle='rgba(168,112,28,0.32)'; ctx.lineWidth=0.5; ctx.stroke();
+  });
+}
+function drawMuscle(ctx,lz){
+  [12,25,38,52,66,80].forEach(my=>{
+    ctx.beginPath(); ctx.moveTo(30,lz.y+my); ctx.lineTo(CANVAS_W-2,lz.y+my);
+    ctx.strokeStyle='rgba(50,110,50,0.28)'; ctx.lineWidth=0.6; ctx.stroke();
+  });
+}
+
+function drawUVPath(ctx,d){
+  const x=CANVAS_W*0.82,C=d?[230,110,40]:[210,90,20];
+  ctx.fillStyle=`rgba(${C},0.85)`; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x-5,11); ctx.lineTo(x+5,11); ctx.closePath(); ctx.fill();
+  for(let y=0;y<130;y++){const t=y/130,op=(1-t*t)*0.45,w=1.5+t*3; ctx.fillStyle=`rgba(${C[0]},${C[1]},${C[2]},${op})`; ctx.fillRect(x-w/2,y,w,2);}
+  ctx.fillStyle=`rgba(${C[0]},${C[1]},${C[2]},0.75)`; ctx.font='500 8px "IBM Plex Mono",monospace'; ctx.fillText('UV',x-7,10);
+  ctx.strokeStyle=`rgba(${C[0]},${C[1]},${C[2]},0.6)`; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x-10,128); ctx.lineTo(x+10,128); ctx.stroke();
+}
+function drawRetinolPath(ctx,d){
+  const x=CANVAS_W*0.63,P=d?[185,165,245]:[110,80,200];
+  ctx.fillStyle=`rgba(${P},0.8)`; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x-5,11); ctx.lineTo(x+5,11); ctx.closePath(); ctx.fill();
+  [[0,65,0.85],[65,130,0.65],[130,165,0.45]].forEach(([y1,y2,op])=>{
+    ctx.setLineDash([5,4]); ctx.strokeStyle=`rgba(${P[0]},${P[1]},${P[2]},${op})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x,y1+1); ctx.lineTo(x,y2-1); ctx.stroke(); ctx.setLineDash([]);
+  });
+  ctx.beginPath(); ctx.arc(x,165,6,0,Math.PI*2); ctx.fillStyle=`rgba(${P[0]},${P[1]},${P[2]},0.6)`; ctx.fill();
+  ctx.fillStyle=`rgba(${P[0]},${P[1]},${P[2]},0.8)`; ctx.font='500 8px "IBM Plex Mono",monospace'; ctx.fillText('A醇',x-11,10);
+}
+function drawScarMarker(ctx,d){
+  // Zigzag scar line in dermis
+  const y0=LZONES.find(l=>l.id==='dermis').y+60;
+  ctx.strokeStyle=d?'rgba(180,80,120,0.7)':'rgba(160,40,80,0.7)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(40,y0);
+  for(let i=0;i<8;i++) ctx.lineTo(40+i*22+(i%2===0?8:-8), y0+(i%2===0?12:-12));
+  ctx.stroke();
+  ctx.fillStyle=d?'rgba(180,80,120,0.75)':'rgba(160,40,80,0.75)'; ctx.font='500 8px "IBM Plex Mono",monospace';
+  ctx.fillText('← 疤痕/生长纹',42,y0+32);
+}
+function drawKPMarker(ctx,d){
+  // Plugged follicle dots in stratum/epidermis
+  const lz=LZONES.find(l=>l.id==='stratum');
+  [50,100,150,200].forEach(x=>{
+    ctx.beginPath(); ctx.arc(x,lz.y+lz.h-8,4,0,Math.PI*2);
+    ctx.fillStyle=d?'rgba(200,140,60,0.8)':'rgba(180,100,30,0.8)'; ctx.fill();
+    // hair shaft
+    ctx.strokeStyle=d?'rgba(200,140,60,0.5)':'rgba(180,100,30,0.5)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,lz.y+lz.h-4); ctx.lineTo(x,lz.y+lz.h+10); ctx.stroke();
+  });
+  ctx.fillStyle=d?'rgba(200,140,60,0.8)':'rgba(180,100,30,0.8)'; ctx.font='500 8px "IBM Plex Mono",monospace';
+  ctx.fillText('← 毛囊堵塞',42,lz.y+lz.h+26);
+}
+function drawPhotoagingMarker(ctx,d){
+  // Broken collagen in dermis
+  const lz=LZONES.find(l=>l.id==='dermis');
+  ctx.strokeStyle=d?'rgba(140,100,200,0.6)':'rgba(100,60,180,0.6)'; ctx.lineWidth=1;
+  ctx.setLineDash([2,3]);
+  ctx.beginPath(); ctx.moveTo(40,lz.y+40); ctx.lineTo(90,lz.y+40);
+  ctx.moveTo(100,lz.y+55); ctx.lineTo(160,lz.y+55);
+  ctx.moveTo(60,lz.y+70); ctx.lineTo(130,lz.y+70);
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=d?'rgba(140,100,200,0.75)':'rgba(100,60,180,0.75)'; ctx.font='500 8px "IBM Plex Mono",monospace';
+  ctx.fillText('← UVA断裂胶原',40,lz.y+92);
+}
+function drawBarrierMarker(ctx,d){
+  // Wavy disrupted barrier line
+  const lz=LZONES.find(l=>l.id==='stratum');
+  ctx.strokeStyle=d?'rgba(80,180,220,0.7)':'rgba(40,120,200,0.7)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(30,lz.y+lz.h-5);
+  for(let x=30;x<CANVAS_W-10;x+=3) ctx.lineTo(x,lz.y+lz.h-5+Math.sin(x*0.3)*4);
+  ctx.stroke();
+  // Water droplets escaping
+  [60,110,160,210].forEach(x=>{
+    ctx.font='10px sans-serif'; ctx.fillText('💧',x,lz.y-3);
+  });
+  ctx.fillStyle=d?'rgba(80,180,220,0.8)':'rgba(40,120,200,0.8)'; ctx.font='500 8px "IBM Plex Mono",monospace';
+  ctx.fillText('TEWL↑ 水分流失',40,lz.y-8);
+}
+
+function redrawAllCanvases(){
+  Object.keys(canvases).forEach(i=>drawTabCanvas(+i));
+}
+
+// ══ Meta canvas (tab3) — same 260px width as all other tabs ══
+// Skin texture fills full canvas (same as drawTabCanvas).
+// Each layer row has text labels drawn directly on canvas, no overlay.
+// drawMetaCanvas: same canvas size as all other tabs (CANVAS_W × CANVAS_H),
+// same LZONES, same textures — just adds period label + speed bar per layer.
+function drawMetaCanvas(){
+  const mc=canvases[3]; if(!mc) return;
+  const W=mc.width, mx=mc.getContext('2d'), d=dark();
+  mx.clearRect(0,0,W,CANVAS_H);
+
+  const cTextDim=getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim()||(d?'#555':'#aaa');
+
+  // Draw identical base as drawTabCanvas (no highlight, no overlays)
+  LZONES.forEach(lz=>{
+    const layer=LAYER_DEFS.find(l=>l.id===lz.id);
+    mx.fillStyle=layer.lightFill; mx.fillRect(0,lz.y,W,lz.h);
+    mx.strokeStyle=d?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'; mx.lineWidth=0.5;
+    mx.beginPath(); mx.moveTo(0,lz.y+lz.h); mx.lineTo(W,lz.y+lz.h); mx.stroke();
+    if(lz.id==='stratum')   drawStratum(mx,lz,d);
+    if(lz.id==='epidermis') drawEpidermis(mx,lz,d);
+    if(lz.id==='dermis')    drawDermis(mx,lz,d);
+    if(lz.id==='fat')       drawFat(mx,lz);
+    if(lz.id==='muscle')    drawMuscle(mx,lz);
+    // layer name — same as drawTabCanvas
+    mx.fillStyle=d?'rgba(200,200,200,0.55)':'rgba(60,60,60,0.55)';
+    mx.font='400 11px "IBM Plex Sans",sans-serif';
+    mx.fillText(layer.zh,8,lz.y+14);
+    mx.fillStyle=d?'rgba(180,180,180,0.3)':'rgba(80,80,80,0.3)';
+    mx.font='9px "IBM Plex Mono",monospace';
+    mx.fillText(layer.en.split(/[\s/]/)[0],8,lz.y+26);
+  });
+
+  // Overlay: per-layer period + speed bar
+  META_LAYERS.forEach(ml=>{
+    const lz=LZONES.find(z=>z.id===ml.id);
+    const layer=LAYER_DEFS.find(l=>l.id===ml.id);
+
+    // period — right-aligned, just below layer name baseline
+    mx.fillStyle=layer.color+'ee';
+    mx.font='500 9px "IBM Plex Mono",monospace';
+    const pw=mx.measureText(ml.period).width;
+    mx.fillText(ml.period, W-pw-8, lz.y+14);
+
+    // speed bar — bottom of each layer zone
+    const barMaxW=W-16, barW=barMaxW*ml.bar, barY=lz.y+lz.h-9;
+    mx.fillStyle=d?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)';
+    mx.beginPath(); mx.roundRect(8,barY,barMaxW,5,2); mx.fill();
+    mx.fillStyle=layer.color+'88';
+    mx.beginPath(); mx.roundRect(8,barY,barW,5,2); mx.fill();
+  });
+
+  // single x-axis label at very bottom
+  mx.fillStyle=d?'rgba(180,180,180,0.28)':'rgba(80,80,80,0.28)';
+  mx.font='7px "IBM Plex Mono",monospace';
+  mx.fillText('← 快  更新速度  慢 →',8,CANVAS_H-2);
+}
+
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+function etymHtml(etym){
+  if(!etym||!etym.length) return '';
+  return `<div class="etym-block"><div class="etym-label">词源 Etymology</div>${etym.map(e=>`<div class="etym-row"><span class="etym-flag">${e.flag}</span><span class="etym-text">${e.text}</span></div>`).join('')}</div>`;
+}
+function mechsHtml(mechs){
+  return mechs.map(m=>`<div class="mech-row"><span class="mech-icon">${m.icon}</span><div><div class="mech-inner-label">${m.label}</div><div class="mech-text">${m.text}</div></div></div>`).join('');
+}
+function tagsHtml(tags){return tags.map(t=>`<span class="tag">${t}</span>`).join('');}
+function infoBlock(head,body){return `<div class="info-block"><div class="info-block-head">${head}</div><div class="info-block-body">${body}</div></div>`;}
+function cautionBox(txt){return `<div class="caution-box">⚠️ ${txt}</div>`;}
+
+// ══ Tab 0: Structure ══
+function renderStructNav(){
+  const nav=document.getElementById('layer-nav'); if(!nav) return; nav.innerHTML='';
+  LAYER_DEFS.forEach(layer=>{
+    const b=document.createElement('button'); b.className='layer-pill'+(layer.id===activeStructLayer?' active':'');
+    b.innerHTML=`<div class="layer-dot" style="background:${layer.color}"></div>${layer.zh}`;
+    b.onclick=()=>{activeStructLayer=layer.id;renderStructNav();renderStructDetail();drawTabCanvas(0);};
+    nav.appendChild(b);
+  });
+}
+function renderStructDetail(){
+  const layer=LAYER_DEFS.find(l=>l.id===activeStructLayer);
+  document.getElementById('detail-stripe').style.background=layer.color;
+  document.getElementById('detail-body').innerHTML=`
+    <div class="detail-title">${layer.zh}</div>
+    <div class="detail-en">${layer.en.toUpperCase()}</div>
+    ${etymHtml(layer.etym)}
+    <div class="detail-desc">${layer.desc}</div>
+    <div class="mech-section"><div class="mech-label">作用机制</div>${mechsHtml(layer.mechs)}</div>
+    <div class="tags-row">${tagsHtml(layer.tags)}</div>`;
+}
+
+// ══ Tab 1: Ingredients ══
+function renderIngredients(){
+  const grid=document.getElementById('ingr-grid'); if(!grid||grid.children.length) return;
+  INGREDIENTS.forEach(ingr=>{
+    const cat=INGR_CATEGORIES[ingr.category];
+    const tp=ingr.targets.map(tid=>{const tl=LAYER_DEFS.find(l=>l.id===tid); return `<span class="target-pill" style="background:${tl.color}">${tl.zh}</span>`;}).join('');
+    const card=document.createElement('div'); card.className='ingr-card';
+    card.innerHTML=`
+      <div class="ingr-stripe" style="background:${cat.color}"></div>
+      <div class="ingr-head">
+        <span class="ingr-zh">${ingr.zh}</span><span class="ingr-en">${ingr.en}</span>
+        <div style="margin-top:5px"><span class="tag" style="border-color:${cat.color};color:${cat.color}">${cat.label}</span></div>
+      </div>
+      <div class="ingr-body">
+        ${etymHtml(ingr.etym)}
+        <div class="ingr-desc">${ingr.desc}</div>
+        <div class="mech-label">作用靶层</div><div class="target-pills">${tp}</div>
+        <div class="mech-section"><div class="mech-label">机制</div>${mechsHtml(ingr.mechs)}</div>
+        <div class="tags-row">${tagsHtml(ingr.tags)}</div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ══ Tab 2: UV ══
+function renderUV(){
+  const el=document.getElementById('uv-content'); if(!el||el.children.length) return;
+  el.innerHTML=`
+    <div class="uv-layout">
+      ${UV_TYPES.map(uv=>`
+        <div class="uv-card">
+          <div class="uv-card-head" style="border-left:3px solid ${uv.color};padding-left:11px">${uv.type} · ${uv.range}</div>
+          <div class="uv-card-body">
+            <div class="uv-title" style="color:${uv.color}">${uv.type}</div>
+            <div class="uv-en">穿透深度：${uv.depth}</div>
+            <div class="uv-desc">${uv.desc}</div>
+            <div style="margin-top:10px;padding:8px 10px;background:var(--tag-bg);border-radius:5px;font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;line-height:1.6">${uv.etym}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="uv-layout">
+      ${SUNSCREEN_TYPES.map(sc=>`
+        <div class="uv-card">
+          <div class="uv-card-head" style="border-left:3px solid ${sc.color};padding-left:11px">${sc.type} · ${sc.en}</div>
+          <div class="uv-card-body">
+            <div class="uv-title">${sc.type}</div>
+            <div class="uv-en">${sc.ingredients}</div>
+            <div class="uv-desc" style="margin-bottom:10px">${sc.mechanism}</div>
+            <div class="mech-label">优点</div>
+            <ul style="font-size:11px;color:var(--text);line-height:1.7;padding-left:16px;margin-bottom:8px">${sc.pros.map(p=>`<li>${p}</li>`).join('')}</ul>
+            <div class="mech-label">缺点</div>
+            <ul style="font-size:11px;color:var(--text);line-height:1.7;padding-left:16px;margin-bottom:8px">${sc.cons.map(c=>`<li>${c}</li>`).join('')}</ul>
+            <div style="font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;line-height:1.6;padding:7px 9px;background:var(--tag-bg);border-radius:4px">${sc.note}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="uv-full">
+      <div class="mech-label">SPF 数值实际含义（非线性递增）</div>
+      <div style="font-size:11px;color:var(--text);line-height:1.7;margin-bottom:8px">
+        SPF = 涂防晒后最低红斑剂量 ÷ 不涂防晒最低红斑剂量。SPF 30 不是 SPF 15 的两倍防护，差距边际递减。
+      </div>
+      <table class="uv-spf-table">
+        <tr><th>SPF</th><th>阻挡 UVB %</th><th>透过 UVB %</th><th>理论防护时长（基准 10 分钟晒伤）</th></tr>
+        ${SPF_TABLE.map(row=>`<tr><td><strong>${row.spf}</strong></td><td>${row.block_uvb}</td><td>${row.transmit}</td><td>${row.mins}</td></tr>`).join('')}
+      </table>
+      <div style="margin-top:10px;font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;line-height:1.6">
+        ⚠️ 理论时长假设涂抹厚度 2 mg/cm²，实际常不足一半。推荐每 2 小时补涂，出汗/游泳后立即补涂。
+      </div>
+    </div>`;
+}
+
+// ══ Tab 3: Turnover ══
+function renderMeta(){
+  const el=document.getElementById('meta-content');
+  if(!el||el.children.length) return;
+  el.innerHTML=`<div class="meta-timeline">${META_LAYERS.map(ml=>{
+    const layer=LAYER_DEFS.find(l=>l.id===ml.id);
+    const accTags=ml.accelerators.map(a=>`<span class="tag" style="border-color:${layer.color}44;color:${layer.color}">${a}</span>`).join(' ');
+    return `<div class="meta-item">
+      <div class="meta-dot" style="background:${layer.color};border-color:${layer.color}"></div>
+      <div class="meta-layer-name">${layer.zh}</div>
+      <div class="meta-period">${ml.period}</div>
+      <div class="meta-desc">${ml.desc}</div>
+      <div style="margin:6px 0 4px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase">可加速成分</span></div>
+      <div class="tags-row" style="margin-bottom:7px">${accTags}</div>
+      ${cautionBox(ml.caution)}
+    </div>`;
+  }).join('')}</div>`;
+  setTimeout(drawMetaCanvas,50);
+}
+
+// ══ Tab 4: Scars ══
+function renderScars(){
+  const el=document.getElementById('scar-content'); if(!el||el.children.length) return;
+  el.innerHTML=`
+    ${infoBlock('疤痕形成机制 · Scar Formation',`
+      <div class="detail-desc">疤痕是真皮层损伤后的修复结果。正常皮肤修复时，成纤维细胞合成<strong>III型胶原</strong>（细纤维、弹性好）进行临时填充；如果损伤过深或愈合过程被打断，I型胶原过度沉积并排列紊乱，形成永久性疤痕。</div>
+      <div class="mech-section"><div class="mech-label">疤痕分类</div>
+        <div class="mech-row"><span class="mech-icon">📈</span><div><div class="mech-inner-label">增生性疤痕 Hypertrophic Scar</div><div class="mech-text">胶原过度沉积，疤痕高于皮面。局限于原伤口范围内，可能随时间缩小。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🌊</span><div><div class="mech-inner-label">瘢痕疙瘩 Keloid</div><div class="mech-text">胶原持续过度增生，扩展到原伤口范围以外。遗传倾向强，深肤色人群更常见，几乎不能自然消退。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🕳️</span><div><div class="mech-inner-label">凹陷性疤痕 Atrophic Scar</div><div class="mech-text">真皮胶原丢失，疤痕低于皮面。痤疮疤痕（冰锥型、箱车型、滚轮型）属于此类。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🌿</span><div><div class="mech-inner-label">生长纹 Stretch Mark</div><div class="mech-text">真皮弹性蛋白被快速牵拉撕裂后的线状疤痕。新纹（红/紫色）仍在炎症期，干预窗口存在；陈旧纹（白/银色）已纤维化，基本不可逆。</div></div></div>
+      </div>
+    `)}
+    ${infoBlock('干预手段 · Treatment by Scar Type',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">🔴</span><div><div class="mech-inner-label">新生长纹（红色期，<6个月）</div><div class="mech-text">A醇（Retinol）：有一定临床证据，刺激真皮胶原合成 + 弹性蛋白修复。脉冲染料激光（PDL）：针对血红蛋白，减少红色炎症期。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">⚪</span><div><div class="mech-inner-label">陈旧生长纹（白色期）</div><div class="mech-text">点阵激光（Fraxel）：制造微小热损伤柱触发胶原再生，是目前最有效的方案。微针射频：物理+热能双重刺激，较激光价格低。<strong>外用成分几乎无效。</strong></div></div></div>
+        <div class="mech-row"><span class="mech-icon">🕳️</span><div><div class="mech-inner-label">痤疮凹陷疤痕</div><div class="mech-text">皮下分离术（Subcision）：物理切断疤痕拉索，为真皮填充创造空间。点阵激光 + 微针 + 填充（透明质酸）联合方案。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">📈</span><div><div class="mech-inner-label">增生性疤痕 / 瘢痕疙瘩</div><div class="mech-text">硅酮凝胶/贴片：一线非处方治疗，持续压迫减少胶原过度沉积。糖皮质激素局部注射：抑制成纤维细胞活性（需医生操作）。</div></div></div>
+      </div>
+    `)}
+    ${infoBlock('外用成分对疤痕的实际效果',`
+      <div class="uv-spf-table" style="font-size:11px;margin-top:0">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><th style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)">成分</th><th style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)">浅层色沉</th><th style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)">新生长纹</th><th style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)">陈旧生长纹</th></tr>
+          ${[['A醇 Retinol','✓✓','✓','✗'],['果酸 AHA','✓✓','△','✗'],['尿囊素','✓','✗','✗'],['烟酰胺','✓（预防）','✗','✗'],['硅酮凝胶','✗','△','△'],['维生素C','✓✓','△','✗']].map(r=>`<tr>${r.map((c,i)=>`<td style="padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text)${i===0?';font-weight:500':''}">${c}</td>`).join('')}</tr>`).join('')}
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace">✓✓ 有效 · ✓ 有一定效果 · △ 证据有限 · ✗ 无效</div>
+    `)}
+  `;
+}
+
+// ══ Tab 5: KP ══
+function renderKP(){
+  const el=document.getElementById('kp-content'); if(!el||el.children.length) return;
+  el.innerHTML=`
+    ${infoBlock('毛周角化症 · Keratosis Pilaris',`
+      ${etymHtml([
+        {flag:F.grc,text:'<em>keras</em>（κέρας）"角" — 同根词：keratin（角蛋白）、rhinoceros（犀牛，"鼻角"）'},
+        {flag:F.grc,text:'+ <em>osis</em>（-ωσις）"病理状态" — 同根词：fibrosis、cirrhosis'},
+        {flag:F.la,text:'+ <em>pilus</em> "毛发" → <em>pilaris</em> "与毛发有关的"'},
+      ])}
+      <div class="detail-desc">毛囊周围角蛋白过度堆积，堵住毛囊开口，形成细小硬粒，皮肤表面呈"鸡皮"外观。属于遗传性皮肤状况，不是感染，无法根治，但可以有效管理。多见于上臂外侧、大腿外侧、面颊。</div>
+      <div class="mech-section"><div class="mech-label">形成机制</div>
+        <div class="mech-row"><span class="mech-icon">🔒</span><div><div class="mech-inner-label">角蛋白堵塞</div><div class="mech-text">角质形成细胞分化异常，产生过多角蛋白在毛囊口堆积。与丝聚蛋白（filaggrin）基因突变有关，同时也是特应性皮炎（湿疹）的共病。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">📍</span><div><div class="mech-inner-label">位置</div><div class="mech-text">完全在角质层和表皮层，与真皮层无关。这是为什么外用成分可以有效干预的原因——问题就在外用成分能到达的层。</div></div></div>
+      </div>
+    `)}
+    ${infoBlock('有效成分 · Treatment',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">🥛</span><div><div class="mech-inner-label">乳酸（Lactic Acid）12% — 首选</div><div class="mech-text">AHA 里对 KP 证据最强。溶解堵塞毛囊的角蛋白堆积，同时保湿，不像甘醇酸那么刺激。<strong>AmLactin 身体乳</strong>（Shoppers 有售，大容量便宜）是标准方案，4–6 周见效。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">💊</span><div><div class="mech-inner-label">尿素（Urea）10–20%</div><div class="mech-text">双重作用：吸湿剂（低浓度）+ 角质溶解剂（高浓度）。溶解堆积的角蛋白，软化硬粒。对 KP 的效果与乳酸相当，且更保湿。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🔬</span><div><div class="mech-inner-label">水杨酸（Salicylic Acid，BHA）2%</div><div class="mech-text">脂溶性，能渗入毛囊内部溶解堵塞物（乳酸和尿素是水溶性，主要作用于毛囊外表面）。适合 KP 同时伴有毛囊炎的情况。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">✨</span><div><div class="mech-inner-label">A醇（Retinol）</div><div class="mech-text">通过加速表皮更新，防止角蛋白继续堆积。与乳酸交替使用效果更好，但不建议同晚叠加（刺激性叠加）。</div></div></div>
+      </div>
+      ${cautionBox('物理去角质（搓澡巾/磨砂膏）可以短期疏松堆积，但过度使用会引发炎症，反而加重 KP。建议先用化学去角质（乳酸/尿素），物理去角质作为辅助而非主力。')}
+    `)}
+    ${infoBlock('你的情况（上臂外侧鸡皮肤）',`
+      <div class="detail-desc">上臂外侧是 KP 最常见的部位之一。你手头的 Neutrogena Retinol Night Cream 可以用，但：</div>
+      <div class="mech-row"><span class="mech-icon">💸</span><div><div class="mech-text">50ml 面霜涂双臂两三天就用完，<strong>性价比极差</strong>。</div></div></div>
+      <div class="mech-row"><span class="mech-icon">🎯</span><div><div class="mech-text">Shoppers 买 <strong>AmLactin 12% 乳酸身体乳</strong>（约 $20，225ml），这才是对 KP 的专项方案，效果比 Retinol 更直接。</div></div></div>
+      <div class="mech-row"><span class="mech-icon">🔄</span><div><div class="mech-text">用法：洗澡后涂 AmLactin，隔天晚上轮换涂 Retinol 身体乳（如果你另外买了的话）。白天必须防晒。</div></div></div>
+    `)}
+  `;
+}
+
+// ══ Tab 6: Photoaging ══
+function renderPhotoaging(){
+  const el=document.getElementById('photoaging-content'); if(!el||el.children.length) return;
+  el.innerHTML=`
+    ${infoBlock('光老化 vs 自然老化 · Photoaging vs Chronological Aging',`
+      ${etymHtml([
+        {flag:F.grc,text:'<em>phōs</em>（φῶς）"光" — 同根词：photograph、photon、phosphorus（磷，"带光之物"）'},
+        {flag:F.en,text:'<em>aging</em>：光老化是叠加在自然老化上的<strong>额外损伤</strong>，可以通过防晒预防，而自然老化不可逆'},
+      ])}
+      <div class="uv-layout" style="margin-top:12px">
+        <div class="uv-card">
+          <div class="uv-card-head">自然老化 Chronological</div>
+          <div class="uv-card-body">
+            <div class="uv-desc">遗传程序决定，影响全身所有皮肤。胶原蛋白从 25 岁起每年减少 ~1%，弹性蛋白网络逐渐松弛，透明质酸产量下降。速度相对均匀，不可预防。</div>
+          </div>
+        </div>
+        <div class="uv-card">
+          <div class="uv-card-head" style="border-left:3px solid #8060c0;padding-left:11px">光老化 Photoaging</div>
+          <div class="uv-card-body">
+            <div class="uv-title" style="color:#8060c0">UVA 累积损伤</div>
+            <div class="uv-desc">只影响日光暴露部位。加速 MMP 活性（胶原降解酶），导致不规则弹性蛋白堆积（Solar Elastosis），产生色斑（色素细胞异常激活）。可通过防晒大幅预防。</div>
+          </div>
+        </div>
+      </div>
+    `)}
+    ${infoBlock('光老化的真皮层变化',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">🕸️</span><div><div class="mech-inner-label">胶原断裂</div><div class="mech-text">UVA 激活 MMP（基质金属蛋白酶），持续降解 I型和III型胶原。一次晒伤后 MMP 活性升高可持续数天。防晒 + A醇是抑制 MMP 最有临床证据的双重手段。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">☀️</span><div><div class="mech-inner-label">弹力纤维变性（Solar Elastosis）</div><div class="mech-text">异常弹性蛋白在真皮浅层大量堆积，质地变硬变黄。这是老年人皮肤"皮革化"的原因，在长期户外工作者身上尤为明显。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🔵</span><div><div class="mech-inner-label">色斑（Lentigines）</div><div class="mech-text">黑色素细胞在累积 UV 损伤下局部异常激活，产生不均匀色素沉积。与激素斑（黄褐斑）不同，日光斑边界清晰，烟酰胺 + A醇 + 防晒是最佳外用方案。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">💧</span><div><div class="mech-inner-label">透明质酸减少</div><div class="mech-text">UVA 降解真皮中的透明质酸，皮肤失去水合支撑，干燥纹加深。医美玻尿酸填充是直接补充，外用透明质酸只能到达角质层和表皮层，无法补充到真皮。</div></div></div>
+      </div>
+    `)}
+    ${infoBlock('最有效的光老化预防和逆转方案',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">🥇</span><div><div class="mech-inner-label">防晒（预防）— 最重要</div><div class="mech-text">SPF 30+ 广谱防晒，每日使用，<strong>包括阴天和室内靠窗</strong>（UVA 穿透玻璃）。Waterloo 夏天户外每 2 小时补涂一次。早开始效果最好，30 岁前养成的防晒习惯收益最大。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🥈</span><div><div class="mech-inner-label">A醇（修复）</div><div class="mech-text">上调胶原合成 + 抑制 MMP。长期使用（6–12 个月）可部分逆转光老化造成的真皮损伤，是循证医学支持的光老化修复成分之一。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🥉</span><div><div class="mech-inner-label">维生素C（抗氧化）</div><div class="mech-text">清除 UV 产生的活性氧（ROS）自由基，防止 ROS 激活 MMP。同时是胶原合成的必需辅因子。早晨涂 + 防晒是经典组合。</div></div></div>
+      </div>
+      ${cautionBox('光老化是可预防但难以逆转的损伤。外用成分（A醇+维C+防晒）能减缓和部分修复，但对已有严重弹力纤维变性效果有限，此时激光或射频是更直接的手段。')}
+    `)}
+  `;
+}
+
+// ══ Tab 7: Barrier ══
+function renderBarrier(){
+  const el=document.getElementById('barrier-content'); if(!el||el.children.length) return;
+  el.innerHTML=`
+    ${infoBlock('屏障损伤的正反馈循环',`
+      ${etymHtml([
+        {flag:F.la,text:'<em>barriera</em>（意大利语）"栅栏" — 同根词：bar、barricade、embarrass（字面义"被栅栏拦住"）'},
+        {flag:F.en,text:'皮肤屏障（skin barrier）特指角质层的物理+化学防线，破坏后形成<strong>自我强化的损伤循环</strong>'},
+      ])}
+      <div class="detail-desc">屏障破坏不是单一事件，而是形成正反馈循环：</div>
+      <div style="background:var(--tag-bg);border-radius:6px;padding:12px 14px;margin-bottom:12px;font-size:11px;line-height:2;font-family:'IBM Plex Mono',monospace;color:var(--text)">
+        屏障破坏<br>
+        → TEWL↑（经皮水分流失增加）<br>
+        → 角质层含水量↓ → 角质细胞皱缩、间隙扩大<br>
+        → 外来刺激物/过敏原渗入↑<br>
+        → 朗格汉斯细胞触发炎症反应<br>
+        → 炎症降解神经酰胺 → 屏障进一步破坏<br>
+        → 回到起点 ♻️
+      </div>
+    `)}
+    ${infoBlock('常见屏障破坏原因',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">🧼</span><div><div class="mech-inner-label">过度清洁</div><div class="mech-text">强效表面活性剂（SLS/SLES）溶解细胞间脂质，直接破坏砂浆结构。是敏感肌和湿疹的最常见诱因之一。每天洗脸超过 2 次或用热水洗澡会加速屏障损耗。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🍋</span><div><div class="mech-inner-label">酸性成分过频使用</div><div class="mech-text">果酸（AHA）、水杨酸（BHA）使用频率过高 → 角质层过薄 → 屏障来不及修复。A醇适应期也会出现同样问题。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🌬️</span><div><div class="mech-inner-label">环境因素</div><div class="mech-text">低湿度（Waterloo 冬天室内暖气）、冷风、热水澡都会加速 TEWL。冬季是屏障损伤的高发季节。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">🧬</span><div><div class="mech-inner-label">遗传性屏障缺陷</div><div class="mech-text"><strong>丝聚蛋白（filaggrin）基因突变</strong>是最常见的遗传原因，导致角质细胞间脂质产生不足。这类人群更容易患特应性皮炎、KP，也更容易对 A醇产生刺激反应。</div></div></div>
+      </div>
+    `)}
+    ${infoBlock('屏障修复方案（优先级排序）',`
+      <div class="mech-section" style="border-top:none;padding-top:0">
+        <div class="mech-row"><span class="mech-icon">1️⃣</span><div><div class="mech-inner-label">停止损伤源</div><div class="mech-text">暂停所有酸类、Retinol、磨砂。换温和氨基酸洁面，水温降到接近体温。这步不做，后面补再多都没用。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">2️⃣</span><div><div class="mech-inner-label">神经酰胺 + 胆固醇 + 脂肪酸（3:1:1）</div><div class="mech-text">直接补充破损的砂浆成分。<em>CeraVe</em>、<em>Cetaphil</em>、<em>La Roche-Posay Cicaplast</em> 都含有合理比例的配方。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">3️⃣</span><div><div class="mech-inner-label">封闭剂锁水</div><div class="mech-text">薄薄一层凡士林或矿脂在最后一步，减少 TEWL，让下方成分发挥作用。干燥季节（Waterloo 冬天）效果尤为明显。</div></div></div>
+        <div class="mech-row"><span class="mech-icon">4️⃣</span><div><div class="mech-inner-label">烟酰胺 + 泛醇（辅助）</div><div class="mech-text">烟酰胺上调丝聚蛋白和神经酰胺合成；泛醇促进细胞增殖加速修复。两者刺激性极低，屏障受损期可以继续使用。</div></div></div>
+      </div>
+      ${cautionBox('屏障修复通常需要 2–4 周。在此期间避免引入新产品，一次只改变一个变量，方便判断哪个成分有效或有问题。')}
+    `)}
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TAB SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+let currentTab=0;
+const renderers={1:renderIngredients,2:renderUV,3:renderMeta,4:renderScars,5:renderKP,6:renderPhotoaging,7:renderBarrier};
+
+function showTab(n){
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  currentTab=n;
+  // Create canvas for this tab if not yet created
+  createCanvas(n);
+  // Render content
+  if(renderers[n]) renderers[n]();
+  // Tab 3 needs meta canvas redraw after render
+  // Tab 3 canvas+overlay handled inside renderMeta
+}
+
+// ══ Theme observer ══
+new MutationObserver(()=>redrawAllCanvases())
+  .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+// ══ Init ══
+createCanvas(0);
+renderStructNav();
+renderStructDetail();
+</script>
+</body>
+</html>
