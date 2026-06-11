@@ -445,7 +445,12 @@ function createCanvas(tabIdx){
   wrap.innerHTML='';
   const cvs=document.createElement('canvas');
   // Tab 3: full-width, tall enough for all 5 overlay rows
-  cvs.width=CANVAS_W; cvs.height=CANVAS_H;
+  const dpr = window.devicePixelRatio || 1;
+  cvs.width  = CANVAS_W * dpr;
+  cvs.height = CANVAS_H * dpr;
+  cvs.style.width  = CANVAS_W + 'px';
+  cvs.style.height = CANVAS_H + 'px';
+  cvs.getContext('2d').scale(dpr, dpr);
   cvs.className='skin-canvas';
   wrap.appendChild(cvs);
   const note=document.createElement('div');
@@ -648,7 +653,7 @@ function redrawAllCanvases(){
 // same LZONES, same textures — just adds period label + speed bar per layer.
 function drawMetaCanvas(){
   const mc=canvases[3]; if(!mc) return;
-  const W=mc.width, mx=mc.getContext('2d'), d=dark();
+  const W=CANVAS_W, mx=mc.getContext('2d'), d=dark();
   mx.clearRect(0,0,W,CANVAS_H);
 
   const cTextDim=getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim()||(d?'#555':'#aaa');
