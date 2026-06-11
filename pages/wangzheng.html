@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>亡征 · 韩非子</title>
+<meta name="keywords" content="韩非子,亡征,法家,亡国,政治,先秦,Han Feizi,legalism,statecraft"/>
+<meta name="author" content="MattHub"/>
+<meta property="og:title" content="亡征 · 韩非子"/>
+<meta property="og:description" content="《韩非子·亡征》47条亡国之征，分类整理与原文对照。"/>
+<meta property="og:type" content="website"/>
+<meta name="description" content="《韩非子·亡征》全文分类整理，47条亡国之征，含原文、白话注释与主题分类。权臣专权，君主失德，继嗣混乱，法制废弛，军事外交失策。Han Feizi Wangzheng: 47 conditions of state collapse, annotated and categorised by theme — ruler conduct, powerful ministers, succession crises, legal decay, military overreach."/>
+<meta name="icon" content="📜"/>
+<meta name="tag" content="参考"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.cat-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  padding: 4px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--tag-bg);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.cat-btn:hover { border-color: var(--border-hi); color: var(--text-hi); }
+.cat-btn.active { border-color: transparent; color: #fff; }
+.cat-btn.active.c0 { background: #534AB7; }
+.cat-btn.active.c1 { background: #993C1D; }
+.cat-btn.active.c2 { background: #0F6E56; }
+.cat-btn.active.c3 { background: #185FA5; }
+.cat-btn.active.c4 { background: #854F0B; }
+.cat-btn.active.all { background: var(--accent); }
+
+.sort-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  padding: 4px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .12s;
+  margin-left: auto;
+}
+.sort-btn:hover { border-color: var(--border-hi); color: var(--text); }
+.sort-btn.on { border-color: var(--accent); color: var(--accent); }
+
+/* Count bar */
+.count-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.count-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .04em;
+}
+.count-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.count-dot.c0 { background: #534AB7; }
+.count-dot.c1 { background: #993C1D; }
+.count-dot.c2 { background: #0F6E56; }
+.count-dot.c3 { background: #185FA5; }
+.count-dot.c4 { background: #854F0B; }
+
+/* Items list */
+.items-list { display: flex; flex-direction: column; gap: 0; }
+
+.item-row {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.item-row:first-child { border-top: 1px solid var(--border); }
+.item-row:hover { background: var(--tag-bg); }
+
+.item-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  padding: 12px 14px 12px 0;
+  min-width: 36px;
+  flex-shrink: 0;
+  line-height: 1.7;
+  opacity: .5;
+  user-select: none;
+}
+
+.item-cat-stripe {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 0;
+  margin: 4px 12px 4px 0;
+}
+.item-cat-stripe.c0 { background: #534AB7; }
+.item-cat-stripe.c1 { background: #993C1D; }
+.item-cat-stripe.c2 { background: #0F6E56; }
+.item-cat-stripe.c3 { background: #185FA5; }
+.item-cat-stripe.c4 { background: #854F0B; }
+
+.item-body { flex: 1; padding: 12px 0; min-width: 0; }
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.cat-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  padding: 1px 7px;
+  border-radius: 2px;
+  color: #fff;
+}
+.cat-tag.c0 { background: #534AB7; }
+.cat-tag.c1 { background: #993C1D; }
+.cat-tag.c2 { background: #0F6E56; }
+.cat-tag.c3 { background: #185FA5; }
+.cat-tag.c4 { background: #854F0B; }
+
+.item-orig {
+  font-size: 13px;
+  color: var(--text-hi);
+  line-height: 1.75;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.item-orig .ke {
+  color: var(--text-dim);
+}
+.item-gloss {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .02em;
+}
+
+/* Summary box */
+.summary {
+  margin-top: 40px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--tag-bg);
+}
+.summary-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.summary-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.9;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.summary-text .hi {
+  color: var(--text-hi);
+  font-weight: 500;
+}
+
+/* Intro */
+.intro {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin-bottom: 28px;
+  max-width: 720px;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+@media (max-width: 640px) {
+  .item-num { padding: 12px 10px 12px 0; min-width: 28px; }
+}
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">Han Feizi · Legalism</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:6px;">
+  《韩非子》<span style="color:var(--accent)">亡征</span>
+</h1>
+<p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:24px;">
+  47 CONDITIONS OF STATE COLLAPSE · WARRING STATES PERIOD · 韩非 c. 280–233 BC
+</p>
+
+<p class="intro">
+  《亡征》列举47条足以导致国家灭亡的征兆，涵盖君主性情、臣权失衡、继嗣混乱、法制废弛、军事外交失策五大方面。
+  末段点明：亡征非"必亡"，而是"可亡"——有能"服术行法"的强国，以此为风雨，兼并不难。
+</p>
+
+<div class="filter-bar" id="filter-bar"></div>
+<div class="count-bar" id="count-bar"></div>
+<div class="items-list" id="items-list"></div>
+
+<div class="summary">
+  <div class="summary-label">总论 · Conclusion</div>
+  <div class="summary-text">
+    亡征者，非曰必亡，言其可亡也。夫两尧不能相王，两桀不能相亡；亡、王之机，必其治乱、其强弱相踦者也。
+    木之折也必通蠹，墙之坏也必通隙。然木虽蠹，无疾风不折；墙虽隙，无大雨不坏。
+    <br/><br/>
+    <span class="hi">万乘之主，有能服术行法以为亡征之君风雨者，其兼天下不难矣！</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+const CATS = [
+  { name: '权臣与朋党', ci: 0 },
+  { name: '君主自身',   ci: 1 },
+  { name: '法制与吏治', ci: 2 },
+  { name: '继嗣与后宫', ci: 3 },
+  { name: '军事与外交', ci: 4 },
+];
+
+const CAT_COLOR = ['#534AB7','#993C1D','#0F6E56','#185FA5','#854F0B'];
+
+const ITEMS = [
+  { n:1,  c:0, orig:'凡人主之国小而家大，权轻而臣重者，可亡也', gloss:'君弱臣强，权力外移' },
+  { n:2,  c:2, orig:'简法禁而务谋虑，荒封内而恃交援者，可亡也', gloss:'废弛法令，靠谋略和外援而非内政' },
+  { n:3,  c:2, orig:'群臣为学，门子好辩，商贾外积，小民右仗者，可亡也', gloss:'臣民各自为政，不服教化法令' },
+  { n:4,  c:1, orig:'好宫室台榭陂池，事车服器玩，好罢露百姓，煎靡货财者，可亡也', gloss:'奢侈享乐，耗尽民力财力' },
+  { n:5,  c:1, orig:'用时日，事鬼神，信卜筮，而好祭祀者，可亡也', gloss:'迷信鬼神卜筮，不务实政' },
+  { n:6,  c:0, orig:'听以爵不待参验，用一人为门户者，可亡也', gloss:'凭爵位任用，不加核验，一人把持出入' },
+  { n:7,  c:0, orig:'官职可以重求，爵禄可以货得者，可亡也', gloss:'官爵可以钱财购得，仕途腐败' },
+  { n:8,  c:1, orig:'缓心而无成，柔茹而寡断，好恶无决而无所定立者，可亡也', gloss:'优柔寡断，好恶不定，无法决策' },
+  { n:9,  c:1, orig:'饕贪而无餍，近利而好得者，可亡也', gloss:'贪得无厌，只顾眼前近利' },
+  { n:10, c:1, orig:'喜淫辞而不周于法，好辩说而不求其用，滥于文丽而不顾其功者，可亡也', gloss:'重辞藻不重实用，华而不实' },
+  { n:11, c:1, orig:'浅薄而易见，漏泄而无藏，不能周密而通群臣之语者，可亡也', gloss:'浅薄无谋，毫无城府，机密外泄' },
+  { n:12, c:1, orig:'很刚而不和，愎谏而好胜，不顾社稷而轻为自信者，可亡也', gloss:'刚愎自用，拒绝谏言，自以为是' },
+  { n:13, c:4, orig:'恃交援而简近邻，怙强大之救而侮所迫之国者，可亡也', gloss:'依赖远方援助，轻慢近邻' },
+  { n:14, c:2, orig:'羁旅侨士，重帑在外，上间谋计，下与民事者，可亡也', gloss:'外来士人窃取权谋，财富外流' },
+  { n:15, c:0, orig:'民信其相，下不能其上，主爱信之而弗能废者，可亡也', gloss:'臣民信宰相胜过君主，君却无法废黜' },
+  { n:16, c:2, orig:'境内之杰不事，而求封外之士，不以功伐课试，而好以名问举错，羁旅起贵以陵故常者，可亡也', gloss:'不用本国人才，重用外来游士，以名声而非功绩选人' },
+  { n:17, c:3, orig:'轻其适正，庶子称衡，太子未定而主即世者，可亡也', gloss:'嫡庶不分，太子未定就驾崩' },
+  { n:18, c:1, orig:'大心而无悔，国乱而自多，不料境内之资而易其邻敌者，可亡也', gloss:'盲目自大，轻视邻国，不自量力' },
+  { n:19, c:4, orig:'国小而不处卑，力少而不畏强，无礼而侮大邻，贪愎而拙交者，可亡也', gloss:'弱国不自量力，外交笨拙' },
+  { n:20, c:3, orig:'太子已置，而娶于强敌以为后妻，则太子危，如是则群臣易虑者，可亡也', gloss:'新娶敌国之女为后，动摇太子地位' },
+  { n:21, c:1, orig:'怯慑而弱守，蚤见而心柔懦，知有谓可，断而弗敢行者，可亡也', gloss:'知而不决，怯于担当' },
+  { n:22, c:3, orig:'出君在外而国更置，质太子未反而君易子，如是则国携者，可亡也', gloss:'君在外另立，质子未归就换储，国家离心' },
+  { n:23, c:2, orig:'挫辱大臣而狎其身，刑戮小民而逆其使，怀怒思耻而专习则贼生者，可亡也', gloss:'羞辱大臣积怨，弑君之祸由此而生' },
+  { n:24, c:0, orig:'大臣两重，父兄众强，内党外援以争事势者，可亡也', gloss:'大臣结党，内外勾连争权' },
+  { n:25, c:3, orig:'婢妾之言听，爱玩之智用，外内悲惋而数行不法者，可亡也', gloss:'听信宠妾，多行不法' },
+  { n:26, c:2, orig:'简侮大臣，无礼父兄，劳苦百姓，杀戮不辜者，可亡也', gloss:'上下失和，滥杀无辜，人心离散' },
+  { n:27, c:1, orig:'好以智矫法，时以行杂公，法禁变易，号令数下者，可亡也', gloss:'以私智乱法，政令朝令夕改' },
+  { n:28, c:4, orig:'无地固，城郭恶，无畜积，财物寡，无守战之备而轻攻伐者，可亡也', gloss:'内无积蓄守备，却轻易发动战争' },
+  { n:29, c:3, orig:'穜类不寿，主数即世，婴儿为君，大臣专制，树羁旅以为党，数割地以待交者，可亡也', gloss:'幼主即位，权臣专制，割地求援' },
+  { n:30, c:3, orig:'太子尊显，徒属众强，多大国之交，而威势蚤具者，可亡也', gloss:'太子势力过早坐大，威胁君主' },
+  { n:31, c:1, orig:'变褊而心急，轻疾而易动发，心愪忿而不訾前后者，可亡也', gloss:'性情褊急，冲动易怒，不顾后果' },
+  { n:32, c:1, orig:'主多怒而好用兵，简本教而轻战攻者，可亡也', gloss:'好战轻攻，荒废农耕根本' },
+  { n:33, c:0, orig:'贵臣相妒，大臣隆盛，外藉敌国，内困百姓，以攻怨仇，而人主弗诛者，可亡也', gloss:'权贵相争，借外力内斗，君主不制裁' },
+  { n:34, c:3, orig:'君不肖而侧室贤，太子轻而庶子伉，官吏弱而人民桀，如是则国躁者，可亡也', gloss:'正弱侧强，朝野躁动不安' },
+  { n:35, c:0, orig:'藏怨而弗发，悬罪而弗诛，使群臣阴憎而愈忧惧，而久未可知者，可亡也', gloss:'积怨不发，刑罚悬而不决，人心惶惶' },
+  { n:36, c:0, orig:'出军命将太重，边地任守太尊，专制擅命，径为而无所请者，可亡也', gloss:'将帅权力过重，独断专行，不受节制' },
+  { n:37, c:3, orig:'后妻淫乱，主母畜秽，外内混通，男女无别，是谓两主者，可亡也', gloss:'后宫淫乱，形成两个权力中心' },
+  { n:38, c:3, orig:'后妻贱而婢妾贵，太子卑而庶子尊，相室轻而典谒重，如此则内外乖者，可亡也', gloss:'名分颠倒，内外秩序混乱' },
+  { n:39, c:0, orig:'大臣甚贵，偏党众强，壅塞主断而重擅国者，可亡也', gloss:'权臣专权，蒙蔽君主决断' },
+  { n:40, c:0, orig:'私门之官用，马府之世绌，乡曲之善举，官职之劳废，贵私行而贱公功者，可亡也', gloss:'私门得势，公功受贬' },
+  { n:41, c:2, orig:'公家虚而大臣实，正户贫而寄寓富，耕战之士困，末作之民利者，可亡也', gloss:'国库空臣私充，农战者困苦，商贾坐享其利' },
+  { n:42, c:1, orig:'见大利而不趋，闻祸端而不备，浅薄于争守之事，而务以仁义自饰者，可亡也', gloss:'虚伪仁义，不知趋利备患' },
+  { n:43, c:1, orig:'不为人主之孝，而慕匹夫之孝，不顾社稷之利，而听主母之令，女子用国，刑馀用事者，可亡也', gloss:'行匹夫之孝，宦官女主弄权' },
+  { n:44, c:1, orig:'辞辩而不法，心智而无术，主多能而不以法度从事者，可亡也', gloss:'多才多能却不依法度行事' },
+  { n:45, c:0, orig:'亲臣进而故人退，不肖用事而贤良伏，无功贵而劳苦贱，如是则下怨者，可亡也', gloss:'亲近无能者，贤能受压，下民积怨' },
+  { n:46, c:0, orig:'父兄大臣禄秩过功，章服侵等，宫室供养大侈，而人主弗禁，则臣心无穷者，可亡也', gloss:'臣下待遇逾制，欲壑难填' },
+  { n:47, c:2, orig:'公婿公孙与民同门，暴慠其邻者，可亡也', gloss:'贵族与民杂处却横行霸道' },
+];
+
+let active = -1;
+let sortOrig = false;
+
+function getShown() {
+  const base = active === -1 ? ITEMS : ITEMS.filter(x => x.c === active);
+  return sortOrig ? [...base].sort((a, b) => a.n - b.n) : base;
+}
+
+function renderFilterBar() {
+  const counts = CATS.map((_, i) => ITEMS.filter(x => x.c === i).length);
+  const fb = document.getElementById('filter-bar');
+  fb.innerHTML =
+    `<button class="cat-btn all${active === -1 ? ' active' : ''}" onclick="setActive(-1)">全部（${ITEMS.length}）</button>` +
+    CATS.map((c, i) =>
+      `<button class="cat-btn c${i}${active === i ? ' active' : ''}" onclick="setActive(${i})">${c.name}（${counts[i]}）</button>`
+    ).join('') +
+    `<button class="sort-btn${sortOrig ? ' on' : ''}" onclick="toggleSort()">原文顺序</button>`;
+}
+
+function renderCountBar() {
+  const counts = CATS.map((_, i) => ITEMS.filter(x => x.c === i).length);
+  document.getElementById('count-bar').innerHTML =
+    CATS.map((c, i) =>
+      `<span class="count-item"><span class="count-dot c${i}"></span>${c.name} ${counts[i]}条</span>`
+    ).join('');
+}
+
+function renderList() {
+  const shown = getShown();
+  document.getElementById('items-list').innerHTML = shown.map(item => {
+    const text = item.orig.replace(/(者，可亡也)$/, '<span class="ke">$1</span>');
+    return `<div class="item-row">
+      <span class="item-num">${item.n}</span>
+      <span class="item-cat-stripe c${item.c}"></span>
+      <div class="item-body">
+        <div class="item-meta">
+          <span class="cat-tag c${item.c}">${CATS[item.c].name}</span>
+        </div>
+        <div class="item-orig">${text}</div>
+        <div class="item-gloss">${item.gloss}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setActive(i) { active = i; renderFilterBar(); renderList(); }
+function toggleSort() { sortOrig = !sortOrig; renderFilterBar(); renderList(); }
+
+renderFilterBar();
+renderCountBar();
+renderList();
+</script>
+</body>
+</html>

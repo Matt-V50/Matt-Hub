@@ -48,10 +48,26 @@
     "pinned": false
   },
   {
+    "name": "皮肤百科 · Skin Encyclopedia",
+    "url": "pages/skin.html",
+    "icon": "🧬",
+    "desc": "皮肤各层结构与护肤成分机制参考 — 角质层砖墙模型、真皮层胶原蛋白与弹性蛋白、皮下脂肪体积支撑、视黄醇A醇渗透路径、防晒UVA/UVB穿透深度、细胞代谢更新周期、疤痕生长纹形成机制、毛周角化症鸡皮肤干预方案、屏障损伤循环、光老化机制。Skin anatomy cross-section — stratum corneum brick-and-mortar model, dermis collagen and elastin network, retinol penetration pathway, UVA vs UVB depth, cell turnover rates, stretch marks, keratosis pilaris treatment, barrier disruption cycle, photoaging.",
+    "tag": "参考",
+    "pinned": false
+  },
+  {
     "name": "糖类分子百科 · Carbohydrate Encyclopedia",
     "url": "pages/sugars.html",
     "icon": "🍬",
     "desc": "糖类分子百科 — 基于 SMILES 前端渲染的糖化学参考。每种糖附 RDKit 2D 结构图(带碳序号标注)、可旋转 3D Ball-and-Stick 模型、D/L 手性对映体、α/β 异头体对比,以及从原始印欧语根追溯至现代命名的完整词源。",
+    "tag": "参考",
+    "pinned": false
+  },
+  {
+    "name": "亡征 · 韩非子",
+    "url": "pages/wangzheng.html",
+    "icon": "📜",
+    "desc": "《韩非子·亡征》全文分类整理，47条亡国之征，含原文、白话注释与主题分类。权臣专权，君主失德，继嗣混乱，法制废弛，军事外交失策。Han Feizi Wangzheng: 47 conditions of state collapse, annotated and categorised by theme — ruler conduct, powerful ministers, succession crises, legal decay, military overreach.",
     "tag": "参考",
     "pinned": false
   }
