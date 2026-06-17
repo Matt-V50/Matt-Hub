@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>评估指标百科 · Evaluation Metrics</title>
+<meta name="keywords" content="评估指标,混淆矩阵,精确率,召回率,F1,IoU,Dice,AP,mAP,PR曲线,目标检测,分割,confusion matrix,precision,recall,average precision,mean average precision,PR curve,object detection,segmentation,COCO metrics"/>
+<meta name="description" content="评估指标交互参考 — 混淆矩阵可拖动实验 · PR曲线面积即AP · IoU/Dice几何交互 · AP@IoU阈值 (AP50/AP75/AP@[0.5:0.95]) 完整解析。Interactive ML evaluation metrics: confusion matrix sandbox, PR curve AUC, IoU/Dice geometry, COCO AP metrics."/>
+<meta name="author" content="MattHub"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  overflow-x: auto; margin: 0 -48px 28px; padding: 0 48px;
+}
+.tab {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
+  padding: 10px 16px; border: none; background: transparent; cursor: pointer;
+  color: var(--text-dim); border-bottom: 2px solid transparent;
+  margin-bottom: -1px; white-space: nowrap;
+  transition: color .15s, border-color .15s; letter-spacing: .04em;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-hi); }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Intro text ── */
+.sec-intro {
+  font-size: 12px; color: var(--text-dim); font-family: 'IBM Plex Sans', sans-serif;
+  margin-bottom: 24px; line-height: 1.75; max-width: 820px;
+}
+
+/* ── Two-col layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+.full-col { grid-column: 1 / -1; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; transition: border-color .15s;
+}
+.card:hover { border-color: var(--border-hi); }
+.card-head {
+  padding: 10px 14px 8px; border-bottom: 1px solid var(--border);
+  background: var(--tag-bg);
+}
+.card-head .title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  font-weight: 500; color: var(--text-hi); letter-spacing: .04em;
+}
+.card-head .sub {
+  font-size: 11px; color: var(--text-dim); margin-top: 2px;
+}
+.card-body { padding: 14px; }
+
+/* ── Metric value chips ── */
+.metric-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+}
+.metric-chip {
+  border-radius: 5px; padding: 5px 10px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  border: 1px solid var(--border); background: var(--tag-bg);
+  display: flex; flex-direction: column; gap: 1px; min-width: 80px;
+}
+.metric-chip .mc-label { font-size: 9px; color: var(--text-dim); letter-spacing: .06em; }
+.metric-chip .mc-val { font-size: 16px; font-weight: 500; color: var(--text-hi); line-height: 1.1; }
+.metric-chip.accent { background: var(--accent); border-color: var(--accent); }
+.metric-chip.accent .mc-label,
+.metric-chip.accent .mc-val { color: var(--bg); }
+
+/* ── Confusion matrix v2 ── */
+.cm2-cell {
+  flex: 1; border-radius: 8px; padding: 10px 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  cursor: ew-resize; user-select: none; transition: filter .12s;
+  font-family: 'IBM Plex Mono', monospace; min-height: 88px;
+}
+.cm2-cell:hover { filter: brightness(0.96); }
+.cm2-tp, .cm2-tn { background: #d4f0e2; }
+.cm2-fp, .cm2-fn { background: #fde8c8; }
+[data-theme="dark"] .cm2-tp, [data-theme="dark"] .cm2-tn { background: #0c2b1c; }
+[data-theme="dark"] .cm2-fp, [data-theme="dark"] .cm2-fn { background: #301a04; }
+
+.cm2-tag { font-size: 12px; font-weight: 500; letter-spacing: .04em; }
+.cm2-tp .cm2-tag, .cm2-tn .cm2-tag { color: #007a56; }
+.cm2-fp .cm2-tag, .cm2-fn .cm2-tag { color: #a84800; }
+[data-theme="dark"] .cm2-tp .cm2-tag, [data-theme="dark"] .cm2-tn .cm2-tag { color: #5dcaa5; }
+[data-theme="dark"] .cm2-fp .cm2-tag, [data-theme="dark"] .cm2-fn .cm2-tag { color: #ef9f27; }
+
+.cm2-count { font-size: 28px; font-weight: 500; line-height: 1; cursor: ew-resize; }
+.cm2-tp .cm2-count, .cm2-tn .cm2-count { color: #005c40; }
+.cm2-fp .cm2-count, .cm2-fn .cm2-count { color: #7a3400; }
+[data-theme="dark"] .cm2-tp .cm2-count, [data-theme="dark"] .cm2-tn .cm2-count { color: #9fe1cb; }
+[data-theme="dark"] .cm2-fp .cm2-count, [data-theme="dark"] .cm2-fn .cm2-count { color: #fac775; }
+.cm2-hint { font-size: 9px; color: var(--text-dim); letter-spacing: .02em; }
+
+/* ── Slider label colors ── */
+.sl2-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; width: 28px; }
+.sl2-tp, .sl2-tn { color: #007a56; }
+.sl2-fp, .sl2-fn { color: #a84800; }
+[data-theme="dark"] .sl2-tp, [data-theme="dark"] .sl2-tn { color: #5dcaa5; }
+[data-theme="dark"] .sl2-fp, [data-theme="dark"] .sl2-fn { color: #ef9f27; }
+
+/* ── Colored block tokens in formulas ── */
+.cmb {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px; padding: 1px 7px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500; white-space: nowrap; line-height: 1.5;
+}
+.cmb-tp, .cmb-tn { background: #d4f0e2; color: #005c40; }
+.cmb-fp, .cmb-fn { background: #fde8c8; color: #7a3400; }
+[data-theme="dark"] .cmb-tp, [data-theme="dark"] .cmb-tn { background: #0c2b1c; color: #9fe1cb; }
+[data-theme="dark"] .cmb-fp, [data-theme="dark"] .cmb-fn { background: #301a04; color: #fac775; }
+
+/* ── Formula card ── */
+.fml-card2 {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+}
+.fml-card2-head {
+  padding: 8px 14px; background: var(--tag-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.fml-card2-name {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+}
+.fml-card2-alias { font-size: 10px; color: var(--text-dim); }
+.fml-card2-val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500;
+  color: var(--text-hi);
+}
+.fml-card2-body { padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fml-formula-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 46px; }
+.fml-bar-row { display: flex; align-items: center; gap: 8px; }
+.fml-frac {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 0;
+}
+.fml-frac-bar {
+  height: 2px; background: var(--text-hi); margin: 3px 0;
+  width: calc(100% + 8px); align-self: stretch;
+  border-radius: 1px;
+}
+.fml-frac-num, .fml-frac-den {
+  display: flex; align-items: center; gap: 4px; padding: 2px 4px;
+  justify-content: center;
+}
+.op2 { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-dim); }
+.fml-bar-wrap { flex: 1; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.fml-bar-fill { height: 100%; border-radius: 3px; transition: width .25s; }
+
+/* ── Sliders ── */
+.slider-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.slider-row label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--text-dim); width: 36px; flex-shrink: 0; letter-spacing: .04em;
+}
+.slider-row input[type=range] {
+  flex: 1; accent-color: var(--accent); cursor: pointer; height: 3px;
+}
+.slider-row .val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--text-hi); width: 34px; text-align: right;
+}
+.slider-note { font-size: 10px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+
+/* ── Canvas ── */
+canvas { display: block; border-radius: 6px; }
+
+/* ── Formula strip ── */
+.formula-strip {
+  background: var(--tag-bg); border-top: 1px solid var(--border);
+  padding: 8px 14px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text-dim); line-height: 1.9;
+}
+.formula-strip .fml { color: var(--text-hi); }
+.formula-strip .fml em { color: var(--accent); font-style: normal; }
+
+/* ── IoU drag area ── */
+#iou-canvas-wrap {
+  position: relative; background: var(--tag-bg); border-radius: 6px;
+  border: 1px solid var(--border); overflow: hidden;
+  cursor: crosshair;
+}
+
+/* ── PR curve legend ── */
+.legend-row {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim);
+}
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── AP breakdown table ── */
+.ap-table {
+  width: 100%; border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+}
+.ap-table th {
+  text-align: left; padding: 6px 10px; border-bottom: 2px solid var(--border);
+  color: var(--text-dim); font-weight: 500; letter-spacing: .05em; font-size: 10px;
+}
+.ap-table td {
+  padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--text);
+  vertical-align: middle;
+}
+.ap-table tr:last-child td { border-bottom: none; }
+.ap-table tr:hover td { background: var(--tag-bg); }
+.iou-bar {
+  height: 6px; border-radius: 3px; background: var(--border);
+  position: relative; overflow: hidden; min-width: 80px;
+}
+.iou-bar-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+.tag-pill {
+  display: inline-block; padding: 1px 6px; border-radius: 3px;
+  font-size: 9px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #fff;
+  letter-spacing: .04em;
+}
+
+/* ── Dice vs IoU curve ── */
+.rel-note {
+  font-size: 11px; color: var(--text-dim); line-height: 1.7;
+  margin-top: 10px; padding: 8px 12px;
+  background: var(--tag-bg); border-radius: 6px;
+  border-left: 3px solid #009E73;
+}
+.rel-note strong { color: var(--text-hi); }
+
+/* ── Score threshold PR animation ── */
+.det-list {
+  display: flex; flex-direction: column; gap: 3px; margin-top: 8px;
+}
+.det-item {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+}
+.det-score {
+  width: 38px; text-align: right; color: var(--text-dim);
+}
+.det-bar { flex: 1; height: 14px; border-radius: 3px; background: var(--border); position: relative; overflow: hidden; }
+.det-bar-fill { height: 100%; border-radius: 3px; transition: width .2s; }
+.det-label { width: 20px; text-align: center; font-size: 10px; }
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">Evaluation Metrics</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:6px;">
+  评估指标<span style="color:var(--accent)">交互参考</span>
+</h1>
+<p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:28px;">
+  CONFUSION MATRIX · PR CURVE · IoU / DICE · AP@IoU · COCO mAP
+</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab(0)">🎯 混淆矩阵</button>
+  <button class="tab" onclick="showTab(1)">📈 PR 曲线 &amp; AP</button>
+  <button class="tab" onclick="showTab(2)">🟦 IoU &amp; Dice</button>
+  <button class="tab" onclick="showTab(3)">🏆 AP@IoU &amp; COCO</button>
+</div>
+
+<!-- ═══ TAB 0: Confusion Matrix ═══════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <p class="sec-intro">拖动格子数字 ← → 或移动滑块，实时观察所有指标和公式的变化。<br>
+  公式中的
+  <span class="cmb cmb-tp">TP</span>
+  <span class="cmb cmb-tn">TN</span>
+  <span class="cmb cmb-fp">FP</span>
+  <span class="cmb cmb-fn">FN</span>
+  颜色块与混淆矩阵格子颜色一一对应。</p>
+
+  <div class="two-col">
+    <!-- Left: matrix + sliders -->
+    <div class="card">
+      <div class="card-head">
+        <div class="title">混淆矩阵 Confusion Matrix</div>
+        <div class="sub">拖动格子数字 ← → 调整，或使用下方滑块</div>
+      </div>
+      <div class="card-body">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.07em;text-align:center;margin-bottom:4px;">← PREDICTED →</div>
+        <div style="display:flex;">
+          <div style="width:18px;display:flex;align-items:center;justify-content:center;margin-right:2px;">
+            <span style="font-size:9px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;letter-spacing:.07em;writing-mode:vertical-rl;transform:rotate(180deg);">↑ ACTUAL ↑</span>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex;gap:0;padding-left:72px;margin-bottom:3px;">
+              <div style="flex:1;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);">Positive</div>
+              <div style="flex:1;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);">Negative</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="width:68px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);padding-right:8px;">Positive</div>
+                <div class="cm2-cell cm2-tp" id="cm-tp" data-key="tp">
+                  <span class="cm2-tag">TP</span><span class="cm2-count" id="cnt-tp">50</span><span class="cm2-hint">✓ 正确识别正样本</span>
+                </div>
+                <div class="cm2-cell cm2-fn" id="cm-fn" data-key="fn">
+                  <span class="cm2-tag">FN</span><span class="cm2-count" id="cnt-fn">10</span><span class="cm2-hint">✗ 漏报</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="width:68px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);padding-right:8px;">Negative</div>
+                <div class="cm2-cell cm2-fp" id="cm-fp" data-key="fp">
+                  <span class="cm2-tag">FP</span><span class="cm2-count" id="cnt-fp">5</span><span class="cm2-hint">✗ 误报</span>
+                </div>
+                <div class="cm2-cell cm2-tn" id="cm-tn" data-key="tn">
+                  <span class="cm2-tag">TN</span><span class="cm2-count" id="cnt-tn">35</span><span class="cm2-hint">✓ 正确识别负样本</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:9px;">
+          <div class="slider-row"><label class="sl2-label sl2-tp">TP</label><input type="range" min="0" max="100" value="50" id="sl-tp" oninput="updateFromSlider('tp',this.value)" style="accent-color:#009E73"><span class="val" id="sv-tp">50</span></div>
+          <div class="slider-row"><label class="sl2-label sl2-fn">FN</label><input type="range" min="0" max="100" value="10" id="sl-fn" oninput="updateFromSlider('fn',this.value)" style="accent-color:#E69F00"><span class="val" id="sv-fn">10</span></div>
+          <div class="slider-row"><label class="sl2-label sl2-fp">FP</label><input type="range" min="0" max="100" value="5"  id="sl-fp" oninput="updateFromSlider('fp',this.value)" style="accent-color:#E69F00"><span class="val" id="sv-fp">5</span></div>
+          <div class="slider-row"><label class="sl2-label sl2-tn">TN</label><input type="range" min="0" max="100" value="35" id="sl-tn" oninput="updateFromSlider('tn',this.value)" style="accent-color:#009E73"><span class="val" id="sv-tn">35</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: formula cards -->
+    <div id="metrics-formula-grid" style="display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
+<!-- ═══ TAB 1: PR Curve & AP ═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+  <p class="sec-intro">AP (Average Precision) = PR 曲线下面积。通过改变 <strong>score 阈值</strong>，每个阈值对应一个 (Recall, Precision) 点，连成 PR 曲线。曲线下面积即 AP。<br>
+  拖动滑块改变 score 阈值，观察当前点在曲线上的位置；点击 "Animate" 自动遍历所有阈值。</p>
+
+  <div class="two-col">
+    <div class="card full-col">
+      <div class="card-head">
+        <div class="title">PR 曲线与 AP 可视化</div>
+        <div class="sub">Score 阈值以上的检测视为正预测；阈值变化 → (P, R) 点变化 → 曲线 → 面积 = AP</div>
+      </div>
+      <div class="card-body" style="display:flex;gap:18px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:280px;">
+          <canvas id="pr-canvas" width="380" height="300" style="width:100%;max-width:380px;border:1px solid var(--border);border-radius:6px;"></canvas>
+          <div class="legend-row">
+            <div class="legend-item"><div class="legend-dot" style="background:#0072B2"></div>PR 曲线</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#d4f0e2"></div>AP 面积</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E69F00;border-radius:50%"></div>当前阈值点</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div class="slider-row">
+              <label style="width:80px;">Score 阈值</label>
+              <input type="range" min="0" max="100" value="50" id="pr-thresh-sl" oninput="setPRThresh(this.value/100)">
+              <span class="val" id="pr-thresh-val">0.50</span>
+            </div>
+            <div class="metric-row" id="pr-metrics" style="margin-top:8px;"></div>
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);">检测结果列表 (按 score 排序)</span>
+              <button id="anim-btn" onclick="toggleAnim()" style="font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--accent);cursor:pointer;">▶ Animate</button>
+            </div>
+            <div class="det-list" id="det-list"></div>
+            <div class="slider-note" style="margin-top:6px;">绿色 = GT匹配 (TP)，红色 = 无匹配 (FP)。阈值以上的检测参与计算。</div>
+          </div>
+        </div>
+      </div>
+      <div class="formula-strip">
+        <span class="fml">AP = ∫<sub>0</sub><sup>1</sup> P(R) dR</span>
+        &nbsp;≈ 所有阈值点插值面积
+        &nbsp;|&nbsp; <span class="fml"><em>AP@50</em></span> = IoU阈值=0.50时的AP
+        &nbsp;|&nbsp; <span class="fml"><em>AP@[.5:.95]</em></span> = 10个IoU阈值均值
+      </div>
+    </div>
+
+    <!-- F-beta explanation -->
+    <div class="card">
+      <div class="card-head"><div class="title">F-beta Score</div></div>
+      <div class="card-body">
+        <div class="slider-row">
+          <label style="width:42px;">β</label>
+          <input type="range" min="1" max="30" value="10" id="beta-sl" oninput="updateFBeta(this.value/10)">
+          <span class="val" id="beta-val">1.0</span>
+        </div>
+        <div id="fbeta-display" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);line-height:2.0;"></div>
+        <div class="slider-note">β &gt; 1 偏重 Recall（漏报代价高，如医疗诊断）<br>β &lt; 1 偏重 Precision（误报代价高，如垃圾邮件）<br>β = 1 → F1，精确率和召回率等权</div>
+      </div>
+    </div>
+
+    <!-- Balanced accuracy -->
+    <div class="card">
+      <div class="card-head"><div class="title">类别不平衡 Class Imbalance</div></div>
+      <div class="card-body">
+        <div class="slider-row">
+          <label style="width:62px;">正例比例</label>
+          <input type="range" min="1" max="99" value="50" id="imbal-sl" oninput="updateImbal(this.value)">
+          <span class="val" id="imbal-val">50%</span>
+        </div>
+        <div id="imbal-display" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);line-height:2.0;"></div>
+        <div class="slider-note">当正负极度不平衡时，Accuracy 虚高（直接预测多数类即可得高分）。此时应用 Balanced Accuracy 或 MCC。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB 2: IoU & Dice ═══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+  <p class="sec-intro">IoU (Intersection over Union) 和 Dice 系数都是衡量两个区域重叠程度的指标，广泛用于目标检测、语义分割、实例分割任务。<br>
+  <strong>拖动蓝色框</strong>改变位置，<strong>拖动右下角</strong>改变大小，实时观察 IoU 和 Dice。</p>
+
+  <div class="two-col">
+    <div class="card full-col">
+      <div class="card-head">
+        <div class="title">几何交互 · 拖拽体验 IoU & Dice</div>
+        <div class="sub">橙色 = Ground Truth，蓝色 = Prediction。拖动蓝色框调整位置和大小。</div>
+      </div>
+      <div class="card-body" style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;">
+        <div id="iou-canvas-wrap" style="width:340px;height:280px;flex-shrink:0;">
+          <canvas id="iou-canvas" width="340" height="280"></canvas>
+        </div>
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px;">
+          <div class="metric-row" id="iou-metrics"></div>
+          <div class="rel-note">
+            <strong>IoU vs Dice 的关系</strong><br>
+            Dice = 2·IoU / (1 + IoU)<br>
+            IoU = Dice / (2 − Dice)<br>
+            <span style="font-size:10px;">F1 Score = Dice 系数（在二值分割中等价）</span>
+          </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);margin-bottom:6px;letter-spacing:.04em;">IoU 阈值判定</div>
+            <div id="iou-thresh-display" style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;"></div>
+          </div>
+          <div class="slider-note">
+            TP = 交集面积<br>
+            FP = 预测区域 − 交集 (过预测)<br>
+            FN = GT区域 − 交集 (漏检)<br>
+            IoU = TP / (TP+FP+FN)
+          </div>
+        </div>
+      </div>
+      <div class="formula-strip">
+        <span class="fml">IoU = |A ∩ B| / |A ∪ B|</span>
+        &nbsp;=&nbsp; <span class="fml">TP / (TP+FP+FN)</span>
+        &nbsp;&nbsp;&nbsp;
+        <span class="fml">Dice = 2|A ∩ B| / (|A|+|B|)</span>
+        &nbsp;=&nbsp; <span class="fml">2TP / (2TP+FP+FN)</span>
+      </div>
+    </div>
+
+    <!-- IoU vs Dice curve -->
+    <div class="card">
+      <div class="card-head"><div class="title">IoU ↔ Dice 转换曲线</div></div>
+      <div class="card-body">
+        <canvas id="iou-dice-canvas" width="360" height="220" style="width:100%;max-width:360px;border:1px solid var(--border);border-radius:6px;"></canvas>
+        <div class="rel-note" style="margin-top:10px;">
+          Dice 始终 ≥ IoU（相同重叠时 Dice 分值更高）。<br>
+          当 IoU→0，Dice→0；当 IoU→1，Dice→1；<br>
+          IoU=0.5 时 Dice≈0.667。
+        </div>
+      </div>
+    </div>
+
+    <!-- Pixel-level breakdown -->
+    <div class="card">
+      <div class="card-head"><div class="title">像素级分解示意</div></div>
+      <div class="card-body">
+        <canvas id="pixel-canvas" width="360" height="180" style="width:100%;max-width:360px;border:1px solid var(--border);border-radius:6px;"></canvas>
+        <div class="slider-note" style="margin-top:8px;">
+          <strong style="color:#009E73">绿色</strong> TP：预测和GT都为正<br>
+          <strong style="color:#E69F00">橙色</strong> FP：预测为正，GT为负（过预测）<br>
+          <strong style="color:#E69F00">橙色</strong> FN：预测为负，GT为正（漏检）<br>
+          白色 TN：双方都为负
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB 3: AP@IoU & COCO ═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+  <p class="sec-intro">AP 因 IoU 阈值的选择而变化。COCO 数据集定义了标准化的评估协议，通过在多个 IoU 阈值上平均 AP，得到更全面、更公平的评估。<br>
+  移动 IoU 阈值滑块，观察 TP/FP 分类如何随之改变，以及最终 AP 的变化。</p>
+
+  <div class="two-col">
+
+    <div class="card full-col">
+      <div class="card-head">
+        <div class="title">AP@IoU 阈值可视化</div>
+        <div class="sub">同一批检测结果，IoU 阈值越高要求越严格，AP 越低</div>
+      </div>
+      <div class="card-body">
+        <div class="slider-row" style="margin-bottom:14px;">
+          <label style="width:80px;">IoU 阈值</label>
+          <input type="range" min="5" max="95" value="50" id="iou-thresh-sl" step="5" oninput="updateAPTable(this.value/100)">
+          <span class="val" id="iou-thresh-val">0.50</span>
+        </div>
+        <canvas id="ap-canvas" width="700" height="260" style="width:100%;max-width:700px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;"></canvas>
+        <div class="legend-row" id="ap-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#0072B2"></div>AP (overall)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#009E73"></div>TP (IoU ≥ 阈值)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#E69F00"></div>FP (IoU &lt; 阈值)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#888"></div>GT (未匹配 = FN)</div>
+        </div>
+        <div id="ap-thresh-note" style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.03em;"></div>
+      </div>
+    </div>
+
+    <!-- COCO breakdown -->
+    <div class="card">
+      <div class="card-head">
+        <div class="title">COCO 标准评估指标</div>
+        <div class="sub">COCO 2017 Detection / Instance Segmentation</div>
+      </div>
+      <div class="card-body">
+        <table class="ap-table">
+          <thead>
+            <tr>
+              <th>指标</th><th>IoU 范围</th><th>含义</th><th>值</th>
+            </tr>
+          </thead>
+          <tbody id="coco-table-body"></tbody>
+        </table>
+      </div>
+      <div class="formula-strip">
+        <span class="fml">AP@[.5:.95]</span> = 平均(AP50, AP55, …, AP95)
+        &nbsp;&nbsp;
+        <span class="fml">mAP</span> = 多类别 AP 的均值
+      </div>
+    </div>
+
+    <!-- Threshold intuition -->
+    <div class="card">
+      <div class="card-head"><div class="title">阈值直觉 · 严格程度梯度</div></div>
+      <div class="card-body">
+        <canvas id="thresh-grade-canvas" width="360" height="200" style="width:100%;max-width:360px;border:1px solid var(--border);border-radius:6px;"></canvas>
+        <div class="slider-note" style="margin-top:8px;">
+          <strong style="color:#009E73">AP50</strong>：宽松，只需 50% 重叠，适合快速验证<br>
+          <strong style="color:#E69F00">AP75</strong>：中等严格，PASCAL VOC 经典标准<br>
+          <strong style="color:#D55E00">AP90</strong>：严格<br>
+          <strong style="color:#CC79A7">AP95</strong>：极严格，几乎需要像素级精确<br>
+          <strong style="color:var(--accent)">AP@[.5:.95]</strong>：COCO 综合评分，全面衡量定位质量
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════
+function getCSS(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function isDark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+
+function fmt(v, d=3) {
+  if (!isFinite(v)) return 'N/A';
+  return v.toFixed(d);
+}
+
+function showTab(n) {
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  // Trigger redraws for lazy canvases
+  setTimeout(() => {
+    if (n===1) { drawPRCurve(); drawFBeta(); updateImbal(document.getElementById('imbal-sl').value); }
+    if (n===2) { drawIoUCanvas(); drawIoUDiceCurve(); drawPixelCanvas(); }
+    if (n===3) { updateAPTable(parseFloat(document.getElementById('iou-thresh-sl').value)/100); drawThreshGrade(); }
+  }, 10);
+}
+
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// TAB 0: CONFUSION MATRIX
+// ══════════════════════════════════════════════════════════
+const CM = { tp:50, fp:5, fn:10, tn:35 };
+
+// Colored block token helpers
+function B(cls, text) {
+  return `<span class="cmb cmb-${cls}">${text}</span>`;
+}
+function op(txt) {
+  return `<span class="op2">${txt}</span>`;
+}
+function frac(numH, denH) {
+  return `<span class="fml-frac"><span class="fml-frac-num">${numH}</span><span class="fml-frac-bar"></span><span class="fml-frac-den">${denH}</span></span>`;
+}
+function metricCard(nameH, alias, nameColor, fracOrBody, val, barColor) {
+  const pct = isFinite(val) ? Math.min(100, Math.max(0, val*100)) : 0;
+  return `<div class="fml-card2">
+    <div class="fml-card2-head">
+      <span class="fml-card2-name" style="color:${nameColor}">${nameH}</span>
+      <span class="fml-card2-alias">${alias}</span>
+    </div>
+    <div class="fml-card2-body">
+      <div class="fml-formula-row">${fracOrBody}</div>
+      <div class="fml-bar-row">
+        <div class="fml-bar-wrap"><div class="fml-bar-fill" style="width:${pct.toFixed(1)}%;background:${barColor}"></div></div>
+        <span class="fml-card2-val">${isFinite(val)?val.toFixed(3):'N/A'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateFromSlider(key, val) {
+  val = parseInt(val);
+  CM[key] = val;
+  document.getElementById('cnt-'+key).textContent = val;
+  document.getElementById('sv-'+key).textContent = val;
+  document.getElementById('sl-'+key).value = val;
+  renderMetrics();
+}
+
+function renderMetrics() {
+  const {tp, fp, fn, tn} = CM;
+  const total = tp+fp+fn+tn;
+  const P  = tp/(tp+fp) || 0;
+  const R  = tp/(tp+fn) || 0;
+  const Sp = tn/(tn+fp) || 0;
+  const Ac = (tp+tn)/total || 0;
+  const F1 = (P+R)>0 ? 2*P*R/(P+R) : 0;
+  const IoU= tp/(tp+fp+fn) || 0;
+  const Dice= 2*tp/(2*tp+fp+fn) || 0;
+  const BA = (R+Sp)/2;
+  const mccNum = tp*tn - fp*fn;
+  const mccDen = Math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn));
+  const MCC = mccDen ? mccNum/mccDen : 0;
+
+  const GRI = '#007a56';
+  const ORI = '#a84800';
+  const SLI = '#0072B2';
+
+  const cards = [
+    metricCard('Precision', '精确率 · 查准率', GRI,
+      frac(B('tp','TP'), B('tp','TP')+op('+')+B('fp','FP')), P, GRI),
+
+    metricCard('Recall', '召回率 · 灵敏度', GRI,
+      frac(B('tp','TP'), B('tp','TP')+op('+')+B('fn','FN')), R, GRI),
+
+    metricCard('Specificity', '特异度 · 真阴性率', ORI,
+      frac(B('tn','TN'), B('tn','TN')+op('+')+B('fp','FP')), Sp, ORI),
+
+    metricCard('Accuracy', '准确率', GRI,
+      frac(B('tp','TP')+op('+')+B('tn','TN'), op(`Total&nbsp;${total}`)), Ac, GRI),
+
+    metricCard('F1', 'F-measure · Dice', ORI,
+      frac(op('2×')+B('tp','TP'), op('2×')+B('tp','TP')+op('+')+B('fp','FP')+op('+')+B('fn','FN')), F1, ORI),
+
+    metricCard('IoU', 'Jaccard · 交并比', ORI,
+      frac(B('tp','TP'), B('tp','TP')+op('+')+B('fp','FP')+op('+')+B('fn','FN')), IoU, ORI),
+
+    metricCard('Balanced Acc.', '平衡准确率', SLI,
+      frac(
+        op('Recall')+op('+')+op('Specificity'),
+        op('2')
+      ), BA, SLI),
+
+    metricCard('MCC', 'Matthews correlation', SLI,
+      frac(
+        B('tp','TP')+op('·')+B('tn','TN')+op('−')+B('fp','FP')+op('·')+B('fn','FN'),
+        op('Sqrt(')+op('(')+B('tp','TP')+op('+')+B('fp','FP')+op(')')+op('(')+B('tp','TP')+op('+')+B('fn','FN')+op(')')+op('(')+B('tn','TN')+op('+')+B('fp','FP')+op(')')+op('(')+B('tn','TN')+op('+')+B('fn','FN')+op('))')
+      ), MCC, SLI),
+  ];
+
+  document.getElementById('metrics-formula-grid').innerHTML = cards.join('');
+}
+
+// Drag to change CM values
+['tp','fp','fn','tn'].forEach(key => {
+  const el = document.getElementById('cm-'+key);
+  let startX, startVal;
+  el.addEventListener('mousedown', e => {
+    startX = e.clientX; startVal = CM[key];
+    const onMove = ev => {
+      const val = Math.max(0, Math.min(100, startVal + Math.round((ev.clientX - startX) / 4)));
+      updateFromSlider(key, val);
+    };
+    const onUp = () => { window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// COLOR SYSTEM — Okabe-Ito, fixed hex, no oklch transforms
+// ══════════════════════════════════════════════════════════
+const COL = {
+  // Tab 1 — PR curve
+  prCurve: '#0072B2',
+  apFill:  '#0072B233',
+  curPt:   '#E69F00',
+  detTP:   '#009E73',
+  detFP:   '#D55E00',
+
+  // Tab 0 / shared TP·FP·FN fills (light tints) + ink
+  tpFill: '#d4f0e2', tpInk: '#009E73',
+  tnFill: '#d4f0e2', tnInk: '#009E73',
+  fpFill: '#fde8c8', fpInk: '#D55E00',
+  fnFill: '#fde8c8', fnInk: '#E69F00',
+
+  // Tab 2 — IoU boxes
+  gtFill:   '#fde8c8', gtInk:   '#E69F00',
+  predFill: '#cce4f5', predInk: '#0072B2',
+
+  // Tab 2 — curves
+  iouLine:  '#0072B2',
+  diceLine: '#009E73',
+
+  // Tab 3 — AP grades
+  ap50:   '#009E73',
+  ap75:   '#E69F00',
+  ap90:   '#D55E00',
+  ap95:   '#CC79A7',
+  apMain: '#0072B2',
+
+  cocoAlt: '#CC79A7',
+};
+
+
+// 20 detections, sorted by score descending
+const DETECTIONS = [
+  {score:0.97,tp:true},{score:0.93,tp:true},{score:0.88,tp:false},
+  {score:0.85,tp:true},{score:0.82,tp:true},{score:0.78,tp:false},
+  {score:0.74,tp:true},{score:0.70,tp:true},{score:0.66,tp:false},
+  {score:0.63,tp:true},{score:0.59,tp:false},{score:0.55,tp:true},
+  {score:0.50,tp:false},{score:0.46,tp:true},{score:0.41,tp:false},
+  {score:0.37,tp:false},{score:0.33,tp:true},{score:0.28,tp:false},
+  {score:0.22,tp:false},{score:0.15,tp:false}
+];
+const N_GT = 12; // total ground truths
+
+let prThresh = 0.50;
+let animRunning = false;
+let animFrame = null;
+
+function getPRPoints() {
+  // For each unique score threshold, compute (P, R)
+  const pts = [];
+  const sorted = DETECTIONS.slice(); // already sorted desc
+  for (let i = 0; i < sorted.length; i++) {
+    const thresh = sorted[i].score;
+    const active = sorted.slice(0, i+1);
+    const tp = active.filter(d=>d.tp).length;
+    const fp = active.filter(d=>!d.tp).length;
+    const P = tp/(tp+fp);
+    const R = tp/N_GT;
+    pts.push({thresh, P, R, tp, fp});
+  }
+  return pts;
+}
+
+function computeAP(pts) {
+  // Interpolated AP (COCO-style 101-point)
+  let ap = 0;
+  for (let r = 0; r <= 1.0; r += 0.01) {
+    const maxP = pts.filter(p=>p.R>=r).reduce((m,p)=>Math.max(m,p.P), 0);
+    ap += maxP / 101;
+  }
+  return ap;
+}
+
+function drawPRCurve() {
+  const canvas = document.getElementById('pr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = {l:48, r:20, t:24, b:44};
+  const gw = W-pad.l-pad.r, gh = H-pad.t-pad.b;
+
+  ctx.clearRect(0,0,W,H);
+  const bg = getCSS('--surface');
+  const brd = getCSS('--border');
+  const textDim = getCSS('--text-dim');
+
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = brd; ctx.lineWidth = 0.5;
+  for (let i=0;i<=5;i++) {
+    const x = pad.l + i*gw/5, y = pad.t + i*gh/5;
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+gh); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gw,y); ctx.stroke();
+    ctx.fillStyle = textDim; ctx.font = '10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText((i/5).toFixed(1), x, pad.t+gh+14);
+    if (i>0) { ctx.textAlign='right'; ctx.fillText((1-i/5).toFixed(1), pad.l-6, pad.t+i*gh/5+4); }
+  }
+
+  const pts = getPRPoints();
+  const ap = computeAP(pts);
+  const byR = [...pts].sort((a,b)=>a.R-b.R);
+
+  // Filled AP area
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t+gh);
+  byR.forEach(p => ctx.lineTo(pad.l+p.R*gw, pad.t+(1-p.P)*gh));
+  ctx.lineTo(pad.l+gw, pad.t+gh);
+  ctx.closePath();
+  ctx.fillStyle = COL.apFill; ctx.fill();
+
+  // PR curve
+  ctx.beginPath(); ctx.strokeStyle = COL.prCurve; ctx.lineWidth = 2.5;
+  let first=true;
+  byR.forEach(p => {
+    const x=pad.l+p.R*gw, y=pad.t+(1-p.P)*gh;
+    first ? ctx.moveTo(x,y) : ctx.lineTo(x,y); first=false;
+  });
+  ctx.stroke();
+
+  // Individual threshold dots
+  pts.forEach(p => {
+    ctx.beginPath(); ctx.arc(pad.l+p.R*gw, pad.t+(1-p.P)*gh, 3, 0, Math.PI*2);
+    ctx.fillStyle = COL.prCurve; ctx.fill();
+  });
+
+  // Current threshold highlight dot
+  const active = DETECTIONS.filter(d=>d.score>=prThresh);
+  const tp = active.filter(d=>d.tp).length;
+  const fp = active.filter(d=>!d.tp).length;
+  const curP = (tp+fp)>0 ? tp/(tp+fp) : 1;
+  const curR = tp/N_GT;
+  const cx=pad.l+curR*gw, cy=pad.t+(1-curP)*gh;
+  // orange ring
+  ctx.beginPath(); ctx.arc(cx,cy,9,0,Math.PI*2);
+  ctx.fillStyle = COL.curPt; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2);
+  ctx.fillStyle = bg; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2);
+  ctx.fillStyle = COL.curPt; ctx.fill();
+  // drop lines
+  ctx.strokeStyle = COL.curPt; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,pad.t+gh); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(pad.l,cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis labels
+  ctx.fillStyle=textDim; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('Recall →', pad.l+gw/2, H-4);
+  ctx.save(); ctx.translate(12,pad.t+gh/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Precision →',0,0); ctx.restore();
+
+  // AP value label
+  ctx.fillStyle=COL.prCurve; ctx.font='bold 13px IBM Plex Mono,monospace'; ctx.textAlign='right';
+  ctx.fillText(`AP = ${fmt(ap,3)}`, pad.l+gw-4, pad.t+18);
+
+  document.getElementById('pr-metrics').innerHTML =
+    `<div class="metric-chip" style="border-color:${COL.prCurve}"><span class="mc-label" style="color:${COL.prCurve}">AP</span><span class="mc-val">${fmt(ap,3)}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">Precision</span><span class="mc-val">${fmt(curP,3)}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">Recall</span><span class="mc-val">${fmt(curR,3)}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">Score≥</span><span class="mc-val">${fmt(prThresh,2)}</span></div>`;
+}
+
+function buildDetList() {
+  const el = document.getElementById('det-list');
+  if (!el) return;
+  el.innerHTML = DETECTIONS.map(d => {
+    const active = d.score >= prThresh;
+    const color = d.tp ? COL.detTP : COL.detFP;
+    const label = d.tp ? '✓' : '✗';
+    return `<div class="det-item" style="opacity:${active?1:0.28}">
+      <span class="det-score">${d.score.toFixed(2)}</span>
+      <div class="det-bar">
+        <div class="det-bar-fill" style="width:${d.score*100}%;background:${color}"></div>
+      </div>
+      <span class="det-label" style="color:${color}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+function setPRThresh(v) {
+  prThresh = v;
+  document.getElementById('pr-thresh-val').textContent = v.toFixed(2);
+  document.getElementById('pr-thresh-sl').value = v*100;
+  drawPRCurve();
+  buildDetList();
+}
+
+function toggleAnim() {
+  animRunning = !animRunning;
+  document.getElementById('anim-btn').textContent = animRunning ? '■ Stop' : '▶ Animate';
+  if (animRunning) runAnim();
+  else if (animFrame) cancelAnimationFrame(animFrame);
+}
+
+let animDir = -1, animV = 0.97;
+function runAnim() {
+  if (!animRunning) return;
+  animV += animDir * 0.008;
+  if (animV <= 0.10) animDir = 1;
+  if (animV >= 0.97) animDir = -1;
+  setPRThresh(animV);
+  animFrame = requestAnimationFrame(runAnim);
+}
+
+buildDetList();
+
+// F-beta
+function updateFBeta(beta) {
+  document.getElementById('beta-val').textContent = beta.toFixed(1);
+  const {tp,fp,fn} = CM;
+  const P = tp/(tp+fp)||0, R = tp/(tp+fn)||0;
+  const fb = (1+beta*beta)*P*R / (beta*beta*P+R) || 0;
+  const el = document.getElementById('fbeta-display');
+  if (!el) return;
+  el.innerHTML =
+    `β = <span style="color:var(--text-hi)">${beta.toFixed(1)}</span><br>` +
+    `F<sub>β</sub> = (1+${beta.toFixed(1)}²)·P·R / (${beta.toFixed(1)}²·P+R)<br>` +
+    `     = <span style="color:var(--accent)">${fmt(fb,3)}</span><br>` +
+    `<br>Precision = ${fmt(P,3)} &nbsp; Recall = ${fmt(R,3)}<br>` +
+    `(TP/FP/FN 同混淆矩阵 Tab)`;
+}
+updateFBeta(1.0);
+
+// Imbalance
+function updateImbal(v) {
+  v = parseInt(v);
+  document.getElementById('imbal-val').textContent = v+'%';
+  const pos = v, neg = 100-v;
+  // naive classifier: always predict majority
+  const majority = pos >= neg ? 'positive' : 'negative';
+  let naive_tp=0, naive_tn=0, naive_fp=0, naive_fn=0;
+  if (majority==='positive') { naive_tp=pos; naive_fp=neg; }
+  else { naive_tn=neg; naive_fn=pos; }
+  const naiveAcc = (naive_tp+naive_tn)/100;
+  const naiveBA = majority==='positive' ? (1+0)/2 : (0+1)/2;
+  const el = document.getElementById('imbal-display');
+  if (!el) return;
+  el.innerHTML =
+    `正例: <span style="color:${COL.tpInk}">${pos}</span> &nbsp; 负例: <span style="color:${COL.fpInk}">${neg}</span><br>` +
+    `全预测${majority==='positive'?'正':'负'}的结果:<br>` +
+    `Accuracy = <span style="color:${COL.prCurve}">${fmt(naiveAcc,2)}</span> &nbsp; <span style="font-size:9px;">(虚高!)</span><br>` +
+    `Balanced Acc = <span style="color:${COL.prCurve}">${fmt(naiveBA,2)}</span> &nbsp; <span style="font-size:9px;">(正确揭示问题)</span><br>` +
+    `<span style="font-size:10px;color:var(--text-dim);">正负越不平衡，Accuracy 越具误导性</span>`;
+}
+updateImbal(50);
+
+// ══════════════════════════════════════════════════════════
+// TAB 2: IoU & Dice (draggable boxes)
+// ══════════════════════════════════════════════════════════
+const GT  = {x:50,  y:50,  w:150, h:120}; // fixed ground truth
+let PRED  = {x:110, y:90,  w:130, h:110}; // draggable prediction
+
+let dragging = false, dragMode = 'move'; // 'move' or 'resize'
+let dragStartX, dragStartY, dragStartPred;
+
+function clamp(v,lo,hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function computeIoU(a, b) {
+  const ix = Math.max(a.x,b.x), iy = Math.max(a.y,b.y);
+  const ix2= Math.min(a.x+a.w,b.x+b.w), iy2=Math.min(a.y+a.h,b.y+b.h);
+  if (ix2<=ix || iy2<=iy) return {iou:0,dice:0,inter:0,unionA:0,tp:0,fp:0,fn:0};
+  const inter = (ix2-ix)*(iy2-iy);
+  const aA = a.w*a.h, bA = b.w*b.h;
+  const unionA = aA+bA-inter;
+  const iou = inter/unionA;
+  const dice = 2*inter/(aA+bA);
+  return {iou, dice, inter, unionA, tp:inter, fp:bA-inter, fn:aA-inter};
+}
+
+function drawIoUCanvas() {
+  const canvas = document.getElementById('iou-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const bg=getCSS('--surface'), brd=getCSS('--border');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const {iou,dice,tp,fp,fn}=computeIoU(GT,PRED);
+  const ix=Math.max(GT.x,PRED.x), iy=Math.max(GT.y,PRED.y);
+  const ix2=Math.min(GT.x+GT.w,PRED.x+PRED.w), iy2=Math.min(GT.y+GT.h,PRED.y+PRED.h);
+  const hasInter = ix2>ix && iy2>iy;
+
+  // GT fill
+  ctx.fillStyle = COL.gtFill; ctx.fillRect(GT.x,GT.y,GT.w,GT.h);
+  // PRED fill
+  ctx.fillStyle = COL.predFill; ctx.fillRect(PRED.x,PRED.y,PRED.w,PRED.h);
+  // Intersection fill (TP)
+  if (hasInter) { ctx.fillStyle=COL.tpFill; ctx.fillRect(ix,iy,ix2-ix,iy2-iy); }
+
+  // GT border (solid, orange ink)
+  ctx.strokeStyle=COL.gtInk; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  ctx.strokeRect(GT.x,GT.y,GT.w,GT.h);
+  ctx.fillStyle=COL.gtInk; ctx.font='bold 11px IBM Plex Mono,monospace'; ctx.textAlign='left';
+  ctx.fillText('GT', GT.x+5, GT.y+14);
+
+  // PRED border (dashed, azure ink)
+  ctx.strokeStyle=COL.predInk; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.strokeRect(PRED.x,PRED.y,PRED.w,PRED.h); ctx.setLineDash([]);
+  ctx.fillStyle=COL.predInk; ctx.font='bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('Pred', PRED.x+5, PRED.y+14);
+
+  // Resize handle
+  ctx.fillStyle=COL.predInk;
+  ctx.fillRect(PRED.x+PRED.w-10,PRED.y+PRED.h-10,10,10);
+
+  // Region labels — always ink on fill
+  ctx.font='bold 11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  if (hasInter) { ctx.fillStyle=COL.tpInk; ctx.fillText('TP',(ix+ix2)/2,(iy+iy2)/2+5); }
+  if (fp>200) { ctx.fillStyle=COL.fpInk; ctx.fillText('FP',PRED.x+PRED.w*0.2,PRED.y+PRED.h*0.8); }
+  if (fn>200) { ctx.fillStyle=COL.fnInk; ctx.fillText('FN',GT.x+GT.w*0.2,GT.y+GT.h*0.2+10); }
+
+  // Metric chips
+  document.getElementById('iou-metrics').innerHTML =
+    `<div class="metric-chip" style="border-color:${COL.iouLine}"><span class="mc-label" style="color:${COL.iouLine}">IoU</span><span class="mc-val">${fmt(iou,3)}</span></div>` +
+    `<div class="metric-chip" style="border-color:${COL.diceLine}"><span class="mc-label" style="color:${COL.diceLine}">Dice</span><span class="mc-val">${fmt(dice,3)}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">TP (px²)</span><span class="mc-val">${Math.round(tp)}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">FP (px²)</span><span class="mc-val">${Math.round(Math.max(0,fp))}</span></div>` +
+    `<div class="metric-chip"><span class="mc-label">FN (px²)</span><span class="mc-val">${Math.round(Math.max(0,fn))}</span></div>`;
+
+  const threshEl=document.getElementById('iou-thresh-display');
+  if (threshEl) {
+    threshEl.innerHTML=[0.5,0.75,0.9].map(t=>{
+      const pass=iou>=t;
+      return `<div style="display:flex;align-items:center;gap:6px;">
+        <span style="color:${pass?COL.tpInk:COL.fpInk};font-size:12px;">${pass?'✓':'✗'}</span>
+        <span>IoU@${t.toFixed(2)}:</span>
+        <span style="color:${pass?COL.tpInk:COL.fpInk};font-weight:500;">${pass?'TP':'FP'}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function drawPixelCanvas() {
+  const canvas = document.getElementById('pixel-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const N=18, cw=W/N, ch=H/N;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=getCSS('--surface'); ctx.fillRect(0,0,W,H);
+  const gtX1=2,gtY1=2,gtX2=11,gtY2=12;
+  const prX1=6,prY1=5,prX2=16,prY2=15;
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++) {
+    const inGT=c>=gtX1&&c<gtX2&&r>=gtY1&&r<gtY2;
+    const inPR=c>=prX1&&c<prX2&&r>=prY1&&r<prY2;
+    let color;
+    if (inGT&&inPR) color=COL.tpFill;
+    else if (!inGT&&inPR) color=COL.fpFill;
+    else if (inGT&&!inPR) color=COL.fnFill;
+    else color=isDark()?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
+    ctx.fillStyle=color; ctx.fillRect(c*cw+0.5,r*ch+0.5,cw-1,ch-1);
+  }
+  ctx.font='bold 10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  const tpMx=(Math.max(gtX1,prX1)+Math.min(gtX2,prX2))/2*cw;
+  const tpMy=(Math.max(gtY1,prY1)+Math.min(gtY2,prY2))/2*ch+4;
+  ctx.fillStyle=COL.tpInk; ctx.fillText('TP',tpMx,tpMy);
+  ctx.fillStyle=COL.fpInk; ctx.fillText('FP',(prX1+prX2)/2*cw,(prY1+prY2)/2*ch+14);
+  ctx.fillStyle=COL.fnInk; ctx.fillText('FN',(gtX1+gtX2)/2*cw,(gtY1+gtY2)/2*ch-4);
+}
+
+function drawIoUDiceCurve() {
+  const canvas = document.getElementById('iou-dice-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const pad={l:44,r:20,t:20,b:44};
+  const gw=W-pad.l-pad.r, gh=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  const bg=getCSS('--surface'), brd=getCSS('--border'), textDim=getCSS('--text-dim');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle=brd; ctx.lineWidth=0.5;
+  for (let i=0;i<=5;i++) {
+    const x=pad.l+i*gw/5, y=pad.t+i*gh/5;
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+gh); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gw,y); ctx.stroke();
+    ctx.fillStyle=textDim; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText((i/5).toFixed(1),x,pad.t+gh+13);
+    ctx.textAlign='right'; ctx.fillText((1-i/5).toFixed(1),pad.l-4,pad.t+i*gh/5+4);
+  }
+
+  // Identity diagonal (reference)
+  ctx.beginPath(); ctx.strokeStyle=brd; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.moveTo(pad.l,pad.t+gh); ctx.lineTo(pad.l+gw,pad.t); ctx.stroke(); ctx.setLineDash([]);
+
+  // IoU = identity line
+  ctx.beginPath(); ctx.strokeStyle=COL.iouLine; ctx.lineWidth=2;
+  for (let i=0;i<=100;i++) {
+    const v=i/100;
+    i===0 ? ctx.moveTo(pad.l+v*gw,pad.t+(1-v)*gh) : ctx.lineTo(pad.l+v*gw,pad.t+(1-v)*gh);
+  }
+  ctx.stroke();
+
+  // Dice = 2*iou/(1+iou) curve
+  ctx.beginPath(); ctx.strokeStyle=COL.diceLine; ctx.lineWidth=2.5;
+  for (let i=0;i<=100;i++) {
+    const iou=i/100, dice=2*iou/(1+iou);
+    i===0 ? ctx.moveTo(pad.l+iou*gw,pad.t+(1-dice)*gh) : ctx.lineTo(pad.l+iou*gw,pad.t+(1-dice)*gh);
+  }
+  ctx.stroke();
+
+  // Live dots for current dragged box
+  const {iou,dice}=computeIoU(GT,PRED);
+  const cx=pad.l+iou*gw;
+  ctx.beginPath(); ctx.arc(cx,pad.t+(1-iou)*gh,5,0,Math.PI*2);
+  ctx.fillStyle=COL.iouLine; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,pad.t+(1-dice)*gh,5,0,Math.PI*2);
+  ctx.fillStyle=COL.diceLine; ctx.fill();
+
+  // Vertical connector between the two dots
+  ctx.strokeStyle=getCSS('--border-hi'); ctx.lineWidth=1; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(cx,pad.t+(1-iou)*gh); ctx.lineTo(cx,pad.t+(1-dice)*gh); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.fillStyle=textDim; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('IoU →',pad.l+gw/2,H-4);
+  ctx.save(); ctx.translate(12,pad.t+gh/2); ctx.rotate(-Math.PI/2); ctx.fillText('Value →',0,0); ctx.restore();
+  ctx.fillStyle=COL.iouLine; ctx.textAlign='right'; ctx.font='bold 10px IBM Plex Mono,monospace';
+  ctx.fillText('IoU',pad.l+gw-4,pad.t+gh*0.30);
+  ctx.fillStyle=COL.diceLine; ctx.fillText('Dice',pad.l+gw-4,pad.t+gh*0.14);
+}
+
+// IoU drag events
+const iouWrap = document.getElementById('iou-canvas-wrap');
+if (iouWrap) {
+  iouWrap.addEventListener('mousedown', e => {
+    const r = iouWrap.getBoundingClientRect();
+    const scaleX = 340/r.width, scaleY = 280/r.height;
+    const mx=(e.clientX-r.left)*scaleX, my=(e.clientY-r.top)*scaleY;
+    // Check resize handle
+    const rx=PRED.x+PRED.w-8, ry=PRED.y+PRED.h-8;
+    if (mx>=rx&&mx<=rx+10&&my>=ry&&my<=ry+10) dragMode='resize';
+    else if (mx>=PRED.x&&mx<=PRED.x+PRED.w&&my>=PRED.y&&my<=PRED.y+PRED.h) dragMode='move';
+    else return;
+    dragging=true; dragStartX=mx; dragStartY=my;
+    dragStartPred={...PRED};
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const r = iouWrap.getBoundingClientRect();
+    const scaleX=340/r.width, scaleY=280/r.height;
+    const mx=(e.clientX-r.left)*scaleX, my=(e.clientY-r.top)*scaleY;
+    const dx=mx-dragStartX, dy=my-dragStartY;
+    if (dragMode==='move') {
+      PRED.x=clamp(dragStartPred.x+dx,0,340-PRED.w);
+      PRED.y=clamp(dragStartPred.y+dy,0,280-PRED.h);
+    } else {
+      PRED.w=clamp(dragStartPred.w+dx,30,300);
+      PRED.h=clamp(dragStartPred.h+dy,30,250);
+    }
+    drawIoUCanvas(); drawIoUDiceCurve();
+  });
+  window.addEventListener('mouseup', ()=>{ dragging=false; });
+}
+
+// Touch support for IoU
+if (iouWrap) {
+  iouWrap.addEventListener('touchstart', e => {
+    const t=e.touches[0];
+    const r=iouWrap.getBoundingClientRect();
+    const scaleX=340/r.width, scaleY=280/r.height;
+    const mx=(t.clientX-r.left)*scaleX, my=(t.clientY-r.top)*scaleY;
+    const rx=PRED.x+PRED.w-8, ry=PRED.y+PRED.h-8;
+    if (mx>=rx&&mx<=rx+10&&my>=ry&&my<=ry+10) dragMode='resize';
+    else if (mx>=PRED.x&&mx<=PRED.x+PRED.w&&my>=PRED.y&&my<=PRED.y+PRED.h) dragMode='move';
+    else return;
+    dragging=true; dragStartX=mx; dragStartY=my; dragStartPred={...PRED};
+    e.preventDefault();
+  },{passive:false});
+  iouWrap.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t=e.touches[0];
+    const r=iouWrap.getBoundingClientRect();
+    const scaleX=340/r.width, scaleY=280/r.height;
+    const mx=(t.clientX-r.left)*scaleX, my=(t.clientY-r.top)*scaleY;
+    const dx=mx-dragStartX, dy=my-dragStartY;
+    if (dragMode==='move') { PRED.x=clamp(dragStartPred.x+dx,0,340-PRED.w); PRED.y=clamp(dragStartPred.y+dy,0,280-PRED.h); }
+    else { PRED.w=clamp(dragStartPred.w+dx,30,300); PRED.h=clamp(dragStartPred.h+dy,30,250); }
+    drawIoUCanvas(); drawIoUDiceCurve(); e.preventDefault();
+  },{passive:false});
+  iouWrap.addEventListener('touchend', ()=>{ dragging=false; });
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB 3: AP @ IoU thresholds
+// ══════════════════════════════════════════════════════════
+
+// Synthetic detections with IoU values against GT
+// Each detection: {score, iou_with_gt}
+const DET_WITH_IOU = [
+  {score:0.96, iou:0.91},{score:0.91, iou:0.82},{score:0.87, iou:0.55},
+  {score:0.83, iou:0.77},{score:0.79, iou:0.43},{score:0.74, iou:0.88},
+  {score:0.70, iou:0.31},{score:0.66, iou:0.69},{score:0.61, iou:0.51},
+  {score:0.57, iou:0.62},{score:0.52, iou:0.22},{score:0.47, iou:0.74},
+  {score:0.43, iou:0.38},{score:0.38, iou:0.48},{score:0.33, iou:0.29},
+];
+const N_GT_IOT = 12;
+
+function computeAPAtThresh(thresh) {
+  // Sort by score desc
+  const sorted = [...DET_WITH_IOU].sort((a,b)=>b.score-a.score);
+  let cumTP=0, cumFP=0;
+  const pts=[];
+  sorted.forEach(d => {
+    if (d.iou >= thresh) cumTP++; else cumFP++;
+    const P=cumTP/(cumTP+cumFP), R=cumTP/N_GT_IOT;
+    pts.push({P,R,score:d.score,iou:d.iou,isTP:d.iou>=thresh});
+  });
+  // 101-point interpolated AP
+  let ap=0;
+  for (let r=0;r<=1.0;r+=0.01) {
+    const maxP=pts.filter(p=>p.R>=r).reduce((m,p)=>Math.max(m,p.P),0);
+    ap+=maxP/101;
+  }
+  return {ap, pts};
+}
+
+function drawAPCanvas(iouThresh) {
+  const canvas = document.getElementById('ap-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const pad={l:46,r:16,t:24,b:32};
+  const gw=W-pad.l-pad.r, gh=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  const bg=getCSS('--surface'), brd=getCSS('--border'), textDim=getCSS('--text-dim');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const sorted=[...DET_WITH_IOU].sort((a,b)=>b.score-a.score);
+  const n=sorted.length;
+  const barH=13, barGap=4;
+  const totalH=n*(barH+barGap);
+  const startY=pad.t+(gh-totalH)/2;
+
+  // Score bar takes left 45%, label text gets right 55%
+  const barArea=gw*0.44;
+  const labelX=pad.l+barArea+7;
+  const labelMaxW=W-pad.r-labelX;
+
+  sorted.forEach((d,i) => {
+    const isTP=d.iou>=iouThresh;
+    const y=startY+i*(barH+barGap);
+    const bw=d.score*barArea;
+    const ink=isTP?COL.tpInk:COL.fpInk;
+
+    // Bar track + fill
+    ctx.fillStyle=brd; ctx.fillRect(pad.l,y,barArea,barH);
+    ctx.fillStyle=ink; ctx.fillRect(pad.l,y,bw,barH);
+
+    // Score label (left of bar)
+    ctx.fillStyle=textDim; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='right';
+    ctx.fillText(d.score.toFixed(2),pad.l-4,y+barH-2);
+
+    // IoU label (right of bar) — clip to available width
+    ctx.fillStyle=ink; ctx.textAlign='left';
+    ctx.save();
+    ctx.beginPath(); ctx.rect(labelX,y-1,labelMaxW,barH+2); ctx.clip();
+    ctx.fillText(`IoU=${d.iou.toFixed(2)} → ${isTP?'TP':'FP'}`,labelX,y+barH-2);
+    ctx.restore();
+  });
+
+  // AP value top-right
+  const {ap}=computeAPAtThresh(iouThresh);
+  ctx.fillStyle=COL.apMain; ctx.font='bold 12px IBM Plex Mono,monospace'; ctx.textAlign='right';
+  ctx.fillText(`AP@${iouThresh.toFixed(2)} = ${ap.toFixed(3)}`,W-pad.r,pad.t+16);
+
+  // Update HTML note below canvas
+  const noteEl=document.getElementById('ap-thresh-note');
+  if(noteEl) noteEl.textContent=`IoU 阈值 = ${iouThresh.toFixed(2)}  ·  低于阈值的检测被判为 FP`;
+}
+
+function buildCOCOTable() {
+  function rangeAP(lo,hi,step) {
+    let vals=[],t=lo;
+    while(t<=hi+0.001){vals.push(computeAPAtThresh(t).ap);t+=step;}
+    return vals.reduce((s,v)=>s+v,0)/vals.length;
+  }
+  const ap_main=rangeAP(0.5,0.95,0.05);
+  const ap50=computeAPAtThresh(0.5).ap;
+  const ap75=computeAPAtThresh(0.75).ap;
+  const tbody=document.getElementById('coco-table-body');
+  if(!tbody) return;
+  const data=[
+    {name:'AP',    val:ap_main,      range:'0.50:0.05:0.95', note:'主要综合指标',    color:COL.apMain},
+    {name:'AP50',  val:ap50,         range:'0.50',           note:'宽松阈值',        color:COL.ap50},
+    {name:'AP75',  val:ap75,         range:'0.75',           note:'较严格',          color:COL.ap75},
+    {name:'AP-S',  val:ap_main*0.72, range:'0.50:0.95',      note:'小目标 (<32²)',   color:COL.cocoAlt},
+    {name:'AP-M',  val:ap_main*0.96, range:'0.50:0.95',      note:'中目标',          color:COL.cocoAlt},
+    {name:'AP-L',  val:Math.min(1,ap_main*1.12), range:'0.50:0.95', note:'大目标',  color:COL.fnInk},
+  ];
+  tbody.innerHTML=data.map(d=>{
+    const pct=Math.round(d.val*100);
+    return `<tr>
+      <td><span class="tag-pill" style="background:${d.color};color:#fff">${d.name}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);">${d.range}</td>
+      <td style="font-size:11px;color:var(--text-dim);">${d.note}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="iou-bar" style="width:80px;"><div class="iou-bar-fill" style="width:${pct}%;background:${d.color}"></div></div>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-hi);">${d.val.toFixed(3)}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function drawThreshGrade() {
+  const canvas=document.getElementById('thresh-grade-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=getCSS('--surface'); ctx.fillRect(0,0,W,H);
+  const textDim=getCSS('--text-dim');
+
+  const thresholds=[
+    {t:0.50,label:'AP@0.50',color:COL.ap50, note:'宽松'},
+    {t:0.75,label:'AP@0.75',color:COL.ap75, note:'中等'},
+    {t:0.90,label:'AP@0.90',color:COL.ap90, note:'严格'},
+    {t:0.95,label:'AP@0.95',color:COL.ap95, note:'极严格'},
+  ];
+  const barH=30, gap=10, startY=18, startX=86, maxW=W-startX-70;
+  thresholds.forEach((th,i)=>{
+    const {ap}=computeAPAtThresh(th.t);
+    const y=startY+i*(barH+gap);
+    ctx.fillStyle=textDim; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='right';
+    ctx.fillText(th.label,startX-8,y+barH/2+4);
+    ctx.fillStyle=getCSS('--border'); ctx.fillRect(startX,y,maxW,barH);
+    ctx.fillStyle=th.color+'55'; ctx.fillRect(startX,y,ap*maxW,barH);
+    ctx.fillStyle=th.color; ctx.fillRect(startX,y,3,barH);
+    ctx.fillStyle=th.color; ctx.font='bold 11px IBM Plex Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText(`${ap.toFixed(3)}  ${th.note}`,startX+ap*maxW+8,y+barH/2+4);
+  });
+  ctx.fillStyle=textDim; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('AP@[.5:.95] = 上方多阈值 AP 的均值（包含中间步骤）',W/2,H-6);
+}
+
+function updateAPTable(thresh) {
+  document.getElementById('iou-thresh-val').textContent = thresh.toFixed(2);
+  drawAPCanvas(thresh);
+  buildCOCOTable();
+  drawThreshGrade();
+}
+
+// ══════════════════════════════════════════════════════════
+// THEME CHANGE REDRAW
+// ══════════════════════════════════════════════════════════
+new MutationObserver(() => {
+  renderMetrics();
+  // Redraw whichever tab is active
+  const activePanel = document.querySelector('.panel.active');
+  if (!activePanel) return;
+  const idx = [...document.querySelectorAll('.panel')].indexOf(activePanel);
+  if (idx===1) { drawPRCurve(); }
+  if (idx===2) { drawIoUCanvas(); drawIoUDiceCurve(); drawPixelCanvas(); }
+  if (idx===3) { updateAPTable(parseFloat(document.getElementById('iou-thresh-sl').value)/100); drawThreshGrade(); }
+}).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+// Initial renders
+renderMetrics();
+// Tab 1 & 2 lazy draw on first visit — triggered by showTab
+// Tab 0 drawn immediately above
+
+// Expose for tab switching
+window.showTab = showTab;
+</script>
+</body>
+</html>
