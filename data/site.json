@@ -24,6 +24,14 @@
     "pinned": false
   },
   {
+    "name": "评估指标百科 · Evaluation Metrics",
+    "url": "pages/metrics.html",
+    "icon": "📄",
+    "desc": "评估指标交互参考 — 混淆矩阵可拖动实验 · PR曲线面积即AP · IoU/Dice几何交互 · AP@IoU阈值 (AP50/AP75/AP@[0.5:0.95]) 完整解析。Interactive ML evaluation metrics: confusion matrix sandbox, PR curve AUC, IoU/Dice geometry, COCO AP metrics.",
+    "tag": "其他",
+    "pinned": false
+  },
+  {
     "name": "PhD Tech Tree · 3D Scene Understanding via Gaussian Splatting",
     "url": "pages/phd_tech_tree.html",
     "icon": "🌲",
