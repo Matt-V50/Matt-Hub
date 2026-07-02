@@ -56,6 +56,14 @@
     "pinned": false
   },
   {
+    "name": "QAPF 双三角图 · 火成岩分类 · MattHub",
+    "url": "pages/qapf.html",
+    "icon": "🪨",
+    "desc": "QAPF双三角图——IUGS标准火成岩分类，交互式悬停查看岩石标本图片与矿物成分说明。Classification of Igneous Rocks Q-A-P-F diagram, Streckeisen 1976.",
+    "tag": "参考",
+    "pinned": false
+  },
+  {
     "name": "皮肤百科 · Skin Encyclopedia",
     "url": "pages/skin.html",
     "icon": "🧬",
