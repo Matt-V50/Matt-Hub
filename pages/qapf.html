@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>QAPF 双三角图 · 火成岩分类 · MattHub</title>
+<meta name="description" content="QAPF双三角图——IUGS标准火成岩分类，交互式悬停查看岩石标本图片与矿物成分说明。Classification of Igneous Rocks Q-A-P-F diagram, Streckeisen 1976."/>
+<meta name="keywords" content="QAPF,火成岩,岩浆岩,花岗岩,辉长岩,正长岩,igneous rocks,petrology,Streckeisen"/>
+<meta name="icon" content="🪨"/>
+<meta name="tag" content="参考"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/css/shared.css"/>
+<style>
+body { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* ── 页面布局 ── */
+.qapf-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.qapf-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .1em;
+  margin-bottom: 24px;
+}
+
+/* ── SVG 容器 ── */
+#qapf-svg-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+}
+#qapf-svg-wrap svg {
+  display: block;
+  width: 100%;
+}
+.z { cursor: pointer; transition: opacity .12s; }
+.z:hover { opacity: .72; }
+
+/* ── Tooltip ── */
+#tt {
+  position: fixed;
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  width: 220px;
+  display: none;
+  z-index: 200;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+#tt-img-wrap {
+  width: 100%;
+  height: 130px;
+  background: var(--tag-bg);
+  position: relative;
+  overflow: hidden;
+}
+#tt-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+}
+#tt-spin {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+  letter-spacing: .06em;
+}
+#tt-body { padding: 10px 12px 12px; }
+#tt-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--accent);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 3px; display: none;
+}
+#tt-name {
+  font-size: 13px; font-weight: 500;
+  color: var(--text-hi); margin-bottom: 2px; line-height: 1.3;
+}
+#tt-en {
+  font-size: 10px; color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 6px; font-style: italic;
+}
+#tt-desc {
+  font-size: 11px; color: var(--text);
+  line-height: 1.65; margin-bottom: 7px;
+}
+#tt-fml {
+  font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-dim);
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  padding: 3px 7px; border-radius: 3px;
+  margin-bottom: 7px; display: none;
+}
+#tt-wiki {
+  font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  color: var(--accent); text-decoration: none;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+}
+#tt-wiki:hover { border-color: var(--accent); }
+
+
+/* ── SVG 文字 ── */
+.sv-th {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+}
+.sv-ts {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+}
+.sv-tl {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 8.5px;
+}
+
+/* ── 图例 ── */
+.legend {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+  letter-spacing: .06em;
+}
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend-sq {
+  width: 10px; height: 10px;
+  border-radius: 2px; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+/* ── 说明文字 ── */
+.qapf-note {
+  margin-top: 20px;
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 1.8; letter-spacing: .02em;
+  max-width: 580px; width: 100%;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.qapf-note b { color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+<script src="../assets/js/theme.js"></script>
+<div class="container">
+<header>
+  <a class="back site-title" href="../index.html">
+    <img src="../assets/img/favicon.svg" alt="MattHub"/>
+    <span>MattHub</span>
+  </a>
+  <button id="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()"></button>
+</header>
+
+<div class="section-label">Igneous Petrology</div>
+<h1 style="font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:500;color:var(--text-hi);letter-spacing:-.02em;margin-bottom:6px;">
+  火成岩<span style="color:var(--accent)">分类图</span>
+</h1>
+<p class="qapf-subtitle">QAPF DOUBLE TRIANGLE · IUGS STRECKEISEN 1976 · HOVER TO EXPLORE</p>
+
+<div class="qapf-wrap">
+
+<!-- tooltip -->
+<div id="tt">
+  <div id="tt-img-wrap">
+    <div id="tt-spin">loading…</div>
+    <img id="tt-img" alt="rock specimen"/>
+
+  </div>
+  <div id="tt-body">
+    <div id="tt-num"></div>
+    <div id="tt-name"></div>
+    <div id="tt-en"></div>
+    <div id="tt-desc"></div>
+    <div id="tt-fml"></div>
+    <a id="tt-wiki" href="#" target="_blank" rel="noopener">wikipedia ↗</a>
+  </div>
+</div>
+
+<div id="qapf-svg-wrap">
+<svg viewBox="0 0 600 880" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QAPF双三角图">
+<title>QAPF双三角图 · 火成岩分类</title>
+<!--
+坐标: Q=300,20  A=50,420  P=550,420  (上三角 H=400)
+      A=50,420  P=550,420  F=300,820  (下三角 H=400, 完全对称)
+
+上三角扇线在Q%水平线上的x:
+  fan(Q,r) = 50 + 250*(Q/100) + 500*r*(1-Q/100)
+  其中 Q=石英百分比, r=P/(A+P)
+
+多边形坐标直接从数学推导取，与上传参考文件一致。
+-->
+
+<!-- ======== 上三角 ======== -->
+
+<!-- Q5 Q>90 -->
+<polygon class="z" points="300,20 275,60 325,60" fill="#f5f0b0"
+  data-num="Q5" data-zh="石英岩类" data-en="Quartzolite"
+  data-desc="Q>90%，几乎全由石英组成，极为罕见的深成岩"
+  data-fml="Q > 90%"
+  data-img="https://commons.wikimedia.org/wiki/Special:FilePath/Quartz_Oisan.jpg?width=500"
+  data-qid="Q11751572" data-wiki="Quartzolite"/>
+
+<!-- 富石英花岗岩 Q60-90 -->
+<polygon class="z" points="275,60 325,60 400,180 200,180" fill="#ede070"
+  data-zh="富石英花岗岩" data-en="Quartz-rich granitoid"
+  data-desc="Q=60~90%，硅含量极高的酸性深成岩，矿物以石英和长石为主"
+  data-fml="Q = 60~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/3-hornblende-granite-hand-specimen-scaled.jpg"
+  data-qid="Q41177" data-wiki="Granite"/>
+
+<!-- 碱长花岗岩 Q20-60, P<10% -->
+<polygon class="z" points="200,180 220,180 140,340 100,340" fill="#c8d870"
+  data-zh="碱长花岗岩" data-en="Alkali feldspar granite"
+  data-desc="Q=20~60%，A/(A+P)>90%，以碱性长石（钾长石、钠长石）为主，斜长石极少"
+  data-fml="Q=20~60%, P/(A+P) < 10%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/3-hornblende-granite-hand-specimen-scaled.jpg"
+  data-qid="Q41177" data-wiki="Alkali_feldspar_granite"/>
+
+<!-- 花岗岩 Q20-60, P10-65% -->
+<polygon class="z" points="220,180 330,180 360,340 140,340" fill="#d4c858"
+  data-zh="花岗岩" data-en="Granite"
+  data-desc="Q=20~60%，P/(A+P)=10~65%，最常见的深成岩，大陆地壳的主要组成成分"
+  data-fml="Q=20~60%, P/(A+P)=10~65%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/3-hornblende-granite-hand-specimen-scaled.jpg"
+  data-qid="Q41177" data-wiki="Granite"/>
+
+<!-- 花岗闪长岩 Q20-60, P65-90% -->
+<polygon class="z" points="330,180 380,180 460,340 360,340" fill="#c8a838"
+  data-zh="花岗闪长岩" data-en="Granodiorite"
+  data-desc="Q=20~60%，P/(A+P)=65~90%，SiO₂约65~70%，常见于大陆弧"
+  data-fml="Q=20~60%, P/(A+P)=65~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/7-granodiorite-hand-specimen-1-scaled.jpg"
+  data-qid="Q215690" data-wiki="Granodiorite"/>
+
+<!-- 英云闪长岩 Q20-60, P90-100% -->
+<polygon class="z" points="380,180 400,180 500,340 460,340" fill="#a08828"
+  data-zh="英云闪长岩" data-en="Tonalite"
+  data-desc="Q=20~60%，P/(A+P)=90~100%，斜长石极富，常见于岛弧深成岩"
+  data-fml="Q=20~60%, P/(A+P)=90~100%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/24-tonalite-hand-specimen-geodil-scaled.jpg"
+  data-qid="Q650147" data-wiki="Tonalite"/>
+
+<!-- Q2 石英碱长正长岩 Q5-20, P<10% -->
+<polygon class="z" points="100,340 140,340 110,400 62.5,400" fill="#b0c860"
+  data-num="Q2" data-zh="石英碱长正长岩" data-en="Quartz alkali feldspar syenite"
+  data-desc="Q=5~20%，A/(A+P)>90%，含少量石英，碱性长石为主"
+  data-fml="Q=5~20%, P/(A+P) < 10%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/13-Syenite_Cuttingsville_Vermont-James-St.-John-Wikimedia-Commons.jpg"
+  data-qid="Q329118" data-wiki="Syenite"/>
+
+<!-- 石英正长岩 Q5-20, P10-35% -->
+<polygon class="z" points="140,340 240,340 228.8,400 110,400" fill="#cec050"
+  data-zh="石英正长岩" data-en="Quartz syenite"
+  data-desc="Q=5~20%，P/(A+P)=10~35%，含少量石英的正长岩"
+  data-fml="Q=5~20%, P/(A+P)=10~35%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/13-Syenite_Cuttingsville_Vermont-James-St.-John-Wikimedia-Commons.jpg"
+  data-qid="Q329118" data-wiki="Syenite"/>
+
+<!-- 石英二长岩 Q5-20, P35-65% -->
+<polygon class="z" points="240,340 360,340 371.2,400 228.8,400" fill="#bea840"
+  data-zh="石英二长岩" data-en="Quartz monzonite"
+  data-desc="Q=5~20%，P/(A+P)=35~65%，碱长与斜长石近等量，含石英"
+  data-fml="Q=5~20%, P/(A+P)=35~65%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/monzonite2019-alexstrekeisen.jpg"
+  data-qid="Q1130233" data-wiki="Monzonite"/>
+
+<!-- Q4 石英二长闪长/辉长岩 Q5-20, P65-90% -->
+<polygon class="z" points="360,340 460,340 490,400 371.2,400" fill="#9e8830"
+  data-num="Q4" data-zh="石英二长闪长/辉长岩" data-en="Quartz monzodiorite/gabbro"
+  data-desc="Q=5~20%，P/(A+P)=65~90%，斜长石为主，含少量石英"
+  data-fml="Q=5~20%, P/(A+P)=65~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/gabbro-from-duluth-30-hand-specimen-geodil.jpg"
+  data-qid="Q46947" data-wiki="Gabbro"/>
+
+<!-- Q3 石英闪长/辉长岩 Q5-20, P90-100% -->
+<polygon class="z" points="460,340 500,340 537.5,400 490,400" fill="#7e6820"
+  data-num="Q3" data-zh="石英闪长/辉长岩" data-en="Quartz diorite/gabbro"
+  data-desc="Q=5~20%，P/(A+P)=90~100%，几乎全为斜长石，含少量石英"
+  data-fml="Q=5~20%, P/(A+P)=90~100%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/gabbro-from-duluth-30-hand-specimen-geodil.jpg"
+  data-qid="Q46947" data-wiki="Gabbro"/>
+
+<!-- Q1 碱长正长岩 Q<5, P<10% -->
+<polygon class="z" points="62.5,400 110,400 100,420 50,420" fill="#98b858"
+  data-num="Q1" data-zh="碱长正长岩" data-en="Alkali feldspar syenite"
+  data-desc="Q<5%，A/(A+P)>90%，富碱性长石，几乎无石英，常含霓石、霓辉石"
+  data-fml="Q < 5%, P/(A+P) < 10%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q329118" data-wiki="Alkali_feldspar_syenite"/>
+
+<!-- 正长岩 Q<5, P10-35% -->
+<polygon class="z" points="110,400 228.8,400 225,420 100,420" fill="#c8b848"
+  data-zh="正长岩" data-en="Syenite"
+  data-desc="Q<5%，P/(A+P)=10~35%，碱性长石为主，无石英或极少，与花岗岩化学成分相近但低硅"
+  data-fml="Q < 5%, P/(A+P)=10~35%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/13-Syenite_Cuttingsville_Vermont-James-St.-John-Wikimedia-Commons.jpg"
+  data-qid="Q329118" data-wiki="Syenite"/>
+
+<!-- 二长岩 Q<5, P35-65% -->
+<polygon class="z" points="228.8,400 371.2,400 375,420 225,420" fill="#b89838"
+  data-zh="二长岩" data-en="Monzonite"
+  data-desc="Q<5%，P/(A+P)=35~65%，碱性长石与斜长石近等量，无石英"
+  data-fml="Q < 5%, P/(A+P)=35~65%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/monzonite2019-alexstrekeisen.jpg"
+  data-qid="Q1130233" data-wiki="Monzonite"/>
+
+<!-- 二长闪长/辉长岩 Q<5, P65-90% -->
+<polygon class="z" points="371.2,400 490,400 500,420 375,420" fill="#988028"
+  data-zh="二长闪长/辉长岩" data-en="Monzodiorite/gabbro"
+  data-desc="Q<5%，P/(A+P)=65~90%，斜长石为主，含少量碱长石，无石英"
+  data-fml="Q < 5%, P/(A+P)=65~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/25-diorite-hand-specimen-geodil-scaled.jpg"
+  data-qid="Q110442663" data-wiki="Monzodiorite"/>
+
+<!-- Q3 闪长/辉长岩 Q<5, P90-100% -->
+<polygon class="z" points="490,400 537.5,400 550,420 500,420" fill="#786018"
+  data-num="Q3" data-zh="闪长/辉长岩" data-en="Diorite/gabbro"
+  data-desc="Q<5%，P/(A+P)=90~100%，几乎全为斜长石+暗色矿物（角闪石/辉石），无石英。闪长岩含角闪石，辉长岩含辉石"
+  data-fml="Q < 5%, P/(A+P)=90~100%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/gabbro-from-duluth-30-hand-specimen-geodil.jpg"
+  data-qid="Q46947" data-wiki="Gabbro"/>
+
+<!-- ======== 上三角框线 ======== -->
+<polygon points="300,20 50,420 550,420" fill="none" stroke="var(--text)" stroke-width="1.6" opacity=".5"/>
+<line x1="275" y1="60" x2="325" y2="60" stroke="var(--text)" stroke-width=".8" stroke-dasharray="3 2" opacity=".4"/>
+<line x1="200" y1="180" x2="400" y2="180" stroke="var(--text)" stroke-width="1.2" opacity=".45"/>
+<line x1="100" y1="340" x2="500" y2="340" stroke="var(--text)" stroke-width="1.2" opacity=".45"/>
+<line x1="62.5" y1="400" x2="537.5" y2="400" stroke="var(--text)" stroke-width="1.2" opacity=".45"/>
+<line x1="300" y1="20" x2="100" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+<line x1="300" y1="20" x2="225" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+<line x1="300" y1="20" x2="375" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+<line x1="300" y1="20" x2="500" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+
+<!-- 上三角标签 -->
+<text class="sv-th" x="300" y="13" text-anchor="middle" fill="var(--text-hi)">Q</text>
+<text class="sv-ts" x="300" y="25" text-anchor="middle" fill="var(--text-dim)">石英</text>
+<text class="sv-th" x="36" y="425" text-anchor="end" fill="var(--text-hi)">A</text>
+<text class="sv-ts" x="36" y="437" text-anchor="end" fill="var(--text-dim)">碱长石</text>
+<text class="sv-th" x="564" y="425" fill="var(--text-hi)">P</text>
+<text class="sv-ts" x="564" y="437" fill="var(--text-dim)">斜长石</text>
+<!-- Q%刻度 -->
+<text class="sv-ts" x="43" y="64" text-anchor="end" fill="var(--text-dim)">90</text>
+<text class="sv-ts" x="43" y="184" text-anchor="end" fill="var(--text-dim)">60</text>
+<text class="sv-ts" x="43" y="344" text-anchor="end" fill="var(--text-dim)">20</text>
+<text class="sv-ts" x="43" y="404" text-anchor="end" fill="var(--text-dim)">5</text>
+<!-- P/(A+P)刻度 -->
+<text class="sv-ts" x="100" y="437" text-anchor="middle" fill="var(--text-dim)">10</text>
+<text class="sv-ts" x="225" y="437" text-anchor="middle" fill="var(--text-dim)">35</text>
+<text class="sv-ts" x="375" y="437" text-anchor="middle" fill="var(--text-dim)">65</text>
+<text class="sv-ts" x="500" y="437" text-anchor="middle" fill="var(--text-dim)">90</text>
+<text class="sv-ts" x="300" y="449" text-anchor="middle" fill="var(--text-dim)" opacity=".7">P / (A+P) %</text>
+<!-- 区域名 上三角 -->
+<text class="sv-tl" x="300" y="47" text-anchor="middle" fill="var(--text-hi)">Q5 石英岩类</text>
+<text class="sv-tl" x="300" y="134" text-anchor="middle" fill="var(--text-hi)">富石英花岗岩</text>
+<text class="sv-tl" x="152" y="268" text-anchor="middle" fill="var(--text-hi)">碱长花岗岩</text>
+<text class="sv-tl" x="270" y="278" text-anchor="middle" fill="var(--text-hi)">花岗岩</text>
+<text class="sv-tl" x="406" y="290" text-anchor="middle" fill="var(--text-hi)">花岗闪长岩</text>
+<text class="sv-tl" x="472" y="270" text-anchor="middle" fill="var(--text-hi)" font-size="7.5">英云闪长岩</text>
+<text class="sv-tl" x="76" y="378" text-anchor="middle" fill="var(--text-hi)">Q2</text>
+<text class="sv-tl" x="166" y="378" text-anchor="middle" fill="var(--text-hi)">石英正长岩</text>
+<text class="sv-tl" x="300" y="378" text-anchor="middle" fill="var(--text-hi)">石英二长岩</text>
+<text class="sv-tl" x="428" y="378" text-anchor="middle" fill="var(--text-hi)">Q4</text>
+<text class="sv-tl" x="515" y="378" text-anchor="middle" fill="var(--text-hi)">Q3</text>
+<text class="sv-tl" x="76" y="413" text-anchor="middle" fill="var(--text-hi)">Q1</text>
+<text class="sv-tl" x="158" y="413" text-anchor="middle" fill="var(--text-hi)">正长岩</text>
+<text class="sv-tl" x="300" y="413" text-anchor="middle" fill="var(--text-hi)">二长岩</text>
+<text class="sv-tl" x="434" y="413" text-anchor="middle" fill="var(--text-hi)" font-size="7.5">二长闪长岩</text>
+<text class="sv-tl" x="515" y="413" text-anchor="middle" fill="var(--text-hi)">Q3</text>
+<text class="sv-tl" x="52" y="454" text-anchor="middle" fill="var(--accent)">F1</text>
+<text class="sv-tl" x="548" y="454" text-anchor="middle" fill="var(--accent)">F2</text>
+
+<!-- ======== 下三角 ======== -->
+
+<!-- F1 含副长碱长正长岩 F0-10, r<0.10 -->
+<polygon class="z" points="50,420 100,420 120,460 75,460" fill="#90c090"
+  data-num="F1" data-zh="含副长碱长正长岩" data-en="Foid-bearing alkali feldspar syenite"
+  data-desc="F=0~10%，A/(A+P)>90%，含少量副长石（霞石、白榴石等），碱性长石为主"
+  data-fml="F=0~10%, P/(A+P) < 10%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q329118" data-wiki="Foid-bearing_syenite"/>
+
+<!-- 含副长正长岩 F0-10, r0.10-0.35 -->
+<polygon class="z" points="100,420 225,420 232.5,460 120,460" fill="#80b080"
+  data-zh="含副长正长岩" data-en="Foid-bearing syenite"
+  data-desc="F=0~10%，P/(A+P)=10~35%，含少量副长石"
+  data-fml="F=0~10%, P/(A+P)=10~35%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q329118" data-wiki="Foid-bearing_syenite"/>
+
+<!-- 含副长二长岩 F0-10, r0.35-0.65 -->
+<polygon class="z" points="225,420 375,420 367.5,460 232.5,460" fill="#70a070"
+  data-zh="含副长二长岩" data-en="Foid-bearing monzonite"
+  data-desc="F=0~10%，P/(A+P)=35~65%，碱长与斜长石近等量，含少量副长石"
+  data-fml="F=0~10%, P/(A+P)=35~65%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q1130233" data-wiki="Foid-bearing_monzonite"/>
+
+<!-- 含副长二长闪长岩 F0-10, r0.65-0.90 -->
+<polygon class="z" points="375,420 500,420 480,460 367.5,460" fill="#609060"
+  data-zh="含副长二长闪长/辉长岩" data-en="Foid-bearing monzodiorite/gabbro"
+  data-desc="F=0~10%，P/(A+P)=65~90%，斜长石为主，含少量副长石"
+  data-fml="F=0~10%, P/(A+P)=65~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/hornblende-gabbro-28-hand-specimen-geodil.jpg"
+  data-qid="Q46947" data-wiki="Foid-bearing_gabbro"/>
+
+<!-- F2 含副长闪长/辉长岩 F0-10, r0.90-1.0 -->
+<polygon class="z" points="500,420 550,420 525,460 480,460" fill="#508050"
+  data-num="F2" data-zh="含副长闪长/辉长岩" data-en="Foid-bearing diorite/gabbro"
+  data-desc="F=0~10%，P/(A+P)=90~100%，几乎全为斜长石，含少量副长石"
+  data-fml="F=0~10%, P/(A+P)=90~100%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/hornblende-gabbro-28-hand-specimen-geodil.jpg"
+  data-qid="Q46947" data-wiki="Foid-bearing_gabbro"/>
+
+<!-- 副长正长岩 F10-60, r<0.10 -->
+<polygon class="z" points="75,460 120,460 220,660 200,660" fill="#5090a8"
+  data-zh="副长正长岩" data-en="Foid syenite"
+  data-desc="F=10~60%，P/(A+P)<10%，含大量霞石等副长石，碱性岩典型代表"
+  data-fml="F=10~60%, P/(A+P) < 10%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q9261132" data-wiki="Foid_syenite"/>
+
+<!-- 副长二长正长岩 F10-60, r0.10-0.50 -->
+<polygon class="z" points="120,460 300,460 300,660 220,660" fill="#4080a0"
+  data-zh="副长二长正长岩" data-en="Foid monzosyenite"
+  data-desc="F=10~60%，P/(A+P)=10~50%，碱长与斜长石共存，富副长石"
+  data-fml="F=10~60%, P/(A+P)=10~50%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q9261131" data-wiki="Phonolite"/>
+
+<!-- 副长二长闪长岩 F10-60, r0.50-0.90 -->
+<polygon class="z" points="300,460 480,460 380,660 300,660" fill="#307090"
+  data-zh="副长二长闪长岩" data-en="Foid monzodiorite"
+  data-desc="F=10~60%，P/(A+P)=50~90%，斜长石为主，富副长石"
+  data-fml="F=10~60%, P/(A+P)=50~90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q9261131" data-wiki="Phonolite"/>
+
+<!-- 副长闪长/辉长岩 F10-60, r0.90-1.0 -->
+<polygon class="z" points="480,460 525,460 400,660 380,660" fill="#206080"
+  data-zh="副长闪长/辉长岩" data-en="Foid diorite/gabbro"
+  data-desc="F=10~60%，P/(A+P)>90%，几乎全为斜长石，富副长石"
+  data-fml="F=10~60%, P/(A+P) > 90%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_granitoids/nepheline-syenite-geodil-17-hand-specimen-scaled.jpg"
+  data-qid="Q9261131" data-wiki="Phonolite"/>
+
+<!-- 副长岩 F>60 -->
+<polygon class="z" points="200,660 400,660 300,820" fill="#105070"
+  data-zh="副长岩" data-en="Foidolite"
+  data-desc="F>60%，几乎全由副长石组成。霞石岩（nepheline syenite的极端）、白榴岩（leucitite）等均属此类"
+  data-fml="F > 60%"
+  data-img="https://opengeology.org/petrology/wp-content/uploads/a_volcanicrocks/leucitite-Mt-Vesuvius-Ruthven-1.jpg"
+  data-qid="Q2351327" data-wiki="Foidolite"/>
+
+<!-- ======== 下三角框线 ======== -->
+<polygon points="50,420 550,420 300,820" fill="none" stroke="var(--text)" stroke-width="1.6" opacity=".5"/>
+<line x1="75" y1="460" x2="525" y2="460" stroke="var(--text)" stroke-width="1.2" opacity=".45"/>
+<line x1="200" y1="660" x2="400" y2="660" stroke="var(--text)" stroke-width="1.2" opacity=".45"/>
+<line x1="300" y1="820" x2="100" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+<line x1="300" y1="820" x2="300" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+<line x1="300" y1="820" x2="500" y2="420" stroke="var(--text)" stroke-width=".8" stroke-dasharray="5 3" opacity=".3"/>
+
+<!-- 下三角标签 -->
+<text class="sv-th" x="300" y="842" text-anchor="middle" fill="var(--text-hi)">F</text>
+<text class="sv-ts" x="300" y="854" text-anchor="middle" fill="var(--text-dim)">副长石</text>
+<!-- F%刻度 -->
+<text class="sv-ts" x="43" y="464" text-anchor="end" fill="var(--text-dim)">10</text>
+<text class="sv-ts" x="43" y="664" text-anchor="end" fill="var(--text-dim)">60</text>
+<!-- 下三角P刻度 -->
+<text class="sv-ts" x="100" y="438" text-anchor="middle" fill="var(--accent)" opacity=".7">10</text>
+<text class="sv-ts" x="300" y="438" text-anchor="middle" fill="var(--accent)" opacity=".7">50</text>
+<text class="sv-ts" x="500" y="438" text-anchor="middle" fill="var(--accent)" opacity=".7">90</text>
+<!-- 区域名 下三角 -->
+<text class="sv-tl" x="155" y="444" text-anchor="middle" fill="var(--text-hi)">含副长正长岩</text>
+<text class="sv-tl" x="300" y="444" text-anchor="middle" fill="var(--text-hi)">含副长二长岩</text>
+<text class="sv-tl" x="432" y="444" text-anchor="middle" fill="var(--text-hi)">含副长闪长岩</text>
+<text class="sv-tl" x="100" y="572" text-anchor="middle" fill="var(--text-hi)">副长正长岩</text>
+<text class="sv-tl" x="216" y="572" text-anchor="middle" fill="var(--text-hi)">副长二长正长岩</text>
+<text class="sv-tl" x="366" y="572" text-anchor="middle" fill="var(--text-hi)">副长二长闪长岩</text>
+<text class="sv-tl" x="464" y="572" text-anchor="middle" fill="var(--text-hi)">副长闪长岩</text>
+<text class="sv-tl" x="300" y="732" text-anchor="middle" fill="#e8f8f8">副长岩 Foidolite</text>
+
+<!-- 图例小字 -->
+<text class="sv-ts" x="8" y="72" fill="var(--text-dim)">Q = 石英</text>
+<text class="sv-ts" x="8" y="85" fill="var(--text-dim)">A = 碱性长石</text>
+<text class="sv-ts" x="8" y="98" fill="var(--text-dim)">P = 斜长石</text>
+<text class="sv-ts" x="8" y="111" fill="var(--text-dim)">F = 副长石</text>
+
+</svg>
+</div><!-- /#qapf-svg-wrap -->
+
+<div class="legend">
+  <span><span class="legend-sq" style="background:#d4c858"></span>上三角 — 含石英 (Q>0)</span>
+  <span><span class="legend-sq" style="background:#70a070"></span>下三角 — 含副长石 (F>0)</span>
+  <span>Q 与 F 不共存</span>
+</div>
+
+<div class="qapf-note">
+  <b>如何使用：</b>取岩石薄片，在显微镜下统计 Q、A、P、F 的体积百分比，归一化后在对应三角形内定位。Q>0 落在上三角，F>0 落在下三角，AP 连线（Q=0且F=0）两侧的岩石是饱和端元。<br/>
+  <b>注意：</b>此图适用于深成岩（侵入岩）；喷出岩因晶体细小、矿物难以鉴定，通常改用 TAS 图（SiO₂ vs Na₂O+K₂O）。超基性岩（暗色矿物>90%）另有橄榄石–辉石–角闪石三角图处理。
+</div>
+
+</div><!-- /.qapf-wrap -->
+
+</div><!-- /.container -->
+
+<script>
+const tt    = document.getElementById('tt');
+const ttImg = document.getElementById('tt-img');
+const ttSpin= document.getElementById('tt-spin');
+const ttNum = document.getElementById('tt-num');
+const ttName= document.getElementById('tt-name');
+const ttEn  = document.getElementById('tt-en');
+const ttDesc= document.getElementById('tt-desc');
+const ttFml = document.getElementById('tt-fml');
+const ttWiki= document.getElementById('tt-wiki');
+
+let activeZ = null;
+
+function pos(e) {
+  const w = 220, m = 14;
+  let x = e.clientX + m;
+  let y = e.clientY + m;
+  if (x + w > window.innerWidth - 8)  x = e.clientX - w - m;
+  if (y + 360 > window.innerHeight - 8) y = Math.max(8, window.innerHeight - 368);
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}
+
+function openTooltip(z, e) {
+  const { num, zh, en, desc, fml, img, wiki } = z.dataset;
+  ttNum.textContent   = num || '';
+  ttNum.style.display = num ? 'block' : 'none';
+  ttName.textContent  = zh;
+  ttEn.textContent    = en;
+  ttDesc.textContent  = desc;
+  ttFml.textContent   = fml || '';
+  ttFml.style.display = fml ? 'block' : 'none';
+  ttWiki.href = 'https://en.wikipedia.org/wiki/' + (wiki || en.replace(/ /g, '_'));
+  ttWiki.textContent = 'wikipedia: ' + en + ' ↗';
+
+  ttImg.style.display = 'none';
+  ttImg.src = '';
+  ttSpin.style.display = 'flex';
+  ttSpin.textContent = 'loading…';
+  tt.style.display = 'block';
+  pos(e);
+
+  if (img) {
+    const i = new Image();
+    i.onload  = () => { ttImg.src = img; ttImg.style.display = 'block'; ttSpin.style.display = 'none'; };
+    i.onerror = () => { ttSpin.textContent = 'image unavailable'; };
+    i.src = img;
+  } else {
+    ttSpin.textContent = 'no image';
+  }
+}
+
+function closeTooltip() {
+  tt.style.display = 'none';
+  ttImg.style.display = 'none';
+  ttImg.src = '';
+  activeZ = null;
+}
+
+document.querySelectorAll('.z').forEach(z => {
+  z.addEventListener('click', e => {
+    e.stopPropagation();
+    if (activeZ === z) {
+      closeTooltip();
+    } else {
+      activeZ = z;
+      openTooltip(z, e);
+    }
+  });
+});
+
+tt.addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', () => closeTooltip());
+</script>
+
+</body>
+</html>
